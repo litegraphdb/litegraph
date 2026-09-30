@@ -43,6 +43,8 @@ const ENFORCED_DIRS = [
   'page/api-explorer',
   'page/authorization',
   'page/ai',
+  'components/hub',
+  'components/tab-bar',
 ];
 const ENFORCED_FILES = [
   'components/layout/DashboardLayout.tsx',

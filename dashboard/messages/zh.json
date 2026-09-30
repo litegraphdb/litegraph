@@ -147,7 +147,10 @@
       "rebuildVectorIndex": "重建向量索引",
       "deleteVectorIndex": "删除向量索引",
       "viewJson": "查看 JSON",
-      "menu": "操作"
+      "menu": "操作",
+      "viewNodes": "查看节点",
+      "viewEdges": "查看边",
+      "viewVectors": "查看向量"
     },
     "form": {
       "name": "名称",
@@ -1369,17 +1372,25 @@
   },
   "nav": {
     "section": {
-      "home": "首页",
-      "data": "数据",
-      "metadata": "元数据",
-      "manage": "管理",
-      "secure": "安全",
-      "administer": "系统管理",
-      "ai": "AI"
+      "workspace": "工作区",
+      "administration": "系统管理"
     },
-    "item": {
+    "hub": {
       "home": "首页",
       "homeTitle": "仪表板概览",
+      "graphs": "图",
+      "graphsTitle": "图、节点、边、元数据、向量和算法",
+      "chat": "聊天",
+      "chatTitle": "与图聊天并管理聊天端点",
+      "access": "访问",
+      "accessTitle": "租户、用户、凭据和授权",
+      "system": "系统",
+      "systemTitle": "服务器设置、集群和备份",
+      "developer": "开发者",
+      "developerTitle": "API 请求历史和 API Explorer"
+    },
+    "tabBarAria": "{hub} 标签页",
+    "item": {
       "graphs": "图",
       "graphsTitle": "管理图容器",
       "nodes": "节点",
@@ -1412,11 +1423,11 @@
       "aiChatTitle": "与您的图谱对话",
       "aiEndpoints": "端点",
       "aiEndpointsTitle": "管理 LLM 端点",
-      "aiHistory": "聊天历史",
+      "aiHistory": "历史",
       "aiHistoryTitle": "浏览聊天会话与轮次",
       "aiFeedback": "反馈",
       "aiFeedbackTitle": "查看聊天反馈",
-      "aiSettings": "聊天设置",
+      "aiSettings": "设置",
       "aiSettingsTitle": "租户聊天配置",
       "algorithms": "Algorithms",
       "algorithmsTitle": "Run graph algorithms and export projections",

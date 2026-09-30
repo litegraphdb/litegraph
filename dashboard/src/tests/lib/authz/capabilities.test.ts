@@ -110,19 +110,15 @@ describe('capability map — can()', () => {
 });
 
 describe('capability map — canViewSection()', () => {
-  it('SystemAdmin sees every section', () => {
-    for (const s of ['home', 'data', 'metadata', 'manage', 'secure', 'administer'] as const) {
-      expect(canViewSection(systemAdmin, s)).toBe(true);
+  it('every principal sees both groups', () => {
+    for (const p of [systemAdmin, tenantAdmin, regular, breakGlass]) {
+      expect(canViewSection(p, 'workspace')).toBe(true);
+      expect(canViewSection(p, 'administration')).toBe(true);
     }
   });
-  it('TenantAdmin sees everything except ADMINISTER', () => {
-    expect(canViewSection(tenantAdmin, 'secure')).toBe(true);
-    expect(canViewSection(tenantAdmin, 'administer')).toBe(false);
-  });
-  it('Regular user sees data/secure but not administer', () => {
-    expect(canViewSection(regular, 'data')).toBe(true);
-    expect(canViewSection(regular, 'secure')).toBe(true);
-    expect(canViewSection(regular, 'administer')).toBe(false);
+  it('an anonymous principal sees nothing', () => {
+    expect(canViewSection(null, 'workspace')).toBe(false);
+    expect(canViewSection(null, 'administration')).toBe(false);
   });
 });
 
@@ -148,10 +144,8 @@ describe('capability map — AI resources', () => {
     expect(can(tenantAdmin, 'edit', 'aiEndpoints', { tenantGuid: TENANT_B })).toBe(false);
   });
 
-  it('the AI section is visible to everyone (chat is always viewable)', () => {
-    expect(canViewSection(regular, 'ai')).toBe(true);
-    expect(canViewSection(tenantAdmin, 'ai')).toBe(true);
-    expect(canViewSection(systemAdmin, 'ai')).toBe(true);
-    expect(canViewSection(null, 'ai')).toBe(false);
+  it('chat stays viewable for anyone signed in', () => {
+    expect(can(regular, 'view', 'aiChat')).toBe(true);
+    expect(can(null, 'view', 'aiChat')).toBe(false);
   });
 });

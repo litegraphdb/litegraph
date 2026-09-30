@@ -147,7 +147,10 @@
       "rebuildVectorIndex": "Reconstruire l'index vectoriel",
       "deleteVectorIndex": "Supprimer l'index vectoriel",
       "viewJson": "Afficher le JSON",
-      "menu": "Actions"
+      "menu": "Actions",
+      "viewNodes": "Voir les nœuds",
+      "viewEdges": "Voir les arêtes",
+      "viewVectors": "Voir les vecteurs"
     },
     "form": {
       "name": "Nom",
@@ -1369,17 +1372,25 @@
   },
   "nav": {
     "section": {
-      "home": "Accueil",
-      "data": "Données",
-      "metadata": "Métadonnées",
-      "manage": "Gérer",
-      "secure": "Sécuriser",
-      "administer": "Administration",
-      "ai": "IA"
+      "workspace": "Espace de travail",
+      "administration": "Administration"
     },
-    "item": {
+    "hub": {
       "home": "Accueil",
       "homeTitle": "Vue d'ensemble du tableau de bord",
+      "graphs": "Graphes",
+      "graphsTitle": "Graphes, nœuds, arêtes, métadonnées, vecteurs et algorithmes",
+      "chat": "Chat",
+      "chatTitle": "Discutez avec vos graphes et gérez les points de terminaison du chat",
+      "access": "Accès",
+      "accessTitle": "Locataires, utilisateurs, identifiants et autorisations",
+      "system": "Système",
+      "systemTitle": "Paramètres du serveur, cluster et sauvegardes",
+      "developer": "Développeur",
+      "developerTitle": "Historique des requêtes API et explorateur d'API"
+    },
+    "tabBarAria": "Onglets {hub}",
+    "item": {
       "graphs": "Graphes",
       "graphsTitle": "Gérer les conteneurs de graphes",
       "nodes": "Nœuds",
@@ -1404,7 +1415,7 @@
       "credentialsTitle": "Gérer les identifiants API",
       "authorization": "Autorisation",
       "authorizationTitle": "Gérer les rôles et les portées des identifiants",
-      "backups": "Sauvegarde",
+      "backups": "Sauvegardes",
       "backupsTitle": "Gérer les sauvegardes de la base de données",
       "settings": "Paramètres",
       "settingsTitle": "Configuration du serveur",
@@ -1412,11 +1423,11 @@
       "aiChatTitle": "Discutez avec vos graphes",
       "aiEndpoints": "Points de terminaison",
       "aiEndpointsTitle": "Gérer les points de terminaison LLM",
-      "aiHistory": "Historique du chat",
+      "aiHistory": "Historique",
       "aiHistoryTitle": "Parcourir les conversations et les tours de chat",
       "aiFeedback": "Retours",
       "aiFeedbackTitle": "Consulter les retours du chat",
-      "aiSettings": "Paramètres du chat",
+      "aiSettings": "Paramètres",
       "aiSettingsTitle": "Configuration du chat du locataire",
       "algorithms": "Algorithms",
       "algorithmsTitle": "Run graph algorithms and export projections",

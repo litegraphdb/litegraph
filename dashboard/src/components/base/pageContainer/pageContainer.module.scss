@@ -1,7 +1,8 @@
 .pageContainer {
   background: var(--ant-color-bg-base);
   border-radius: 0;
-  min-height: calc(100vh - 64px);
+  // A hub tab bar above the page sets --hub-tabs-height so the page still fits the viewport.
+  min-height: calc(100vh - 64px - var(--hub-tabs-height, 0px));
 }
 
 .pageTitleContainer {
@@ -11,7 +12,7 @@
 
 .pageContent {
   padding: 24px;
-  max-height: calc(100vh - 132px);
+  max-height: calc(100vh - 132px - var(--hub-tabs-height, 0px));
   overflow: auto;
 
   &::-webkit-scrollbar {

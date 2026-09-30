@@ -147,7 +147,10 @@
       "rebuildVectorIndex": "Reconstruir índice vectorial",
       "deleteVectorIndex": "Eliminar índice vectorial",
       "viewJson": "Ver JSON",
-      "menu": "Acciones"
+      "menu": "Acciones",
+      "viewNodes": "Ver nodos",
+      "viewEdges": "Ver aristas",
+      "viewVectors": "Ver vectores"
     },
     "form": {
       "name": "Nombre",
@@ -1369,17 +1372,25 @@
   },
   "nav": {
     "section": {
-      "home": "Inicio",
-      "data": "Datos",
-      "metadata": "Metadatos",
-      "manage": "Gestionar",
-      "secure": "Seguridad",
-      "administer": "Administración",
-      "ai": "IA"
+      "workspace": "Espacio de trabajo",
+      "administration": "Administración"
     },
-    "item": {
+    "hub": {
       "home": "Inicio",
       "homeTitle": "Resumen del panel",
+      "graphs": "Grafos",
+      "graphsTitle": "Grafos, nodos, aristas, metadatos, vectores y algoritmos",
+      "chat": "Chat",
+      "chatTitle": "Chatee con sus grafos y gestione los endpoints de chat",
+      "access": "Acceso",
+      "accessTitle": "Inquilinos, usuarios, credenciales y autorización",
+      "system": "Sistema",
+      "systemTitle": "Configuración del servidor, clúster y copias de seguridad",
+      "developer": "Desarrollador",
+      "developerTitle": "Historial de solicitudes API y explorador de API"
+    },
+    "tabBarAria": "Pestañas de {hub}",
+    "item": {
       "graphs": "Grafos",
       "graphsTitle": "Gestionar contenedores de grafos",
       "nodes": "Nodos",
@@ -1404,7 +1415,7 @@
       "credentialsTitle": "Gestionar credenciales de API",
       "authorization": "Autorización",
       "authorizationTitle": "Gestionar roles y ámbitos de credenciales",
-      "backups": "Copia de seguridad",
+      "backups": "Copias de seguridad",
       "backupsTitle": "Gestionar copias de seguridad de la base de datos",
       "settings": "Configuración",
       "settingsTitle": "Configuración del servidor",
@@ -1412,11 +1423,11 @@
       "aiChatTitle": "Chatee con sus grafos",
       "aiEndpoints": "Endpoints",
       "aiEndpointsTitle": "Gestionar endpoints de LLM",
-      "aiHistory": "Historial de chat",
+      "aiHistory": "Historial",
       "aiHistoryTitle": "Explorar conversaciones y turnos de chat",
       "aiFeedback": "Comentarios",
       "aiFeedbackTitle": "Revisar comentarios del chat",
-      "aiSettings": "Ajustes de chat",
+      "aiSettings": "Ajustes",
       "aiSettingsTitle": "Configuración de chat del inquilino",
       "algorithms": "Algorithms",
       "algorithmsTitle": "Run graph algorithms and export projections",

@@ -147,7 +147,10 @@
       "rebuildVectorIndex": "ベクトルインデックスを再構築",
       "deleteVectorIndex": "ベクトルインデックスを削除",
       "viewJson": "JSONを表示",
-      "menu": "操作"
+      "menu": "操作",
+      "viewNodes": "ノードを表示",
+      "viewEdges": "エッジを表示",
+      "viewVectors": "ベクトルを表示"
     },
     "form": {
       "name": "名前",
@@ -1369,17 +1372,25 @@
   },
   "nav": {
     "section": {
-      "home": "ホーム",
-      "data": "データ",
-      "metadata": "メタデータ",
-      "manage": "管理",
-      "secure": "セキュリティ",
-      "administer": "運用管理",
-      "ai": "AI"
+      "workspace": "ワークスペース",
+      "administration": "運用管理"
     },
-    "item": {
+    "hub": {
       "home": "ホーム",
       "homeTitle": "ダッシュボード概要",
+      "graphs": "グラフ",
+      "graphsTitle": "グラフ、ノード、エッジ、メタデータ、ベクトル、アルゴリズム",
+      "chat": "チャット",
+      "chatTitle": "グラフとチャットし、チャットエンドポイントを管理",
+      "access": "アクセス",
+      "accessTitle": "テナント、ユーザー、認証情報、認可",
+      "system": "システム",
+      "systemTitle": "サーバー設定、クラスター、バックアップ",
+      "developer": "開発者",
+      "developerTitle": "API リクエスト履歴と API エクスプローラー"
+    },
+    "tabBarAria": "{hub} のタブ",
+    "item": {
       "graphs": "グラフ",
       "graphsTitle": "グラフコンテナを管理",
       "nodes": "ノード",
@@ -1412,11 +1423,11 @@
       "aiChatTitle": "グラフとチャットする",
       "aiEndpoints": "エンドポイント",
       "aiEndpointsTitle": "LLM エンドポイントの管理",
-      "aiHistory": "チャット履歴",
+      "aiHistory": "履歴",
       "aiHistoryTitle": "チャットのスレッドとターンを閲覧",
       "aiFeedback": "フィードバック",
       "aiFeedbackTitle": "チャットのフィードバックを確認",
-      "aiSettings": "チャット設定",
+      "aiSettings": "設定",
       "aiSettingsTitle": "テナントのチャット構成",
       "algorithms": "Algorithms",
       "algorithmsTitle": "Run graph algorithms and export projections",

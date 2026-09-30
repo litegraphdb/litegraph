@@ -147,7 +147,10 @@
       "rebuildVectorIndex": "Vector-Index neu aufbauen",
       "deleteVectorIndex": "Vector-Index löschen",
       "viewJson": "JSON anzeigen",
-      "menu": "Aktionen"
+      "menu": "Aktionen",
+      "viewNodes": "Knoten anzeigen",
+      "viewEdges": "Kanten anzeigen",
+      "viewVectors": "Vektoren anzeigen"
     },
     "form": {
       "name": "Name",
@@ -1369,17 +1372,25 @@
   },
   "nav": {
     "section": {
-      "home": "Startseite",
-      "data": "Daten",
-      "metadata": "Metadaten",
-      "manage": "Verwalten",
-      "secure": "Sichern",
-      "administer": "Administration",
-      "ai": "KI"
+      "workspace": "Arbeitsbereich",
+      "administration": "Administration"
     },
-    "item": {
+    "hub": {
       "home": "Startseite",
       "homeTitle": "Dashboard-Übersicht",
+      "graphs": "Graphen",
+      "graphsTitle": "Graphen, Knoten, Kanten, Metadaten, Vektoren und Algorithmen",
+      "chat": "Chat",
+      "chatTitle": "Mit Ihren Graphen chatten und Chat-Endpunkte verwalten",
+      "access": "Zugriff",
+      "accessTitle": "Mandanten, Benutzer, Anmeldedaten und Autorisierung",
+      "system": "System",
+      "systemTitle": "Servereinstellungen, Cluster und Backups",
+      "developer": "Entwickler",
+      "developerTitle": "API-Anfrageverlauf und API Explorer"
+    },
+    "tabBarAria": "Tabs für {hub}",
+    "item": {
       "graphs": "Graphen",
       "graphsTitle": "Graph-Container verwalten",
       "nodes": "Knoten",
@@ -1404,7 +1415,7 @@
       "credentialsTitle": "API-Anmeldedaten verwalten",
       "authorization": "Autorisierung",
       "authorizationTitle": "Rollen und Anmeldedaten-Geltungsbereiche verwalten",
-      "backups": "Backup",
+      "backups": "Backups",
       "backupsTitle": "Datenbank-Backups verwalten",
       "settings": "Einstellungen",
       "settingsTitle": "Serverkonfiguration",
@@ -1412,11 +1423,11 @@
       "aiChatTitle": "Mit Ihren Graphen chatten",
       "aiEndpoints": "Endpunkte",
       "aiEndpointsTitle": "LLM-Endpunkte verwalten",
-      "aiHistory": "Chatverlauf",
+      "aiHistory": "Verlauf",
       "aiHistoryTitle": "Chat-Unterhaltungen und -Züge durchsuchen",
       "aiFeedback": "Feedback",
       "aiFeedbackTitle": "Chat-Feedback prüfen",
-      "aiSettings": "Chat-Einstellungen",
+      "aiSettings": "Einstellungen",
       "aiSettingsTitle": "Chat-Konfiguration des Mandanten",
       "algorithms": "Algorithms",
       "algorithmsTitle": "Run graph algorithms and export projections",

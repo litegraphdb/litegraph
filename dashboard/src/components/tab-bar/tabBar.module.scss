@@ -1,0 +1,45 @@
+.tabBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 16px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--ant-color-border);
+  background: var(--ant-color-bg-base);
+}
+
+.tabs {
+  flex: 1 1 320px;
+  min-width: 0;
+
+  :global(.ant-tabs-nav) {
+    margin: 0;
+  }
+
+  :global(.ant-tabs-nav::before) {
+    border-bottom: none;
+  }
+
+  :global(.ant-tabs-content-holder) {
+    display: none;
+  }
+}
+
+.rightSlot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  margin-left: auto;
+}
+
+@media (max-width: 767px) {
+  .tabBar {
+    padding: 0 12px;
+  }
+
+  .rightSlot {
+    width: 100%;
+    margin-left: 0;
+  }
+}

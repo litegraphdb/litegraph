@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom';
 import React, { useState } from 'react';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
-import GraphPage from '@/app/dashboard/[tenantId]/graphs/page';
+import GraphPage from '@/app/dashboard/[tenantId]/graphs/graphs/page';
 import AddEditGraph from '@/page/graphs/components/AddEditGraph';
 import { renderWithRedux } from '../../store/utils';
 import { createMockInitialState } from '../../store/mockStore';

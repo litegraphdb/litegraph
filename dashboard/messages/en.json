@@ -147,7 +147,10 @@
       "rebuildVectorIndex": "Rebuild Vector Index",
       "deleteVectorIndex": "Delete Vector Index",
       "viewJson": "View JSON",
-      "menu": "Actions"
+      "menu": "Actions",
+      "viewNodes": "View nodes",
+      "viewEdges": "View edges",
+      "viewVectors": "View vectors"
     },
     "form": {
       "name": "Name",
@@ -1399,17 +1402,25 @@
   },
   "nav": {
     "section": {
-      "home": "Home",
-      "data": "Data",
-      "metadata": "Metadata",
-      "manage": "Manage",
-      "secure": "Secure",
-      "administer": "Administration",
-      "ai": "AI"
+      "workspace": "Workspace",
+      "administration": "Administration"
     },
-    "item": {
+    "hub": {
       "home": "Home",
       "homeTitle": "Dashboard overview",
+      "graphs": "Graphs",
+      "graphsTitle": "Graphs, nodes, edges, metadata, vectors and algorithms",
+      "chat": "Chat",
+      "chatTitle": "Chat with your graphs and manage chat endpoints",
+      "access": "Access",
+      "accessTitle": "Tenants, users, credentials and authorization",
+      "system": "System",
+      "systemTitle": "Server settings, cluster and backups",
+      "developer": "Developer",
+      "developerTitle": "API request history and the API explorer"
+    },
+    "tabBarAria": "{hub} tabs",
+    "item": {
       "graphs": "Graphs",
       "graphsTitle": "Manage graph containers",
       "nodes": "Nodes",
@@ -1434,7 +1445,7 @@
       "credentialsTitle": "Manage API credentials",
       "authorization": "Authorization",
       "authorizationTitle": "Manage roles and credential scopes",
-      "backups": "Backup",
+      "backups": "Backups",
       "backupsTitle": "Manage database backups",
       "settings": "Settings",
       "settingsTitle": "Server configuration",
@@ -1442,11 +1453,11 @@
       "aiChatTitle": "Chat with your graphs",
       "aiEndpoints": "Endpoints",
       "aiEndpointsTitle": "Manage LLM endpoints",
-      "aiHistory": "Chat History",
+      "aiHistory": "History",
       "aiHistoryTitle": "Browse chat threads and turns",
       "aiFeedback": "Feedback",
       "aiFeedbackTitle": "Review chat feedback",
-      "aiSettings": "Chat Settings",
+      "aiSettings": "Settings",
       "aiSettingsTitle": "Tenant chat configuration",
       "algorithms": "Algorithms",
       "algorithmsTitle": "Run graph algorithms and export projections",

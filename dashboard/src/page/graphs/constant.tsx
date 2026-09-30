@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { EditOutlined, MoreOutlined, CodeOutlined } from '@ant-design/icons';
+import {
+  ApartmentOutlined,
+  BranchesOutlined,
+  CodeOutlined,
+  EditOutlined,
+  MoreOutlined,
+  RadarChartOutlined,
+} from '@ant-design/icons';
 import { DeleteOutlined } from '@ant-design/icons';
 import { ExportOutlined, ImportOutlined } from '@ant-design/icons';
 import { SettingOutlined } from '@ant-design/icons';
@@ -18,6 +25,9 @@ import CountBadge from '@/components/base/count-badge/CountBadge';
 
 type Translator = (key: string, values?: Record<string, string | number>) => string;
 
+/** Graph-scoped tabs a graph row can open directly. */
+export type GraphViewTab = 'nodes' | 'edges' | 'vectors';
+
 export const tableColumns = (
   t: Translator,
   tImportExport: Translator,
@@ -32,7 +42,8 @@ export const tableColumns = (
   handleRebuildVectorIndex: (record: GraphData) => void,
   handleDeleteVectorIndex: (record: GraphData) => void,
   hasScoreOrDistance: boolean,
-  handleViewJson?: (record: GraphData) => void
+  handleViewJson?: (record: GraphData) => void,
+  handleViewTab?: (record: GraphData, tab: GraphViewTab) => void
 ): TableProps<GraphData>['columns'] => [
   {
     title: columnTooltip(t('columns.name'), t('columns.nameDesc')),
@@ -161,6 +172,29 @@ export const tableColumns = (
     responsive: ['sm'],
     render: (_: any, record: GraphData) => {
       const items = [
+        ...(handleViewTab
+          ? [
+              {
+                icon: <ApartmentOutlined />,
+                key: 'view-nodes',
+                label: t('rowActions.viewNodes'),
+                onClick: () => handleViewTab(record, 'nodes'),
+              },
+              {
+                icon: <BranchesOutlined />,
+                key: 'view-edges',
+                label: t('rowActions.viewEdges'),
+                onClick: () => handleViewTab(record, 'edges'),
+              },
+              {
+                icon: <RadarChartOutlined />,
+                key: 'view-vectors',
+                label: t('rowActions.viewVectors'),
+                onClick: () => handleViewTab(record, 'vectors'),
+              },
+              { type: 'divider' as const, key: 'divider-view-tabs' },
+            ]
+          : []),
         {
           icon: <EditOutlined />,
           key: 'edit',

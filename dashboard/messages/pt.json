@@ -147,7 +147,10 @@
       "rebuildVectorIndex": "Reconstruir índice de vector",
       "deleteVectorIndex": "Excluir índice de vector",
       "viewJson": "Ver JSON",
-      "menu": "Ações"
+      "menu": "Ações",
+      "viewNodes": "Ver nós",
+      "viewEdges": "Ver arestas",
+      "viewVectors": "Ver vetores"
     },
     "form": {
       "name": "Nome",
@@ -1369,17 +1372,25 @@
   },
   "nav": {
     "section": {
-      "home": "Início",
-      "data": "Dados",
-      "metadata": "Metadados",
-      "manage": "Gerenciar",
-      "secure": "Segurança",
-      "administer": "Administração",
-      "ai": "IA"
+      "workspace": "Área de trabalho",
+      "administration": "Administração"
     },
-    "item": {
+    "hub": {
       "home": "Início",
       "homeTitle": "Visão geral do dashboard",
+      "graphs": "Grafos",
+      "graphsTitle": "Grafos, nós, arestas, metadados, vetores e algoritmos",
+      "chat": "Chat",
+      "chatTitle": "Converse com seus grafos e gerencie os endpoints de chat",
+      "access": "Acesso",
+      "accessTitle": "Tenants, usuários, credenciais e autorização",
+      "system": "Sistema",
+      "systemTitle": "Configurações do servidor, cluster e backups",
+      "developer": "Desenvolvedor",
+      "developerTitle": "Histórico de requisições da API e API Explorer"
+    },
+    "tabBarAria": "Abas de {hub}",
+    "item": {
       "graphs": "Grafos",
       "graphsTitle": "Gerenciar contêineres de grafo",
       "nodes": "Nós",
@@ -1404,7 +1415,7 @@
       "credentialsTitle": "Gerenciar credenciais da API",
       "authorization": "Autorização",
       "authorizationTitle": "Gerenciar funções e escopos de credencial",
-      "backups": "Backup",
+      "backups": "Backups",
       "backupsTitle": "Gerenciar backups do banco de dados",
       "settings": "Configurações",
       "settingsTitle": "Configuração do servidor",
@@ -1412,11 +1423,11 @@
       "aiChatTitle": "Converse com os seus grafos",
       "aiEndpoints": "Endpoints",
       "aiEndpointsTitle": "Gerir endpoints de LLM",
-      "aiHistory": "Histórico de chat",
+      "aiHistory": "Histórico",
       "aiHistoryTitle": "Explorar conversas e turnos do chat",
       "aiFeedback": "Feedback",
       "aiFeedbackTitle": "Rever o feedback do chat",
-      "aiSettings": "Definições de chat",
+      "aiSettings": "Configurações",
       "aiSettingsTitle": "Configuração de chat do tenant",
       "algorithms": "Algorithms",
       "algorithmsTitle": "Run graph algorithms and export projections",

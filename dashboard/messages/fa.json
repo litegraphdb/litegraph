@@ -147,7 +147,10 @@
       "rebuildVectorIndex": "بازسازی نمایه برداری",
       "deleteVectorIndex": "حذف نمایه برداری",
       "viewJson": "مشاهده JSON",
-      "menu": "عملیات"
+      "menu": "عملیات",
+      "viewNodes": "مشاهده گره‌ها",
+      "viewEdges": "مشاهده یال‌ها",
+      "viewVectors": "مشاهده بردارها"
     },
     "form": {
       "name": "نام",
@@ -1369,17 +1372,25 @@
   },
   "nav": {
     "section": {
-      "home": "خانه",
-      "data": "داده",
-      "metadata": "فراداده",
-      "manage": "مدیریت",
-      "secure": "امنیت",
-      "administer": "مدیریت سیستم",
-      "ai": "هوش مصنوعی"
+      "workspace": "فضای کار",
+      "administration": "مدیریت سیستم"
     },
-    "item": {
+    "hub": {
       "home": "خانه",
       "homeTitle": "نمای کلی داشبورد",
+      "graphs": "گراف‌ها",
+      "graphsTitle": "گراف‌ها، گره‌ها، یال‌ها، فراداده، بردارها و الگوریتم‌ها",
+      "chat": "گفتگو",
+      "chatTitle": "با گراف‌های خود گفتگو کنید و نقاط پایانی گفتگو را مدیریت کنید",
+      "access": "دسترسی",
+      "accessTitle": "مستأجرها، کاربران، اعتبارنامه‌ها و مجوزدهی",
+      "system": "سیستم",
+      "systemTitle": "تنظیمات سرور، خوشه و پشتیبان‌ها",
+      "developer": "توسعه‌دهنده",
+      "developerTitle": "تاریخچه درخواست‌های API و کاوشگر API"
+    },
+    "tabBarAria": "زبانه‌های {hub}",
+    "item": {
       "graphs": "گراف‌ها",
       "graphsTitle": "مدیریت مخازن گراف",
       "nodes": "گره‌ها",
@@ -1404,7 +1415,7 @@
       "credentialsTitle": "مدیریت اعتبارنامه‌های API",
       "authorization": "مجوزدهی",
       "authorizationTitle": "مدیریت نقش‌ها و دامنه‌های اعتبارنامه",
-      "backups": "پشتیبان",
+      "backups": "پشتیبان‌ها",
       "backupsTitle": "مدیریت پشتیبان‌های پایگاه داده",
       "settings": "تنظیمات",
       "settingsTitle": "پیکربندی سرور",
@@ -1412,11 +1423,11 @@
       "aiChatTitle": "با گراف‌های خود گفتگو کنید",
       "aiEndpoints": "نقاط پایانی",
       "aiEndpointsTitle": "مدیریت نقاط پایانی LLM",
-      "aiHistory": "تاریخچه گفتگو",
+      "aiHistory": "تاریخچه",
       "aiHistoryTitle": "مرور گفتگوها و نوبت‌های چت",
       "aiFeedback": "بازخورد",
       "aiFeedbackTitle": "بررسی بازخورد گفتگو",
-      "aiSettings": "تنظیمات گفتگو",
+      "aiSettings": "تنظیمات",
       "aiSettingsTitle": "پیکربندی گفتگوی مستاجر",
       "algorithms": "Algorithms",
       "algorithmsTitle": "Run graph algorithms and export projections",

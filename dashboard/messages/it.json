@@ -147,7 +147,10 @@
       "rebuildVectorIndex": "Ricostruisci indice vector",
       "deleteVectorIndex": "Elimina indice vector",
       "viewJson": "Visualizza JSON",
-      "menu": "Azioni"
+      "menu": "Azioni",
+      "viewNodes": "Visualizza nodi",
+      "viewEdges": "Visualizza edge",
+      "viewVectors": "Visualizza vettori"
     },
     "form": {
       "name": "Nome",
@@ -1369,17 +1372,25 @@
   },
   "nav": {
     "section": {
-      "home": "Home",
-      "data": "Dati",
-      "metadata": "Metadati",
-      "manage": "Gestisci",
-      "secure": "Sicurezza",
-      "administer": "Amministrazione",
-      "ai": "IA"
+      "workspace": "Area di lavoro",
+      "administration": "Amministrazione"
     },
-    "item": {
+    "hub": {
       "home": "Home",
       "homeTitle": "Panoramica della dashboard",
+      "graphs": "Grafi",
+      "graphsTitle": "Grafi, nodi, edge, metadati, vettori e algoritmi",
+      "chat": "Chat",
+      "chatTitle": "Chatta con i tuoi grafi e gestisci gli endpoint della chat",
+      "access": "Accesso",
+      "accessTitle": "Tenant, utenti, credenziali e autorizzazioni",
+      "system": "Sistema",
+      "systemTitle": "Impostazioni del server, cluster e backup",
+      "developer": "Sviluppatore",
+      "developerTitle": "Cronologia delle richieste API e API Explorer"
+    },
+    "tabBarAria": "Schede di {hub}",
+    "item": {
       "graphs": "Grafi",
       "graphsTitle": "Gestisci i contenitori dei grafi",
       "nodes": "Nodi",
@@ -1412,11 +1423,11 @@
       "aiChatTitle": "Chatta con i tuoi grafi",
       "aiEndpoints": "Endpoint",
       "aiEndpointsTitle": "Gestisci gli endpoint LLM",
-      "aiHistory": "Cronologia chat",
+      "aiHistory": "Cronologia",
       "aiHistoryTitle": "Esplora conversazioni e turni della chat",
       "aiFeedback": "Feedback",
       "aiFeedbackTitle": "Esamina il feedback della chat",
-      "aiSettings": "Impostazioni chat",
+      "aiSettings": "Impostazioni",
       "aiSettingsTitle": "Configurazione chat del tenant",
       "algorithms": "Algorithms",
       "algorithmsTitle": "Run graph algorithms and export projections",

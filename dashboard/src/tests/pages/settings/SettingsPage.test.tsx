@@ -234,7 +234,7 @@ describe('SettingsPage', () => {
     mockClusterStatus = clusterStatus;
     render(<SettingsPage />);
     expect(screen.getByTestId('settings-cluster-banner')).toBeInTheDocument();
-    expect(screen.getByTestId('settings-cluster-banner-link')).toHaveAttribute('href', '/dashboard/cluster');
+    expect(screen.getByTestId('settings-cluster-banner-link')).toHaveAttribute('href', '/dashboard/system/cluster');
     expect(screen.getByTestId('settings-caching-cluster-note')).toBeInTheDocument();
   });
 

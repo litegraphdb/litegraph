@@ -26,7 +26,10 @@ const MenuItems = ({ menuItems, handleClickMenuItem, ...rest }: MenuItemsProps) 
       for (const item of items) {
         if (item.path) {
           const serialized = serializePath(item.path);
-          if (serialized && pathname === serialized) {
+          if (
+            serialized &&
+            (pathname === serialized || (item.matchPrefix && pathname?.startsWith(`${serialized}/`)))
+          ) {
             return [item.key];
           }
         }

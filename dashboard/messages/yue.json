@@ -147,7 +147,10 @@
       "rebuildVectorIndex": "重建向量索引",
       "deleteVectorIndex": "刪除向量索引",
       "viewJson": "睇 JSON",
-      "menu": "操作"
+      "menu": "操作",
+      "viewNodes": "睇節點",
+      "viewEdges": "睇邊",
+      "viewVectors": "睇向量"
     },
     "form": {
       "name": "名稱",
@@ -1369,17 +1372,25 @@
   },
   "nav": {
     "section": {
-      "home": "首頁",
-      "data": "資料",
-      "metadata": "元資料",
-      "manage": "管理",
-      "secure": "安全",
-      "administer": "管理",
-      "ai": "AI"
+      "workspace": "工作區",
+      "administration": "系統管理"
     },
-    "item": {
+    "hub": {
       "home": "首頁",
       "homeTitle": "儀表板概覽",
+      "graphs": "圖",
+      "graphsTitle": "圖、節點、邊、元資料、向量同演算法",
+      "chat": "傾偈",
+      "chatTitle": "同你嘅圖傾偈，管理傾偈端點",
+      "access": "存取",
+      "accessTitle": "租戶、用戶、憑證同授權",
+      "system": "系統",
+      "systemTitle": "伺服器設定、叢集同備份",
+      "developer": "開發者",
+      "developerTitle": "API 請求紀錄同 API 探索器"
+    },
+    "tabBarAria": "{hub} 分頁",
+    "item": {
       "graphs": "圖",
       "graphsTitle": "管理圖容器",
       "nodes": "節點",
@@ -1412,11 +1423,11 @@
       "aiChatTitle": "同你嘅圖譜傾偈",
       "aiEndpoints": "端點",
       "aiEndpointsTitle": "管理 LLM 端點",
-      "aiHistory": "傾偈紀錄",
+      "aiHistory": "紀錄",
       "aiHistoryTitle": "瀏覽傾偈對話同回合",
       "aiFeedback": "意見回饋",
       "aiFeedbackTitle": "查閱傾偈意見回饋",
-      "aiSettings": "傾偈設定",
+      "aiSettings": "設定",
       "aiSettingsTitle": "租戶傾偈設定",
       "algorithms": "Algorithms",
       "algorithmsTitle": "Run graph algorithms and export projections",

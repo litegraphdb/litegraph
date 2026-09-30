@@ -1,3 +1,5 @@
+const { legacyRedirects } = require('./legacy-redirects');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // eslint: {
@@ -17,6 +19,10 @@ const nextConfig = {
       process.env.NEXT_PUBLIC_LITEGRAPH_SERVER_URL || process.env.LITEGRAPH_SERVER || '',
   },
   reactStrictMode: false,
+  // Pre-hub page URLs open their hub tab, keeping the query string.
+  async redirects() {
+    return legacyRedirects;
+  },
 };
 
 module.exports = nextConfig;

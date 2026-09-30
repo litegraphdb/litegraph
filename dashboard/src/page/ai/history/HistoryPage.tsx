@@ -129,7 +129,7 @@ const HistoryPage = () => {
         const graph = graphs.find((candidate) => candidate.GUID === graphGuid);
         return (
           <a
-            href={`${serializePath(paths.graphs)}?graph=${graphGuid}`}
+            href={`${serializePath(paths.graphs)}?graph=${graphGuid}&open=${graphGuid}`}
             onClick={(e) => e.stopPropagation()}
             style={{ fontSize: 12.5 }}
             data-testid={`history-graph-link-${graphGuid}`}
