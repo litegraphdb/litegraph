@@ -1439,7 +1439,9 @@
       "aiSettings": "Chat Settings",
       "aiSettingsTitle": "Tenant chat configuration",
       "algorithms": "Algorithms",
-      "algorithmsTitle": "Run graph algorithms and export projections"
+      "algorithmsTitle": "Run graph algorithms and export projections",
+      "cluster": "Cluster",
+      "clusterTitle": "Cluster nodes and restarts"
     }
   },
   "secure": {
@@ -1589,7 +1591,8 @@
         "heartbeat": "Last heartbeat",
         "settingsVersion": "Settings version",
         "restartPending": "Restart pending"
-      }
+      },
+      "openPage": "Open the Cluster page"
     }
   },
   "ai": {
@@ -2076,5 +2079,91 @@
     "embeddingsModel": "Model",
     "embeddingsDimensionality": "Dimensionality",
     "close": "Close"
+  },
+  "cluster": {
+    "title": "Cluster",
+    "subtitle": "Every node in this deployment, its health, and restarts. The state filter applies to the node list fetched from the server.",
+    "loading": "Loading cluster status...",
+    "refresh": "Refresh",
+    "autoRefresh": "Refreshes every {seconds} s",
+    "autoRefreshPaused": "Auto-refresh paused",
+    "reconnecting": "Connection lost, retrying",
+    "lastUpdated": "updated {time}",
+    "singleNode": "Single node",
+    "singleNodeDescription": "This server is not running in cluster mode. It is the only node, and restarting it restarts the server.",
+    "registryUnavailable": "The node registry (Redis) is unreachable. Only the node that answered is shown, and restarts cannot be requested until Redis is back.",
+    "loadError": "Unable to load cluster status.",
+    "cards": {
+      "nodes": "Healthy nodes",
+      "cluster": "Cluster",
+      "registry": "Node registry",
+      "registryUp": "Available",
+      "registryDown": "Unavailable",
+      "registryNa": "Not used",
+      "settings": "Settings version",
+      "settingsLagging": "{count} behind, {pending} awaiting restart",
+      "lastRestart": "Last restart request",
+      "never": "Never"
+    },
+    "filter": {
+      "state": "State",
+      "all": "All states",
+      "localNote": "Showing {shown} of {total} nodes"
+    },
+    "columns": {
+      "node": "Node",
+      "host": "Host",
+      "version": "Version",
+      "state": "State",
+      "started": "Started",
+      "heartbeat": "Last heartbeat",
+      "checks": "Checks",
+      "settingsVersion": "Settings version",
+      "restartPending": "Restart pending",
+      "actions": "Actions"
+    },
+    "checks": {
+      "database": "Database",
+      "clutch": "Clutch",
+      "redis": "Redis"
+    },
+    "secondsAgo": "{seconds}s ago",
+    "yes": "Yes",
+    "no": "No",
+    "actions": {
+      "copyNodeId": "Copy node ID",
+      "restartNode": "Restart node",
+      "remove": "Remove from registry",
+      "rollingRestart": "Rolling restart"
+    },
+    "restartNodeModal": {
+      "title": "Restart node {node}?",
+      "body": "The node stops taking requests, restarts, and rejoins. If another node is restarting, it waits for that node first.",
+      "bodySingle": "The server exits and its supervisor starts it again. Requests are interrupted briefly."
+    },
+    "removeModal": {
+      "title": "Remove node {node}?",
+      "body": "Removes this node from the registry. If it starts again, it registers again."
+    },
+    "rollingModal": {
+      "title": "Restart every node?",
+      "body": "Every node restarts, one at a time, each after the previous one reports healthy. The cluster keeps serving requests throughout."
+    },
+    "progress": {
+      "title": "Rolling restart progress",
+      "complete": "All nodes have restarted.",
+      "pending": "Pending",
+      "restarting": "Restarting",
+      "restarted": "Restarted",
+      "dismiss": "Dismiss",
+      "requested": "Requested {time}"
+    },
+    "toast": {
+      "restartRequested": "Restart requested for {node}.",
+      "rollingRequested": "Rolling restart requested.",
+      "removed": "Node {node} removed.",
+      "actionFailed": "Request failed: {message}"
+    },
+    "empty": "No nodes are registered."
   }
 }

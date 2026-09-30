@@ -39,6 +39,7 @@ export const paths = {
   authorization: `/dashboard/authorization`,
   backups: `/dashboard/backups`,
   settings: `/dashboard/settings`,
+  cluster: `/dashboard/cluster`,
 };
 
 export const keepUnusedDataFor = 900; //15mins

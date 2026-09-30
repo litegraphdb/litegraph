@@ -55,6 +55,13 @@ namespace Test.Shared
                         skipReason: "Redis registry tests require a Redis server. Set " + RedisTestConnectionStringEnvironmentVariable + " to run this case."),
                     new TestCaseDescriptor(
                         suiteId: suiteId,
+                        caseId: "NodeRestart",
+                        displayName: "A single node's restart reaches only that node, and a stopped node can be removed from the registry",
+                        executeAsync: ExecuteScaleOutNodeRestartAsync,
+                        skip: ShouldSkipProviderSuite(RedisTestConnectionStringEnvironmentVariable),
+                        skipReason: "Node restart tests require a Redis server. Set " + RedisTestConnectionStringEnvironmentVariable + " to run this case."),
+                    new TestCaseDescriptor(
+                        suiteId: suiteId,
                         caseId: "RollingRestart",
                         displayName: "A cluster restart restarts nodes one at a time, each waiting for the previous one to return",
                         executeAsync: ExecuteScaleOutRollingRestartAsync,

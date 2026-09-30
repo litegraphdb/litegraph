@@ -1409,7 +1409,9 @@
       "aiSettings": "Paramètres du chat",
       "aiSettingsTitle": "Configuration du chat du locataire",
       "algorithms": "Algorithms",
-      "algorithmsTitle": "Run graph algorithms and export projections"
+      "algorithmsTitle": "Run graph algorithms and export projections",
+      "cluster": "Cluster",
+      "clusterTitle": "Nœuds du cluster et redémarrages"
     }
   },
   "secure": {
@@ -1530,7 +1532,8 @@
         "heartbeat": "Dernier signal",
         "settingsVersion": "Version des paramètres",
         "restartPending": "Redémarrage en attente"
-      }
+      },
+      "openPage": "Ouvrir la page Cluster"
     }
   },
   "ai": {
@@ -2017,5 +2020,91 @@
     "embeddingsModel": "Model",
     "embeddingsDimensionality": "Dimensionality",
     "close": "Close"
+  },
+  "cluster": {
+    "title": "Cluster",
+    "subtitle": "Tous les nœuds de ce déploiement, leur état et les redémarrages. Le filtre d'état s'applique à la liste des nœuds récupérée depuis le serveur.",
+    "loading": "Chargement de l'état du cluster...",
+    "refresh": "Actualiser",
+    "autoRefresh": "Actualisation toutes les {seconds} s",
+    "autoRefreshPaused": "Actualisation automatique en pause",
+    "reconnecting": "Connexion perdue, nouvelle tentative",
+    "lastUpdated": "mis à jour {time}",
+    "singleNode": "Nœud unique",
+    "singleNodeDescription": "Ce serveur ne fonctionne pas en mode cluster. C'est le seul nœud, et le redémarrer redémarre le serveur.",
+    "registryUnavailable": "Le registre des nœuds (Redis) est injoignable. Seul le nœud qui a répondu est affiché, et aucun redémarrage ne peut être demandé avant le retour de Redis.",
+    "loadError": "Impossible de charger l'état du cluster.",
+    "cards": {
+      "nodes": "Nœuds opérationnels",
+      "cluster": "Cluster",
+      "registry": "Registre des nœuds",
+      "registryUp": "Disponible",
+      "registryDown": "Indisponible",
+      "registryNa": "Non utilisé",
+      "settings": "Version des paramètres",
+      "settingsLagging": "{count} en retard, {pending} en attente de redémarrage",
+      "lastRestart": "Dernière demande de redémarrage",
+      "never": "Jamais"
+    },
+    "filter": {
+      "state": "État",
+      "all": "Tous les états",
+      "localNote": "{shown} nœuds affichés sur {total}"
+    },
+    "columns": {
+      "node": "Nœud",
+      "host": "Hôte",
+      "version": "Version",
+      "state": "État",
+      "started": "Démarré",
+      "heartbeat": "Dernier signal",
+      "checks": "Vérifications",
+      "settingsVersion": "Version des paramètres",
+      "restartPending": "Redémarrage en attente",
+      "actions": "Actions"
+    },
+    "checks": {
+      "database": "Base de données",
+      "clutch": "Clutch",
+      "redis": "Redis"
+    },
+    "secondsAgo": "il y a {seconds} s",
+    "yes": "Oui",
+    "no": "Non",
+    "actions": {
+      "copyNodeId": "Copier l'ID du nœud",
+      "restartNode": "Redémarrer le nœud",
+      "remove": "Retirer du registre",
+      "rollingRestart": "Redémarrage progressif"
+    },
+    "restartNodeModal": {
+      "title": "Redémarrer le nœud {node} ?",
+      "body": "Le nœud cesse d'accepter des requêtes, redémarre et rejoint le cluster. Si un autre nœud redémarre, il attend d'abord ce nœud.",
+      "bodySingle": "Le serveur se ferme et son superviseur le relance. Les requêtes sont brièvement interrompues."
+    },
+    "removeModal": {
+      "title": "Retirer le nœud {node} ?",
+      "body": "Retire ce nœud du registre. S'il redémarre, il s'enregistre de nouveau."
+    },
+    "rollingModal": {
+      "title": "Redémarrer tous les nœuds ?",
+      "body": "Tous les nœuds redémarrent l'un après l'autre, chacun une fois que le précédent est de nouveau opérationnel. Le cluster continue de traiter les requêtes pendant toute l'opération."
+    },
+    "progress": {
+      "title": "Progression du redémarrage progressif",
+      "complete": "Tous les nœuds ont redémarré.",
+      "pending": "En attente",
+      "restarting": "Redémarrage",
+      "restarted": "Redémarré",
+      "dismiss": "Masquer",
+      "requested": "Demandé {time}"
+    },
+    "toast": {
+      "restartRequested": "Redémarrage demandé pour {node}.",
+      "rollingRequested": "Redémarrage progressif demandé.",
+      "removed": "Nœud {node} retiré.",
+      "actionFailed": "Échec de la requête : {message}"
+    },
+    "empty": "Aucun nœud n'est enregistré."
   }
 }

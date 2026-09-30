@@ -1409,7 +1409,9 @@
       "aiSettings": "聊天设置",
       "aiSettingsTitle": "租户聊天配置",
       "algorithms": "Algorithms",
-      "algorithmsTitle": "Run graph algorithms and export projections"
+      "algorithmsTitle": "Run graph algorithms and export projections",
+      "cluster": "集群",
+      "clusterTitle": "集群节点与重启"
     }
   },
   "secure": {
@@ -1530,7 +1532,8 @@
         "heartbeat": "最近心跳",
         "settingsVersion": "设置版本",
         "restartPending": "待重启"
-      }
+      },
+      "openPage": "打开集群页面"
     }
   },
   "ai": {
@@ -2017,5 +2020,91 @@
     "embeddingsModel": "Model",
     "embeddingsDimensionality": "Dimensionality",
     "close": "Close"
+  },
+  "cluster": {
+    "title": "集群",
+    "subtitle": "此部署中的所有节点、其健康状况和重启情况。状态筛选仅作用于从服务器获取的节点列表。",
+    "loading": "正在加载集群状态...",
+    "refresh": "刷新",
+    "autoRefresh": "每 {seconds} 秒刷新一次",
+    "autoRefreshPaused": "自动刷新已暂停",
+    "reconnecting": "连接中断，正在重试",
+    "lastUpdated": "更新于 {time}",
+    "singleNode": "单节点",
+    "singleNodeDescription": "此服务器未以集群模式运行。它是唯一的节点，重启它即重启服务器。",
+    "registryUnavailable": "无法连接节点注册表 (Redis)。仅显示响应的节点，在 Redis 恢复之前无法请求重启。",
+    "loadError": "无法加载集群状态。",
+    "cards": {
+      "nodes": "健康节点",
+      "cluster": "集群",
+      "registry": "节点注册表",
+      "registryUp": "可用",
+      "registryDown": "不可用",
+      "registryNa": "未使用",
+      "settings": "设置版本",
+      "settingsLagging": "{count} 个落后，{pending} 个待重启",
+      "lastRestart": "最近一次重启请求",
+      "never": "从未"
+    },
+    "filter": {
+      "state": "状态",
+      "all": "全部状态",
+      "localNote": "显示 {total} 个节点中的 {shown} 个"
+    },
+    "columns": {
+      "node": "节点",
+      "host": "主机",
+      "version": "版本",
+      "state": "状态",
+      "started": "启动时间",
+      "heartbeat": "最近心跳",
+      "checks": "检查",
+      "settingsVersion": "设置版本",
+      "restartPending": "待重启",
+      "actions": "操作"
+    },
+    "checks": {
+      "database": "数据库",
+      "clutch": "Clutch",
+      "redis": "Redis"
+    },
+    "secondsAgo": "{seconds} 秒前",
+    "yes": "是",
+    "no": "否",
+    "actions": {
+      "copyNodeId": "复制节点 ID",
+      "restartNode": "重启节点",
+      "remove": "从注册表移除",
+      "rollingRestart": "滚动重启"
+    },
+    "restartNodeModal": {
+      "title": "重启节点 {node}？",
+      "body": "该节点停止接收请求、重启并重新加入。如果有其他节点正在重启，它会先等待该节点。",
+      "bodySingle": "服务器将退出，并由其守护进程重新启动。请求会短暂中断。"
+    },
+    "removeModal": {
+      "title": "移除节点 {node}？",
+      "body": "将此节点从注册表中移除。如果它再次启动，会重新注册。"
+    },
+    "rollingModal": {
+      "title": "重启所有节点？",
+      "body": "所有节点将逐一重启，每个节点都会等上一个节点恢复健康后再重启。整个过程中集群会持续处理请求。"
+    },
+    "progress": {
+      "title": "滚动重启进度",
+      "complete": "所有节点均已重启。",
+      "pending": "等待中",
+      "restarting": "重启中",
+      "restarted": "已重启",
+      "dismiss": "关闭",
+      "requested": "请求于 {time}"
+    },
+    "toast": {
+      "restartRequested": "已请求重启 {node}。",
+      "rollingRequested": "已请求滚动重启。",
+      "removed": "已移除节点 {node}。",
+      "actionFailed": "请求失败：{message}"
+    },
+    "empty": "没有已注册的节点。"
   }
 }

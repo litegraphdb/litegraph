@@ -1409,7 +1409,9 @@
       "aiSettings": "تنظیمات گفتگو",
       "aiSettingsTitle": "پیکربندی گفتگوی مستاجر",
       "algorithms": "Algorithms",
-      "algorithmsTitle": "Run graph algorithms and export projections"
+      "algorithmsTitle": "Run graph algorithms and export projections",
+      "cluster": "خوشه",
+      "clusterTitle": "گره‌های خوشه و راه‌اندازی‌های مجدد"
     }
   },
   "secure": {
@@ -1530,7 +1532,8 @@
         "heartbeat": "آخرین ضربان",
         "settingsVersion": "نسخه تنظیمات",
         "restartPending": "در انتظار راه‌اندازی مجدد"
-      }
+      },
+      "openPage": "باز کردن صفحه خوشه"
     }
   },
   "ai": {
@@ -2017,5 +2020,91 @@
     "embeddingsModel": "Model",
     "embeddingsDimensionality": "Dimensionality",
     "close": "Close"
+  },
+  "cluster": {
+    "title": "خوشه",
+    "subtitle": "همه گره‌های این استقرار، وضعیت آن‌ها و راه‌اندازی‌های مجدد. فیلتر وضعیت روی فهرست گره‌هایی که از سرور دریافت شده اعمال می‌شود.",
+    "loading": "در حال بارگیری وضعیت خوشه...",
+    "refresh": "تازه‌سازی",
+    "autoRefresh": "هر {seconds} ثانیه تازه می‌شود",
+    "autoRefreshPaused": "تازه‌سازی خودکار متوقف است",
+    "reconnecting": "اتصال قطع شد، در حال تلاش مجدد",
+    "lastUpdated": "به‌روزشده در {time}",
+    "singleNode": "گره تنها",
+    "singleNodeDescription": "این سرور در حالت خوشه اجرا نمی‌شود. این تنها گره است و راه‌اندازی مجدد آن، سرور را راه‌اندازی مجدد می‌کند.",
+    "registryUnavailable": "دسترسی به ثبت گره‌ها (Redis) ممکن نیست. فقط گره‌ای که پاسخ داد نمایش داده می‌شود و تا بازگشت Redis نمی‌توان راه‌اندازی مجدد درخواست کرد.",
+    "loadError": "بارگیری وضعیت خوشه ممکن نشد.",
+    "cards": {
+      "nodes": "گره‌های سالم",
+      "cluster": "خوشه",
+      "registry": "ثبت گره‌ها",
+      "registryUp": "در دسترس",
+      "registryDown": "در دسترس نیست",
+      "registryNa": "استفاده نمی‌شود",
+      "settings": "نسخه تنظیمات",
+      "settingsLagging": "{count} عقب‌مانده، {pending} در انتظار راه‌اندازی مجدد",
+      "lastRestart": "آخرین درخواست راه‌اندازی مجدد",
+      "never": "هرگز"
+    },
+    "filter": {
+      "state": "وضعیت",
+      "all": "همه وضعیت‌ها",
+      "localNote": "نمایش {shown} از {total} گره"
+    },
+    "columns": {
+      "node": "گره",
+      "host": "میزبان",
+      "version": "نسخه",
+      "state": "وضعیت",
+      "started": "زمان شروع",
+      "heartbeat": "آخرین ضربان",
+      "checks": "بررسی‌ها",
+      "settingsVersion": "نسخه تنظیمات",
+      "restartPending": "در انتظار راه‌اندازی مجدد",
+      "actions": "اقدامات"
+    },
+    "checks": {
+      "database": "پایگاه داده",
+      "clutch": "Clutch",
+      "redis": "Redis"
+    },
+    "secondsAgo": "{seconds} ثانیه پیش",
+    "yes": "بله",
+    "no": "خیر",
+    "actions": {
+      "copyNodeId": "کپی شناسه گره",
+      "restartNode": "راه‌اندازی مجدد گره",
+      "remove": "حذف از ثبت",
+      "rollingRestart": "راه‌اندازی مجدد مرحله‌ای"
+    },
+    "restartNodeModal": {
+      "title": "گره {node} راه‌اندازی مجدد شود؟",
+      "body": "گره پذیرش درخواست‌ها را متوقف می‌کند، راه‌اندازی مجدد می‌شود و دوباره می‌پیوندد. اگر گره دیگری در حال راه‌اندازی مجدد باشد، ابتدا منتظر آن می‌ماند.",
+      "bodySingle": "سرور خارج می‌شود و ناظر آن دوباره آن را اجرا می‌کند. درخواست‌ها برای مدت کوتاهی قطع می‌شوند."
+    },
+    "removeModal": {
+      "title": "گره {node} حذف شود؟",
+      "body": "این گره را از ثبت حذف می‌کند. اگر دوباره شروع شود، دوباره ثبت می‌شود."
+    },
+    "rollingModal": {
+      "title": "همه گره‌ها راه‌اندازی مجدد شوند؟",
+      "body": "همه گره‌ها یکی‌یکی راه‌اندازی مجدد می‌شوند و هر گره پس از سالم شدن گره قبلی راه‌اندازی می‌شود. خوشه در تمام این مدت به درخواست‌ها پاسخ می‌دهد."
+    },
+    "progress": {
+      "title": "پیشرفت راه‌اندازی مجدد مرحله‌ای",
+      "complete": "همه گره‌ها راه‌اندازی مجدد شدند.",
+      "pending": "در انتظار",
+      "restarting": "در حال راه‌اندازی مجدد",
+      "restarted": "راه‌اندازی مجدد شد",
+      "dismiss": "بستن",
+      "requested": "درخواست‌شده در {time}"
+    },
+    "toast": {
+      "restartRequested": "راه‌اندازی مجدد برای {node} درخواست شد.",
+      "rollingRequested": "راه‌اندازی مجدد مرحله‌ای درخواست شد.",
+      "removed": "گره {node} حذف شد.",
+      "actionFailed": "درخواست ناموفق بود: {message}"
+    },
+    "empty": "هیچ گره‌ای ثبت نشده است."
   }
 }

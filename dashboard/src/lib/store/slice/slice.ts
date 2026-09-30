@@ -76,6 +76,13 @@ import {
   updateServerSettings,
 } from '@/lib/sdk/settings';
 import {
+  deleteClusterNode,
+  getClusterNode,
+  restartCluster,
+  restartClusterNode,
+} from '@/lib/sdk/cluster';
+import type { ClusterNode } from '@/lib/sdk/cluster';
+import {
   ChatEndpoint,
   ChatEndpointHealth,
   ChatEndpointPreloadResult,
@@ -891,6 +898,30 @@ const graphSlice = enhancedSdk.injectEndpoints({
       }),
       providesTags: [SliceTags.CLUSTER],
     }),
+    getClusterNode: build.query<ClusterNode, string>({
+      query: (nodeId: string) => ({
+        callback: () => getClusterNode(nodeId),
+      }),
+      providesTags: [SliceTags.CLUSTER],
+    }),
+    restartCluster: build.mutation<ClusterRestartResult, void>({
+      query: () => ({
+        callback: () => restartCluster(),
+      }),
+      invalidatesTags: [SliceTags.CLUSTER],
+    }),
+    restartClusterNode: build.mutation<ClusterRestartResult, string>({
+      query: (nodeId: string) => ({
+        callback: () => restartClusterNode(nodeId),
+      }),
+      invalidatesTags: [SliceTags.CLUSTER],
+    }),
+    deleteClusterNode: build.mutation<void, string>({
+      query: (nodeId: string) => ({
+        callback: () => deleteClusterNode(nodeId),
+      }),
+      invalidatesTags: [SliceTags.CLUSTER],
+    }),
     getCredentialEffectivePermissions: build.query<
       AuthorizationEffectivePermissionsResult,
       { tenantGuid: string; credentialGuid: string; graphGuid?: string }
@@ -1152,6 +1183,10 @@ export const {
   useUpdateServerSettingsMutation,
   useRestartServerMutation,
   useGetClusterNodesQuery,
+  useGetClusterNodeQuery,
+  useRestartClusterMutation,
+  useRestartClusterNodeMutation,
+  useDeleteClusterNodeMutation,
   useListChatEndpointsQuery,
   useCreateChatEndpointMutation,
   useUpdateChatEndpointMutation,

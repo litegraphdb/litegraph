@@ -1409,7 +1409,9 @@
       "aiSettings": "Ajustes de chat",
       "aiSettingsTitle": "Configuración de chat del inquilino",
       "algorithms": "Algorithms",
-      "algorithmsTitle": "Run graph algorithms and export projections"
+      "algorithmsTitle": "Run graph algorithms and export projections",
+      "cluster": "Clúster",
+      "clusterTitle": "Nodos del clúster y reinicios"
     }
   },
   "secure": {
@@ -1530,7 +1532,8 @@
         "heartbeat": "Último latido",
         "settingsVersion": "Versión de configuración",
         "restartPending": "Reinicio pendiente"
-      }
+      },
+      "openPage": "Abrir la página del clúster"
     }
   },
   "ai": {
@@ -2017,5 +2020,91 @@
     "embeddingsModel": "Model",
     "embeddingsDimensionality": "Dimensionality",
     "close": "Close"
+  },
+  "cluster": {
+    "title": "Clúster",
+    "subtitle": "Todos los nodos de esta implementación, su estado y los reinicios. El filtro de estado se aplica a la lista de nodos obtenida del servidor.",
+    "loading": "Cargando el estado del clúster...",
+    "refresh": "Actualizar",
+    "autoRefresh": "Se actualiza cada {seconds} s",
+    "autoRefreshPaused": "Actualización automática en pausa",
+    "reconnecting": "Conexión perdida, reintentando",
+    "lastUpdated": "actualizado {time}",
+    "singleNode": "Nodo único",
+    "singleNodeDescription": "Este servidor no funciona en modo clúster. Es el único nodo y reiniciarlo reinicia el servidor.",
+    "registryUnavailable": "El registro de nodos (Redis) no está disponible. Solo se muestra el nodo que respondió y no se pueden solicitar reinicios hasta que Redis vuelva.",
+    "loadError": "No se pudo cargar el estado del clúster.",
+    "cards": {
+      "nodes": "Nodos en buen estado",
+      "cluster": "Clúster",
+      "registry": "Registro de nodos",
+      "registryUp": "Disponible",
+      "registryDown": "No disponible",
+      "registryNa": "No se usa",
+      "settings": "Versión de configuración",
+      "settingsLagging": "{count} atrasados, {pending} esperan reinicio",
+      "lastRestart": "Última solicitud de reinicio",
+      "never": "Nunca"
+    },
+    "filter": {
+      "state": "Estado",
+      "all": "Todos los estados",
+      "localNote": "Mostrando {shown} de {total} nodos"
+    },
+    "columns": {
+      "node": "Nodo",
+      "host": "Host",
+      "version": "Versión",
+      "state": "Estado",
+      "started": "Iniciado",
+      "heartbeat": "Último latido",
+      "checks": "Comprobaciones",
+      "settingsVersion": "Versión de configuración",
+      "restartPending": "Reinicio pendiente",
+      "actions": "Acciones"
+    },
+    "checks": {
+      "database": "Base de datos",
+      "clutch": "Clutch",
+      "redis": "Redis"
+    },
+    "secondsAgo": "hace {seconds} s",
+    "yes": "Sí",
+    "no": "No",
+    "actions": {
+      "copyNodeId": "Copiar ID del nodo",
+      "restartNode": "Reiniciar nodo",
+      "remove": "Quitar del registro",
+      "rollingRestart": "Reinicio escalonado"
+    },
+    "restartNodeModal": {
+      "title": "¿Reiniciar el nodo {node}?",
+      "body": "El nodo deja de aceptar solicitudes, se reinicia y vuelve a unirse. Si otro nodo se está reiniciando, espera primero a ese nodo.",
+      "bodySingle": "El servidor se cierra y su supervisor lo inicia de nuevo. Las solicitudes se interrumpen brevemente."
+    },
+    "removeModal": {
+      "title": "¿Quitar el nodo {node}?",
+      "body": "Quita este nodo del registro. Si vuelve a iniciarse, se registra de nuevo."
+    },
+    "rollingModal": {
+      "title": "¿Reiniciar todos los nodos?",
+      "body": "Todos los nodos se reinician de uno en uno, cada uno después de que el anterior informe que está en buen estado. El clúster sigue atendiendo solicitudes durante todo el proceso."
+    },
+    "progress": {
+      "title": "Progreso del reinicio escalonado",
+      "complete": "Todos los nodos se han reiniciado.",
+      "pending": "Pendiente",
+      "restarting": "Reiniciando",
+      "restarted": "Reiniciado",
+      "dismiss": "Descartar",
+      "requested": "Solicitado {time}"
+    },
+    "toast": {
+      "restartRequested": "Reinicio solicitado para {node}.",
+      "rollingRequested": "Reinicio escalonado solicitado.",
+      "removed": "Nodo {node} quitado.",
+      "actionFailed": "La solicitud falló: {message}"
+    },
+    "empty": "No hay nodos registrados."
   }
 }

@@ -37,7 +37,8 @@ export type CapabilityResource =
   | 'credentials'
   | 'authorization'
   | 'backups'
-  | 'settings';
+  | 'settings'
+  | 'cluster';
 
 export type NavSectionId =
   | 'home'
@@ -141,6 +142,7 @@ export const can = (
     // ADMINISTER — SystemAdmin only (already returned true above).
     case 'backups':
     case 'settings':
+    case 'cluster':
       return false;
 
     default:
@@ -182,7 +184,11 @@ export const canViewSection = (
         can(principal, 'view', 'authorization')
       );
     case 'administer':
-      return can(principal, 'view', 'backups') || can(principal, 'view', 'settings');
+      return (
+        can(principal, 'view', 'backups') ||
+        can(principal, 'view', 'settings') ||
+        can(principal, 'view', 'cluster')
+      );
     default:
       return false;
   }

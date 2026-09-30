@@ -10,6 +10,7 @@ scrape_configs:
           - litegraph:8701
         labels:
           component: rest
+          node: litegraph
 
   - job_name: litegraph-mcp
     metrics_path: /metrics
@@ -18,3 +19,4 @@ scrape_configs:
           - litegraph-mcp:8705
         labels:
           component: mcp
+          node: litegraph-mcp

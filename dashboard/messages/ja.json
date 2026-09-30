@@ -1409,7 +1409,9 @@
       "aiSettings": "チャット設定",
       "aiSettingsTitle": "テナントのチャット構成",
       "algorithms": "Algorithms",
-      "algorithmsTitle": "Run graph algorithms and export projections"
+      "algorithmsTitle": "Run graph algorithms and export projections",
+      "cluster": "クラスター",
+      "clusterTitle": "クラスターノードと再起動"
     }
   },
   "secure": {
@@ -1530,7 +1532,8 @@
         "heartbeat": "最終ハートビート",
         "settingsVersion": "設定バージョン",
         "restartPending": "再起動待ち"
-      }
+      },
+      "openPage": "クラスターページを開く"
     }
   },
   "ai": {
@@ -2017,5 +2020,91 @@
     "embeddingsModel": "Model",
     "embeddingsDimensionality": "Dimensionality",
     "close": "Close"
+  },
+  "cluster": {
+    "title": "クラスター",
+    "subtitle": "このデプロイのすべてのノード、その状態、再起動を表示します。状態フィルターはサーバーから取得したノード一覧に適用されます。",
+    "loading": "クラスターの状態を読み込んでいます...",
+    "refresh": "更新",
+    "autoRefresh": "{seconds} 秒ごとに更新",
+    "autoRefreshPaused": "自動更新を一時停止中",
+    "reconnecting": "接続が切れました。再試行しています",
+    "lastUpdated": "{time} に更新",
+    "singleNode": "単一ノード",
+    "singleNodeDescription": "このサーバーはクラスターモードで動作していません。唯一のノードであり、再起動するとサーバーが再起動します。",
+    "registryUnavailable": "ノードレジストリ (Redis) に接続できません。応答したノードのみを表示しており、Redis が復旧するまで再起動を要求できません。",
+    "loadError": "クラスターの状態を読み込めませんでした。",
+    "cards": {
+      "nodes": "正常なノード",
+      "cluster": "クラスター",
+      "registry": "ノードレジストリ",
+      "registryUp": "利用可能",
+      "registryDown": "利用不可",
+      "registryNa": "未使用",
+      "settings": "設定バージョン",
+      "settingsLagging": "{count} 台が遅れ、{pending} 台が再起動待ち",
+      "lastRestart": "最後の再起動要求",
+      "never": "なし"
+    },
+    "filter": {
+      "state": "状態",
+      "all": "すべての状態",
+      "localNote": "{total} 台中 {shown} 台を表示"
+    },
+    "columns": {
+      "node": "ノード",
+      "host": "ホスト",
+      "version": "バージョン",
+      "state": "状態",
+      "started": "起動時刻",
+      "heartbeat": "最終ハートビート",
+      "checks": "チェック",
+      "settingsVersion": "設定バージョン",
+      "restartPending": "再起動待ち",
+      "actions": "操作"
+    },
+    "checks": {
+      "database": "データベース",
+      "clutch": "Clutch",
+      "redis": "Redis"
+    },
+    "secondsAgo": "{seconds} 秒前",
+    "yes": "はい",
+    "no": "いいえ",
+    "actions": {
+      "copyNodeId": "ノード ID をコピー",
+      "restartNode": "ノードを再起動",
+      "remove": "レジストリから削除",
+      "rollingRestart": "ローリング再起動"
+    },
+    "restartNodeModal": {
+      "title": "ノード {node} を再起動しますか？",
+      "body": "ノードはリクエストの受け付けを停止して再起動し、再び参加します。別のノードが再起動中の場合は、そのノードを先に待ちます。",
+      "bodySingle": "サーバーが終了し、スーパーバイザーが再度起動します。リクエストは一時的に中断されます。"
+    },
+    "removeModal": {
+      "title": "ノード {node} を削除しますか？",
+      "body": "このノードをレジストリから削除します。再度起動すると、再び登録されます。"
+    },
+    "rollingModal": {
+      "title": "すべてのノードを再起動しますか？",
+      "body": "すべてのノードが 1 台ずつ再起動し、各ノードは前のノードが正常に戻ってから再起動します。その間もクラスターはリクエストを処理し続けます。"
+    },
+    "progress": {
+      "title": "ローリング再起動の進行状況",
+      "complete": "すべてのノードが再起動しました。",
+      "pending": "待機中",
+      "restarting": "再起動中",
+      "restarted": "再起動済み",
+      "dismiss": "閉じる",
+      "requested": "{time} に要求"
+    },
+    "toast": {
+      "restartRequested": "{node} の再起動を要求しました。",
+      "rollingRequested": "ローリング再起動を要求しました。",
+      "removed": "ノード {node} を削除しました。",
+      "actionFailed": "リクエストに失敗しました: {message}"
+    },
+    "empty": "登録されているノードはありません。"
   }
 }

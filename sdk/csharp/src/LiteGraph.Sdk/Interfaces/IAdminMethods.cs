@@ -108,5 +108,34 @@
         /// <param name="token">Cancellation token.</param>
         /// <returns>Restart result, or null if the connection dropped as a single server exited.</returns>
         Task<ClusterRestartResult> RestartCluster(CancellationToken token = default);
+
+        /// <summary>
+        /// Read one cluster node from the node registry.  Requires system administrator privileges.
+        /// </summary>
+        /// <param name="nodeId">Node identifier.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Node, or null if it is not in the registry.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when nodeId is null or empty.</exception>
+        Task<ClusterNode> ReadClusterNode(string nodeId, CancellationToken token = default);
+
+        /// <summary>
+        /// Request a restart of one cluster node (on a single node, of the server itself).  The node waits for any other node
+        /// that is restarting, then restarts.  Requires system administrator privileges.
+        /// </summary>
+        /// <param name="nodeId">Node identifier.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Restart result, or null if the connection dropped as a single server exited.  When the server refuses the
+        /// request (for example an unknown, offline, or stopped node), Restarting is false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when nodeId is null or empty.</exception>
+        Task<ClusterRestartResult> RestartClusterNode(string nodeId, CancellationToken token = default);
+
+        /// <summary>
+        /// Remove an Offline or Stopped node from the node registry.  A running node cannot be removed, because it registers
+        /// again on its next heartbeat.  Requires system administrator privileges.
+        /// </summary>
+        /// <param name="nodeId">Node identifier.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <exception cref="ArgumentNullException">Thrown when nodeId is null or empty.</exception>
+        Task DeleteClusterNode(string nodeId, CancellationToken token = default);
     }
 }

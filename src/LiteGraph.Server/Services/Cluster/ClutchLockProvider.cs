@@ -38,6 +38,12 @@ namespace LiteGraph.Server.Services.Cluster
         /// </summary>
         public int HeldCount { get { return _Held.Count; } }
 
+        /// <summary>
+        /// Raised with the lock key when a held lock is lost before release (connection closed or lease unrenewed).
+        /// Raised on the thread that detected the loss; handlers must not block.
+        /// </summary>
+        public event EventHandler<string> LockLost;
+
         #endregion
 
         #region Private-Members
@@ -202,6 +208,15 @@ namespace LiteGraph.Server.Services.Cluster
         internal void Forget(ClutchLockHandle handle)
         {
             _Held.TryRemove(handle.HolderId, out _);
+            if (_Disposed) return;
+            try
+            {
+                LockLost?.Invoke(this, handle.Key);
+            }
+            catch (Exception e)
+            {
+                _Logging.Warn(_Header + "lock-lost handler failed: " + e.Message);
+            }
         }
 
         internal async Task ReleaseAsync(ClutchLockHandle handle)

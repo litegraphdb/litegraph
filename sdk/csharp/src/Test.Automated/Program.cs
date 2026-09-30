@@ -723,6 +723,12 @@ namespace Test.Automated
 
 			await RunTest("Admin.FlushDatabase", TestAdminFlushDatabase).ConfigureAwait(false);
 			await RunTest("Admin.ReadClusterNodes", TestAdminReadClusterNodes).ConfigureAwait(false);
+			await RunTest("Admin.ReadClusterNode", TestAdminReadClusterNode).ConfigureAwait(false);
+			await RunTest("Admin.ReadClusterNode.Unknown", TestAdminReadClusterNodeUnknown).ConfigureAwait(false);
+			await RunTest("Sdk.LastNodeId", TestSdkLastNodeId).ConfigureAwait(false);
+			await RunTest("Sdk.RetrySettings", TestSdkRetrySettings).ConfigureAwait(false);
+			await RunTest("Health.Live", TestHealthLive).ConfigureAwait(false);
+			await RunTest("Health.Ready", TestHealthReady).ConfigureAwait(false);
 
 			// Batch tests
 			await RunTest("Batch.Existence", TestBatchExistence).ConfigureAwait(false);
@@ -1842,6 +1848,59 @@ namespace Test.Automated
 			AssertTrue(status.Nodes.Any(n => n.NodeId == status.AnsweredBy), "The answering node is in the list");
 			AssertTrue(status.Nodes.All(n => n.Checks != null && n.Checks.Database), "Every listed node reports its database check");
 			if (!status.ClusterEnabled) AssertEqual(1, status.Nodes.Count, "A single node lists only itself");
+		}
+
+		private static async Task TestAdminReadClusterNode()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+			ClusterStatus status = await sdk.Admin.ReadClusterNodes().ConfigureAwait(false);
+			AssertNotNull(status, "Cluster status");
+			ClusterNode node = await sdk.Admin.ReadClusterNode(status!.Nodes[0].NodeId).ConfigureAwait(false);
+			AssertNotNull(node, "Node read by identifier");
+			AssertEqual(status.Nodes[0].NodeId, node!.NodeId, "Node identifier round trips");
+		}
+
+		private static async Task TestAdminReadClusterNodeUnknown()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+			ClusterNode? node = await sdk.Admin.ReadClusterNode("no-such-node-" + Guid.NewGuid().ToString("N")).ConfigureAwait(false);
+			AssertNull(node, "Unknown node reads as null");
+		}
+
+		private static async Task TestSdkLastNodeId()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+			await sdk.Admin.ReadClusterNodes().ConfigureAwait(false);
+			AssertTrue(!String.IsNullOrEmpty(sdk.LastNodeId), "LastNodeId is recorded from the x-litegraph-node header");
+		}
+
+		private static Task TestSdkRetrySettings()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+			AssertEqual(2, sdk.MaxRetries, "Default MaxRetries");
+			AssertEqual(200, sdk.RetryBaseDelayMs, "Default RetryBaseDelayMs");
+			AssertFalse(sdk.RetryPost, "POST is not retried by default");
+			bool rejected = false;
+			try { sdk.MaxRetries = 11; } catch (ArgumentOutOfRangeException) { rejected = true; }
+			AssertTrue(rejected, "MaxRetries above 10 is rejected");
+			return Task.CompletedTask;
+		}
+
+		private static async Task TestHealthLive()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+			HealthResponse? live = await sdk.HealthLive().ConfigureAwait(false);
+			AssertNotNull(live, "Liveness response");
+			AssertEqual("Healthy", live!.Status, "Liveness status");
+		}
+
+		private static async Task TestHealthReady()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+			HealthResponse? ready = await sdk.HealthReady().ConfigureAwait(false);
+			AssertNotNull(ready, "Readiness response");
+			AssertTrue(ready!.IsReady, "Server is ready");
+			AssertNotNull(ready.Checks, "Readiness includes checks");
 		}
 
 		#endregion

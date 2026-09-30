@@ -104,9 +104,22 @@ namespace LiteGraph.Server.Services
         /// Instantiate.
         /// </summary>
         /// <param name="settings">Observability settings.</param>
-        public ObservabilityService(ObservabilitySettings settings)
+        public ObservabilityService(ObservabilitySettings settings) : this(settings, null, null)
+        {
+        }
+
+        /// <summary>
+        /// Instantiate, identifying this process in exported telemetry.
+        /// </summary>
+        /// <param name="settings">Observability settings.</param>
+        /// <param name="nodeId">Node identifier, exported as the OpenTelemetry service.instance.id resource attribute.  Null to omit.</param>
+        /// <param name="clusterName">Cluster name, exported as service.namespace.  Null on a single node.</param>
+        /// <exception cref="ArgumentNullException">settings is null.</exception>
+        public ObservabilityService(ObservabilitySettings settings, string nodeId, string clusterName)
         {
             _Settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            _NodeId = nodeId;
+            _NodeClusterName = clusterName;
             ActivitySource = new ActivitySource(_Settings.ServiceName);
             Meter = new Meter(_Settings.ServiceName);
             _HttpRequestsCounter = Meter.CreateCounter<long>("litegraph.http.requests", "requests", "Total HTTP requests processed by LiteGraph.");
@@ -966,6 +979,7 @@ namespace LiteGraph.Server.Services
 
             RenderPrometheusOperations(sb);
             RenderPrometheusChat(sb);
+            RenderPrometheusCluster(sb);
 
             return sb.ToString();
         }
@@ -1036,7 +1050,7 @@ namespace LiteGraph.Server.Services
 
             ResourceBuilder resourceBuilder = ResourceBuilder
                 .CreateDefault()
-                .AddService(_Settings.ServiceName);
+                .AddService(_Settings.ServiceName, serviceNamespace: _NodeClusterName, serviceInstanceId: _NodeId);
 
             _TracerProvider = Sdk.CreateTracerProviderBuilder()
                 .SetResourceBuilder(resourceBuilder)

@@ -895,6 +895,9 @@ Cluster APIs require system-administrator authentication. They also answer on a 
 |--------------------------|--------|----------------------|
 | List cluster nodes       | GET    | /v1.0/cluster/nodes  |
 | Request cluster restart  | POST   | /v1.0/cluster/restart |
+| Read one node            | GET    | /v1.0/cluster/nodes/{nodeId} |
+| Restart one node         | POST   | /v1.0/cluster/nodes/{nodeId}/restart |
+| Remove a node from the registry | DELETE | /v1.0/cluster/nodes/{nodeId} |
 
 `GET /v1.0/cluster/nodes` returns the node registry kept in Redis, plus the settings and restart counters:
 
@@ -942,6 +945,12 @@ Cluster APIs require system-administrator authentication. They also answer on a 
 ```
 
 It returns 503 (`Unavailable`) when Redis is unreachable. On a single node it restarts the server and returns `Rolling` false.
+
+`GET /v1.0/cluster/nodes/{nodeId}` returns one node's entry in the shape shown above, or 404 when the node is not registered.
+
+`POST /v1.0/cluster/nodes/{nodeId}/restart` restarts one node. The node notices within `Cluster.Redis.PollIntervalMs`, takes the same Clutch `restart` lock as a rolling restart (so it still waits for any other node that is restarting), drains, and exits for its supervisor to start it again. It returns a restart result with `Rolling` false, 404 for an unknown node, 409 for a node that is `Offline` or `Stopped` (start it with its supervisor instead), and 503 when Redis is unreachable. On a single node, only the server's own identifier is accepted, and the server restarts.
+
+`DELETE /v1.0/cluster/nodes/{nodeId}` removes a decommissioned node's entry from the registry. Only `Offline` or `Stopped` nodes can be removed (409 otherwise), because a running node registers again on its next heartbeat. Entries also expire on their own after `Cluster.Redis.NodeRetentionMs`. It returns 400 on a single node, which has no registry.
 
 ## Backup APIs
 

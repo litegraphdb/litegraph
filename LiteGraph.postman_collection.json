@@ -16641,6 +16641,91 @@
 								}
 							},
 							"response": []
+						},
+						{
+							"name": "Read cluster node",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/cluster/nodes/{{nodeId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"cluster",
+										"nodes",
+										"{{nodeId}}"
+									]
+								},
+								"description": "System administrator only. One node's registry entry; 404 when not registered."
+							},
+							"response": []
+						},
+						{
+							"name": "Restart cluster node",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "content-type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/cluster/nodes/{{nodeId}}/restart",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"cluster",
+										"nodes",
+										"{{nodeId}}",
+										"restart"
+									]
+								},
+								"description": "System administrator only. Restarts one node under the Clutch restart lock. 409 for Offline or Stopped nodes.",
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"confirm\": true\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Remove cluster node",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/cluster/nodes/{{nodeId}}",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"cluster",
+										"nodes",
+										"{{nodeId}}"
+									]
+								},
+								"description": "System administrator only. Removes an Offline or Stopped node's registry entry; 409 for running nodes."
+							},
+							"response": []
 						}
 					]
 				}
@@ -16869,6 +16954,11 @@
 		{
 			"key": "chatFeedbackGuid",
 			"value": "00000000-0000-0000-0000-000000000000",
+			"type": "string"
+		},
+		{
+			"key": "nodeId",
+			"value": "litegraph-1",
 			"type": "string"
 		}
 	]

@@ -1409,7 +1409,9 @@
       "aiSettings": "Chat-Einstellungen",
       "aiSettingsTitle": "Chat-Konfiguration des Mandanten",
       "algorithms": "Algorithms",
-      "algorithmsTitle": "Run graph algorithms and export projections"
+      "algorithmsTitle": "Run graph algorithms and export projections",
+      "cluster": "Cluster",
+      "clusterTitle": "Cluster-Knoten und Neustarts"
     }
   },
   "secure": {
@@ -1530,7 +1532,8 @@
         "heartbeat": "Letzter Heartbeat",
         "settingsVersion": "Einstellungsversion",
         "restartPending": "Neustart ausstehend"
-      }
+      },
+      "openPage": "Cluster-Seite öffnen"
     }
   },
   "ai": {
@@ -2017,5 +2020,91 @@
     "embeddingsModel": "Model",
     "embeddingsDimensionality": "Dimensionality",
     "close": "Close"
+  },
+  "cluster": {
+    "title": "Cluster",
+    "subtitle": "Alle Knoten dieser Bereitstellung, ihr Zustand und Neustarts. Der Statusfilter gilt für die vom Server abgerufene Knotenliste.",
+    "loading": "Cluster-Status wird geladen...",
+    "refresh": "Aktualisieren",
+    "autoRefresh": "Aktualisiert alle {seconds} s",
+    "autoRefreshPaused": "Automatische Aktualisierung pausiert",
+    "reconnecting": "Verbindung unterbrochen, neuer Versuch",
+    "lastUpdated": "aktualisiert {time}",
+    "singleNode": "Einzelner Knoten",
+    "singleNodeDescription": "Dieser Server läuft nicht im Cluster-Modus. Er ist der einzige Knoten, und ein Neustart startet den Server neu.",
+    "registryUnavailable": "Die Knotenregistrierung (Redis) ist nicht erreichbar. Nur der antwortende Knoten wird angezeigt, und Neustarts können erst wieder angefordert werden, wenn Redis verfügbar ist.",
+    "loadError": "Cluster-Status konnte nicht geladen werden.",
+    "cards": {
+      "nodes": "Fehlerfreie Knoten",
+      "cluster": "Cluster",
+      "registry": "Knotenregistrierung",
+      "registryUp": "Verfügbar",
+      "registryDown": "Nicht verfügbar",
+      "registryNa": "Nicht verwendet",
+      "settings": "Einstellungsversion",
+      "settingsLagging": "{count} im Rückstand, {pending} warten auf Neustart",
+      "lastRestart": "Letzte Neustartanforderung",
+      "never": "Nie"
+    },
+    "filter": {
+      "state": "Status",
+      "all": "Alle Status",
+      "localNote": "{shown} von {total} Knoten angezeigt"
+    },
+    "columns": {
+      "node": "Knoten",
+      "host": "Host",
+      "version": "Version",
+      "state": "Status",
+      "started": "Gestartet",
+      "heartbeat": "Letzter Heartbeat",
+      "checks": "Prüfungen",
+      "settingsVersion": "Einstellungsversion",
+      "restartPending": "Neustart ausstehend",
+      "actions": "Aktionen"
+    },
+    "checks": {
+      "database": "Datenbank",
+      "clutch": "Clutch",
+      "redis": "Redis"
+    },
+    "secondsAgo": "vor {seconds} s",
+    "yes": "Ja",
+    "no": "Nein",
+    "actions": {
+      "copyNodeId": "Knoten-ID kopieren",
+      "restartNode": "Knoten neu starten",
+      "remove": "Aus Registrierung entfernen",
+      "rollingRestart": "Rollierender Neustart"
+    },
+    "restartNodeModal": {
+      "title": "Knoten {node} neu starten?",
+      "body": "Der Knoten nimmt keine Anfragen mehr an, startet neu und tritt wieder bei. Startet gerade ein anderer Knoten neu, wartet er zuerst auf diesen.",
+      "bodySingle": "Der Server beendet sich und sein Supervisor startet ihn erneut. Anfragen werden kurz unterbrochen."
+    },
+    "removeModal": {
+      "title": "Knoten {node} entfernen?",
+      "body": "Entfernt diesen Knoten aus der Registrierung. Startet er erneut, registriert er sich wieder."
+    },
+    "rollingModal": {
+      "title": "Alle Knoten neu starten?",
+      "body": "Alle Knoten starten nacheinander neu, jeder erst, wenn der vorherige wieder als fehlerfrei gemeldet ist. Der Cluster bearbeitet währenddessen weiter Anfragen."
+    },
+    "progress": {
+      "title": "Fortschritt des rollierenden Neustarts",
+      "complete": "Alle Knoten wurden neu gestartet.",
+      "pending": "Ausstehend",
+      "restarting": "Startet neu",
+      "restarted": "Neu gestartet",
+      "dismiss": "Ausblenden",
+      "requested": "Angefordert {time}"
+    },
+    "toast": {
+      "restartRequested": "Neustart für {node} angefordert.",
+      "rollingRequested": "Rollierender Neustart angefordert.",
+      "removed": "Knoten {node} entfernt.",
+      "actionFailed": "Anfrage fehlgeschlagen: {message}"
+    },
+    "empty": "Es sind keine Knoten registriert."
   }
 }

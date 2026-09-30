@@ -21,6 +21,7 @@ import {
   FieldTimeOutlined,
   LikeOutlined,
   SlidersOutlined,
+  ClusterOutlined,
 } from '@ant-design/icons';
 import { MenuItemProps } from '@/components/menu-item/types';
 import {
@@ -311,6 +312,16 @@ export const dashboardNavSections: NavSection[] = [
         labelKey: 'nav.item.settings',
         titleKey: 'nav.item.settingsTitle',
         path: paths.settings,
+      },
+      {
+        key: '/cluster',
+        resource: 'cluster',
+        icon: <ClusterOutlined />,
+        label: 'Cluster',
+        title: 'Cluster nodes and restarts',
+        labelKey: 'nav.item.cluster',
+        titleKey: 'nav.item.clusterTitle',
+        path: paths.cluster,
       },
     ],
   },

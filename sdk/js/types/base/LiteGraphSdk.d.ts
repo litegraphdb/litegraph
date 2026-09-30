@@ -1215,6 +1215,44 @@ export default class LiteGraphSdk extends SdkBase {
      */
     restartCluster(cancellationToken?: AbortController): Promise<any | undefined>;
     /**
+     * Read one cluster node from the node registry. Requires system administrator privileges.
+     * @param {string} nodeId - Node identifier.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object>} The node ({ NodeId, Hostname, Version, StartedUtc, LastHeartbeatUtc, HeartbeatAgeMs, State,
+     *   Checks, SettingsVersion, RestartPending, RestartVersion }). Rejects with a NotFound error if it is not in the registry.
+     */
+    readClusterNode(nodeId: string, cancellationToken?: AbortController): Promise<any>;
+    /**
+     * Request a restart of one cluster node (on a single node, of the server itself). The node waits for any other node
+     * that is restarting, then restarts. Requires system administrator privileges.
+     * @param {string} nodeId - Node identifier.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object|undefined>} Restart result, or undefined if the connection dropped as a single server
+     *   exited. Rejects with the server's error (for example NotFound, Conflict for an offline node, or Unavailable).
+     */
+    restartClusterNode(nodeId: string, cancellationToken?: AbortController): Promise<any | undefined>;
+    /**
+     * Remove an Offline or Stopped node from the node registry. A running node cannot be removed, because it registers
+     * again on its next heartbeat. Requires system administrator privileges.
+     * @param {string} nodeId - Node identifier.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<void>} Resolves when removed. Rejects with Conflict for a running node.
+     */
+    deleteClusterNode(nodeId: string, cancellationToken?: AbortController): Promise<void>;
+    /**
+     * Liveness check (GET /v1.0/health/live). Needs no authentication.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object|null>} Health body ({ Status, NodeId, ClusterName, Version, StartedUtc, Utc }).
+     */
+    healthLive(cancellationToken?: AbortController): Promise<any | null>;
+    /**
+     * Readiness check (GET /v1.0/health/ready). Needs no authentication. Resolves with the body for both 200 and 503,
+     * so a node that is not ready reports why; Status is Healthy, Degraded, or Unavailable.
+     * @param {AbortController} [cancellationToken] - Optional cancellation token.
+     * @returns {Promise<Object|null>} Health body ({ Status, NodeId, ClusterName, Version, StartedUtc, Checks, Utc }).
+     */
+    healthReady(cancellationToken?: AbortController): Promise<any | null>;
+    /**
      * Enable vector indexing on a graph.
      * @param {string} tenantGuid - Tenant GUID.
      * @param {string} graphGuid - Graph GUID.

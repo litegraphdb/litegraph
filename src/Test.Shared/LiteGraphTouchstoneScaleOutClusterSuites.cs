@@ -124,6 +124,34 @@ namespace Test.Shared
             }
         }
 
+        private static async Task ExecuteScaleOutNodeRestartAsync(CancellationToken token)
+        {
+            string clusterName = "test-" + Guid.NewGuid().ToString("N").Substring(0, 12);
+
+            using (ScaleOutClusterNode x = ScaleOutClusterNode.Create(clusterName, "node-x", new LocalLockProvider()))
+            using (ScaleOutClusterNode y = ScaleOutClusterNode.Create(clusterName, "node-y", new LocalLockProvider()))
+            {
+                await x.StartAsync(token).ConfigureAwait(false);
+                await y.StartAsync(token).ConfigureAwait(false);
+
+                await x.Registry.RequestNodeRestartAsync("node-y", token).ConfigureAwait(false);
+                await ScaleOutWaitForAsync(() => y.RestartRequests.Count == 1, 5000, "The addressed node notices its restart request", token).ConfigureAwait(false);
+                await Task.Delay(1500, token).ConfigureAwait(false);
+                AssertTrue(x.RestartRequests.Count == 0, "Other nodes do not restart");
+
+                ScaleOutClusterNode z = ScaleOutClusterNode.Create(clusterName, "node-z", new LocalLockProvider());
+                await z.StartAsync(token).ConfigureAwait(false);
+                z.Dispose();
+                ClusterStatus status = await x.Registry.GetStatusAsync(token).ConfigureAwait(false);
+                AssertEqual(ClusterNodeStateEnum.Stopped, status.Nodes.Single(n => n.NodeId == "node-z").State, "The stopped node is listed");
+
+                AssertTrue(await x.Registry.RemoveNodeAsync("node-z", token).ConfigureAwait(false), "A stopped node's entry is removed");
+                status = await x.Registry.GetStatusAsync(token).ConfigureAwait(false);
+                AssertTrue(status.Nodes.All(n => n.NodeId != "node-z"), "The removed node is no longer listed");
+                AssertTrue(!await x.Registry.RemoveNodeAsync("node-z", token).ConfigureAwait(false), "Removing an absent entry reports false");
+            }
+        }
+
         private static async Task ExecuteScaleOutRollingRestartAsync(CancellationToken token)
         {
             string clusterName = "test-" + Guid.NewGuid().ToString("N").Substring(0, 12);

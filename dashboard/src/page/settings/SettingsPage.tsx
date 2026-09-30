@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { Card, Input, InputNumber, Switch, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { AreaChartOutlined, ClusterOutlined, ExportOutlined, ReloadOutlined } from '@ant-design/icons';
@@ -14,6 +15,7 @@ import LitegraphText from '@/components/base/typograpghy/Text';
 import LitegraphTooltip from '@/components/base/tooltip/Tooltip';
 import ConfirmationModal from '@/components/confirmation-modal/ConfirmationModal';
 import { globalToastId } from '@/constants/config';
+import { paths } from '@/constants/constant';
 import {
   useGetClusterNodesQuery,
   useGetServerSettingsQuery,
@@ -338,6 +340,13 @@ const SettingsPage = () => {
               pagination={false}
               data-testid="settings-cluster-nodes"
             />
+            <Link
+              href={paths.cluster}
+              style={{ display: 'inline-block', marginTop: 12 }}
+              data-testid="settings-cluster-link"
+            >
+              {t('cluster.openPage')}
+            </Link>
           </Card>
         )}
 

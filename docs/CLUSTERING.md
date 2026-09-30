@@ -120,7 +120,9 @@ It fails if more than 2% of requests fail in any phase.
 
 **Backups.** Back up PostgreSQL with its own tools (`pg_dump`, or snapshots of the data volume). The LiteGraph backup API applies only to SQLite. There is no per-node state to back up.
 
-**Observability.** Scrape each node's `/metrics` directly rather than through the load balancer, so every node's counters are visible. The `docker/multi-node/prometheus.yaml` configuration does this. Logs from every node flow to Loki through the same syslog path as a single node.
+**Observability.** Scrape each node's `/metrics` directly rather than through the load balancer, with a `node` label on each target, as `docker/multi-node/prometheus.yaml` does. The **LiteGraph Cluster** Grafana dashboard shows node states, per-node traffic, lock activity, and Clutch and Redis connectivity, and every other dashboard has a Node filter. Logs from every node flow to Loki through the same syslog path as a single node, labeled with the node's host name. [OBSERVABILITY.md](OBSERVABILITY.md) lists the node and cluster metrics.
+
+**The dashboard's Cluster page** (Administration, system administrators only) lists every node with its state, checks, and settings version, restarts or removes one node, and runs a rolling restart with a live progress view. Restarting a single node (`POST /v1.0/cluster/nodes/{nodeId}/restart`) takes the same `restart` lock as a rolling restart, so it still waits for any node that is restarting. Removing a node only clears the registry entry of a node that is `Offline` or `Stopped`, for example after decommissioning it.
 
 ## Limits and choices worth knowing
 

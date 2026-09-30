@@ -574,12 +574,13 @@ namespace LiteGraph.Server
             if (_Settings.Cluster.Enable)
             {
                 ClutchLockProvider clutch = new ClutchLockProvider(_Settings.Cluster.Clutch, _Settings.Cluster.ClusterName, _Logging);
-                _LockProvider = clutch;
+                clutch.LockLost += (sender, key) => _ObservabilityService?.RecordLockLost(key);
+                _LockProvider = new InstrumentedLockProvider(clutch);
                 await clutch.ConnectAsync(_Token).ConfigureAwait(false);
             }
             else
             {
-                _LockProvider = new LocalLockProvider();
+                _LockProvider = new InstrumentedLockProvider(new LocalLockProvider());
             }
 
             _Cluster = new ClusterContext(_Settings.Cluster, _LockProvider);
@@ -660,7 +661,13 @@ namespace LiteGraph.Server
                 _Repo);
             _RequestHistoryService.LockProvider = _LockProvider;
 
-            _ObservabilityService = new ObservabilityService(_Settings.Observability);
+            _ObservabilityService = new ObservabilityService(_Settings.Observability, _Cluster.NodeId, _Cluster.Enabled ? _Cluster.ClusterName : null);
+            _ObservabilityService.RecordNodeIdentity(
+                _Cluster.NodeId,
+                _Cluster.Enabled ? _Cluster.ClusterName : null,
+                typeof(LiteGraphServer).Assembly.GetName().Version?.ToString(3),
+                _Cluster.StartedUtc);
+            if (_LockProvider is InstrumentedLockProvider instrumented) instrumented.Observability = _ObservabilityService;
             _RequestHistoryService.Observability = _ObservabilityService;
             _ObservabilityService.RecordStorageBackend(
                 _Settings.LiteGraph.Database.Type.ToString(),
@@ -702,6 +709,7 @@ namespace LiteGraph.Server
             if (_Settings.Cluster.Enable)
             {
                 _Registry = new ClusterRegistry(_Settings.Cluster, _Cluster, _NodeHealth, _Serializer, _Logging);
+                _Registry.Observability = _ObservabilityService;
                 _NodeHealth.Registry = _Registry;
                 _ServiceHandler.Registry = _Registry;
                 _RollingRestart = new RollingRestartCoordinator(_Settings.Cluster, _Cluster, _Registry, _Logging, RequestShutdown);

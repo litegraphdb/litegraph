@@ -1409,7 +1409,9 @@
       "aiSettings": "傾偈設定",
       "aiSettingsTitle": "租戶傾偈設定",
       "algorithms": "Algorithms",
-      "algorithmsTitle": "Run graph algorithms and export projections"
+      "algorithmsTitle": "Run graph algorithms and export projections",
+      "cluster": "叢集",
+      "clusterTitle": "叢集節點同重新啟動"
     }
   },
   "secure": {
@@ -1530,7 +1532,8 @@
         "heartbeat": "最近心跳",
         "settingsVersion": "設定版本",
         "restartPending": "等待重新啟動"
-      }
+      },
+      "openPage": "打開叢集頁面"
     }
   },
   "ai": {
@@ -2017,5 +2020,91 @@
     "embeddingsModel": "Model",
     "embeddingsDimensionality": "Dimensionality",
     "close": "Close"
+  },
+  "cluster": {
+    "title": "叢集",
+    "subtitle": "呢個部署入面所有節點、佢哋嘅狀態同重新啟動。狀態篩選只會作用喺由伺服器攞返嚟嘅節點列表。",
+    "loading": "載入緊叢集狀態...",
+    "refresh": "重新整理",
+    "autoRefresh": "每 {seconds} 秒更新",
+    "autoRefreshPaused": "自動更新已暫停",
+    "reconnecting": "連線中斷，重試緊",
+    "lastUpdated": "{time} 更新",
+    "singleNode": "單一節點",
+    "singleNodeDescription": "呢部伺服器唔係以叢集模式運行。佢係唯一嘅節點，重新啟動佢即係重新啟動伺服器。",
+    "registryUnavailable": "連唔到節點登記 (Redis)。只顯示回應咗嘅節點，Redis 恢復之前唔可以要求重新啟動。",
+    "loadError": "載入唔到叢集狀態。",
+    "cards": {
+      "nodes": "正常節點",
+      "cluster": "叢集",
+      "registry": "節點登記",
+      "registryUp": "可用",
+      "registryDown": "唔可用",
+      "registryNa": "冇用",
+      "settings": "設定版本",
+      "settingsLagging": "{count} 個落後，{pending} 個等緊重新啟動",
+      "lastRestart": "最近一次重新啟動要求",
+      "never": "從未"
+    },
+    "filter": {
+      "state": "狀態",
+      "all": "全部狀態",
+      "localNote": "顯示緊 {total} 個節點入面嘅 {shown} 個"
+    },
+    "columns": {
+      "node": "節點",
+      "host": "主機",
+      "version": "版本",
+      "state": "狀態",
+      "started": "啟動時間",
+      "heartbeat": "最近心跳",
+      "checks": "檢查",
+      "settingsVersion": "設定版本",
+      "restartPending": "等待重新啟動",
+      "actions": "操作"
+    },
+    "checks": {
+      "database": "資料庫",
+      "clutch": "Clutch",
+      "redis": "Redis"
+    },
+    "secondsAgo": "{seconds} 秒前",
+    "yes": "係",
+    "no": "唔係",
+    "actions": {
+      "copyNodeId": "複製節點 ID",
+      "restartNode": "重新啟動節點",
+      "remove": "由登記移除",
+      "rollingRestart": "滾動重新啟動"
+    },
+    "restartNodeModal": {
+      "title": "重新啟動節點 {node}？",
+      "body": "個節點會停止接收請求、重新啟動，然後再加入。如果有其他節點重新啟動緊，佢會先等嗰個節點。",
+      "bodySingle": "伺服器會結束，再由佢嘅監管程式重新啟動。請求會短暫中斷。"
+    },
+    "removeModal": {
+      "title": "移除節點 {node}？",
+      "body": "由登記移除呢個節點。如果佢再啟動，會重新登記。"
+    },
+    "rollingModal": {
+      "title": "重新啟動所有節點？",
+      "body": "所有節點會逐一重新啟動，每個節點都會等上一個節點回復正常先至重新啟動。期間叢集會繼續處理請求。"
+    },
+    "progress": {
+      "title": "滾動重新啟動進度",
+      "complete": "所有節點都重新啟動咗。",
+      "pending": "等緊",
+      "restarting": "重新啟動緊",
+      "restarted": "已重新啟動",
+      "dismiss": "關閉",
+      "requested": "{time} 要求"
+    },
+    "toast": {
+      "restartRequested": "已要求重新啟動 {node}。",
+      "rollingRequested": "已要求滾動重新啟動。",
+      "removed": "已移除節點 {node}。",
+      "actionFailed": "請求失敗：{message}"
+    },
+    "empty": "冇已登記嘅節點。"
   }
 }

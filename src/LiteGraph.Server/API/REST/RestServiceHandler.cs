@@ -238,6 +238,9 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/settings/restart", SettingsRestartRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Restart the server (a rolling restart of every node in cluster mode)", "Admin"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/cluster/nodes", ClusterNodesRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("List cluster nodes with their state and health", "Admin"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/cluster/restart", ClusterRestartRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Request a rolling restart of every node (restarts this server on a single node)", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/cluster/nodes/{nodeId}", ClusterNodeReadRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Read one cluster node", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/cluster/nodes/{nodeId}/restart", ClusterNodeRestartRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Restart one cluster node", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/cluster/nodes/{nodeId}", ClusterNodeDeleteRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Remove an offline or stopped node from the node registry", "Admin"));
 
             #endregion
 
@@ -1103,6 +1106,42 @@
             }
 
             await WrappedRequestHandler(ctx, req, _ServiceHandler.ClusterRestart);
+        }
+
+        private async Task ClusterNodeReadRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.ClusterNodeRead);
+        }
+
+        private async Task ClusterNodeRestartRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.ClusterNodeRestart);
+        }
+
+        private async Task ClusterNodeDeleteRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.ClusterNodeDelete);
         }
 
         #endregion

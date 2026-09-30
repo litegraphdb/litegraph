@@ -49,6 +49,7 @@ describe('capability map — can()', () => {
         'authorization',
         'backups',
         'settings',
+        'cluster',
       ] as const) {
         expect(can(systemAdmin, 'view', resource)).toBe(true);
         expect(can(systemAdmin, 'edit', resource)).toBe(true);
@@ -80,6 +81,7 @@ describe('capability map — can()', () => {
     it('cannot see ADMINISTER', () => {
       expect(can(tenantAdmin, 'view', 'backups')).toBe(false);
       expect(can(tenantAdmin, 'view', 'settings')).toBe(false);
+      expect(can(tenantAdmin, 'view', 'cluster')).toBe(false);
     });
   });
 

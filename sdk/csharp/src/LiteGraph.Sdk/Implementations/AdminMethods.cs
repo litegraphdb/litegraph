@@ -141,6 +141,29 @@
             return RequestRestart(_Sdk.Endpoint + "v1.0/cluster/restart", token);
         }
 
+        /// <inheritdoc />
+        public async Task<ClusterNode> ReadClusterNode(string nodeId, CancellationToken token = default)
+        {
+            if (String.IsNullOrEmpty(nodeId)) throw new ArgumentNullException(nameof(nodeId));
+            string url = _Sdk.Endpoint + "v1.0/cluster/nodes/" + Uri.EscapeDataString(nodeId);
+            return await _Sdk.Get<ClusterNode>(url, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public Task<ClusterRestartResult> RestartClusterNode(string nodeId, CancellationToken token = default)
+        {
+            if (String.IsNullOrEmpty(nodeId)) throw new ArgumentNullException(nameof(nodeId));
+            return RequestRestart(_Sdk.Endpoint + "v1.0/cluster/nodes/" + Uri.EscapeDataString(nodeId) + "/restart", token);
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteClusterNode(string nodeId, CancellationToken token = default)
+        {
+            if (String.IsNullOrEmpty(nodeId)) throw new ArgumentNullException(nameof(nodeId));
+            string url = _Sdk.Endpoint + "v1.0/cluster/nodes/" + Uri.EscapeDataString(nodeId);
+            await _Sdk.Delete(url, token).ConfigureAwait(false);
+        }
+
         #endregion
 
         #region Private-Methods

@@ -2746,6 +2746,56 @@
             Follow edges in either direction.  This is the default.
             </summary>
         </member>
+        <member name="T:LiteGraph.Sdk.HealthResponse">
+            <summary>
+            Body returned by the health endpoints (GET /v1.0/health/live and GET /v1.0/health/ready).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.Status">
+            <summary>
+            Healthy, Degraded (Clutch or Redis unreachable; still serving), or Unavailable (database unreachable or draining).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.NodeId">
+            <summary>
+            Node that answered.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.ClusterName">
+            <summary>
+            Cluster name, or null when the server is not running as a cluster node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.Version">
+            <summary>
+            Server software version.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.StartedUtc">
+            <summary>
+            UTC timestamp at which the server process started.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.Checks">
+            <summary>
+            Readiness checks.  Null on the liveness endpoint.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.Utc">
+            <summary>
+            UTC timestamp at which the response was produced.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.IsReady">
+            <summary>
+            True when Status is Healthy or Degraded, meaning the node can serve requests.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.HealthResponse.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Sdk.Implementations.AdminMethods">
             <summary>
             Admin methods.
@@ -2788,6 +2838,15 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.RestartCluster(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.ReadClusterNode(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.RestartClusterNode(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.DeleteClusterNode(System.String,System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="T:LiteGraph.Sdk.Implementations.AlgorithmMethods">
@@ -3636,6 +3695,35 @@
             </summary>
             <param name="token">Cancellation token.</param>
             <returns>Restart result, or null if the connection dropped as a single server exited.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.ReadClusterNode(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Read one cluster node from the node registry.  Requires system administrator privileges.
+            </summary>
+            <param name="nodeId">Node identifier.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Node, or null if it is not in the registry.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when nodeId is null or empty.</exception>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.RestartClusterNode(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Request a restart of one cluster node (on a single node, of the server itself).  The node waits for any other node
+            that is restarting, then restarts.  Requires system administrator privileges.
+            </summary>
+            <param name="nodeId">Node identifier.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Restart result, or null if the connection dropped as a single server exited.  When the server refuses the
+            request (for example an unknown, offline, or stopped node), Restarting is false.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when nodeId is null or empty.</exception>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.DeleteClusterNode(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Remove an Offline or Stopped node from the node registry.  A running node cannot be removed, because it registers
+            again on its next heartbeat.  Requires system administrator privileges.
+            </summary>
+            <param name="nodeId">Node identifier.</param>
+            <param name="token">Cancellation token.</param>
+            <exception cref="T:System.ArgumentNullException">Thrown when nodeId is null or empty.</exception>
         </member>
         <member name="T:LiteGraph.Sdk.Interfaces.IAlgorithmMethods">
             <summary>
@@ -5858,6 +5946,21 @@
             <param name="endpoint">Endpoint URL.</param>
             <param name="bearerToken">Bearer token.</param>
         </member>
+        <member name="M:LiteGraph.Sdk.LiteGraphSdk.HealthLive(System.Threading.CancellationToken)">
+            <summary>
+            Liveness check (GET /v1.0/health/live).  Needs no authentication.
+            </summary>
+            <param name="token">Cancellation token.</param>
+            <returns>Health response, or null if the server did not answer.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.LiteGraphSdk.HealthReady(System.Threading.CancellationToken)">
+            <summary>
+            Readiness check (GET /v1.0/health/ready).  Needs no authentication.  Returns the body for both 200 and 503, so a
+            node that is not ready reports why (see HealthResponse.Checks); a 503 is not retried.
+            </summary>
+            <param name="token">Cancellation token.</param>
+            <returns>Health response, or null if the server did not answer.</returns>
+        </member>
         <member name="M:LiteGraph.Sdk.LiteGraphSdk.GetTenantsForEmail(System.String,System.String)">
             <summary>
             Get tenants for an email address.
@@ -6027,6 +6130,10 @@
         <member name="T:LiteGraph.Sdk.SdkBase">
             <summary>
             View SDK base class.
+            Requests that fail with a connection error or a 502, 503, or 504 response are retried with exponential backoff and
+            jitter (see MaxRetries, RetryBaseDelayMs, and RetryPost), and the node that answered each request is recorded in
+            LastNodeId.
+            Thread safety: an instance may be used from multiple threads; LastNodeId then reflects whichever request completed last.
             </summary>
         </member>
         <member name="P:LiteGraph.Sdk.SdkBase.Logger">
@@ -6052,6 +6159,33 @@
         <member name="P:LiteGraph.Sdk.SdkBase.TimeoutMs">
             <summary>
             Timeout in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SdkBase.MaxRetries">
+            <summary>
+            Maximum number of retries after the first attempt, for requests that fail with a connection error or a 502, 503,
+            or 504 response.  GET, HEAD, PUT, and DELETE requests are retried; POST requests only when RetryPost is true.
+            Default is 2.  Minimum is 0 (no retries), maximum is 10.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SdkBase.RetryBaseDelayMs">
+            <summary>
+            Base delay before the first retry, in milliseconds.  Each further retry doubles it, capped at 5000 ms, and a random
+            jitter of up to half the delay is subtracted so clients do not retry in lockstep.
+            Default is 200.  Minimum is 0, maximum is 5000.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SdkBase.RetryPost">
+            <summary>
+            Retry POST requests too.  POST requests are not idempotent, so a retried POST can apply twice if the first attempt
+            reached the server; enable this only when the operations you POST are safe to repeat.  Default is false.
+            Streaming responses are never retried once any of the body has been read.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SdkBase.LastNodeId">
+            <summary>
+            Node that answered the most recent request, from the x-litegraph-node response header.  Null until a response
+            carrying the header is received.  Behind a load balancer this identifies which cluster node served the request.
             </summary>
         </member>
         <member name="M:LiteGraph.Sdk.SdkBase.#ctor(System.String,System.String)">
@@ -6222,6 +6356,7 @@
             Yields the data payload of each SSE frame with the leading "data:" prefix removed.
             Enumeration ends when the server emits a "[DONE]" sentinel frame or closes the stream.
             On a non-success status code a warning is logged and no events are yielded.
+            The request is retried only before the stream starts, and only when RetryPost is true.
             </summary>
             <param name="url">URL.</param>
             <param name="bytes">Request body bytes.</param>
@@ -6229,6 +6364,56 @@
             <param name="token">Cancellation token.</param>
             <returns>Async enumerable of SSE data payloads.</returns>
             <exception cref="T:System.ArgumentNullException">Thrown when the URL is null or empty.</exception>
+        </member>
+        <member name="M:LiteGraph.Sdk.SdkBase.SendAsync(System.String,System.Net.Http.HttpMethod,System.String,System.Object,System.Collections.Generic.Dictionary{System.String,System.String},System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Send a request with the retry policy applied, recording the answering node.  The caller disposes the exchange.
+            </summary>
+            <param name="url">URL.</param>
+            <param name="method">HTTP method.</param>
+            <param name="contentType">Content type, or null.</param>
+            <param name="body">Body: a string, a byte array, or null.</param>
+            <param name="headers">Additional headers, or null.</param>
+            <param name="authenticate">True to send the bearer token.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Exchange holding the final response, which is null if the server did not answer.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.SdkBase.SendAsync(System.String,System.Net.Http.HttpMethod,System.String,System.Object,System.Collections.Generic.Dictionary{System.String,System.String},System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+            <summary>
+            Send a request, applying the retry policy only when retry is true, and record the answering node.
+            </summary>
+            <param name="url">URL.</param>
+            <param name="method">HTTP method.</param>
+            <param name="contentType">Content type, or null.</param>
+            <param name="body">Body: a string, a byte array, or null.</param>
+            <param name="headers">Additional headers, or null.</param>
+            <param name="authenticate">True to send the bearer token.</param>
+            <param name="retry">False to send exactly once, for example when a 503 response is itself the answer.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Exchange holding the final response, which is null if the server did not answer.</returns>
+        </member>
+        <member name="T:LiteGraph.Sdk.SdkExchange">
+            <summary>
+            A completed REST exchange: the request and its response, disposed together so the response body stays readable
+            for as long as the caller needs it.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.SdkExchange.Response">
+            <summary>
+            Response, or null when the server did not answer.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.SdkExchange.#ctor(RestWrapper.RestRequest,RestWrapper.RestResponse)">
+            <summary>
+            Instantiate.
+            </summary>
+            <param name="request">Request.</param>
+            <param name="response">Response, or null.</param>
+        </member>
+        <member name="M:LiteGraph.Sdk.SdkExchange.Dispose">
+            <summary>
+            Dispose the response and the request.
+            </summary>
         </member>
         <member name="T:LiteGraph.Sdk.SearchRequest">
             <summary>

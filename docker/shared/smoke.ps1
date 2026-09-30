@@ -169,7 +169,8 @@ Invoke-Api -Name "REST root" -Uri $RestBase | Out-Null
 Invoke-Api -Name "REST liveness" -Uri "$RestBase/v1.0/health/live" | Out-Null
 $ready = Invoke-Api -Name "REST readiness" -Uri "$RestBase/v1.0/health/ready"
 Assert-True ($ready.Json.Checks.Database -eq $true) "Readiness database check" "Database=$($ready.Json.Checks.Database)"
-Invoke-Api -Name "REST metrics" -Uri "$RestBase/metrics" | Out-Null
+$metricsText = (Invoke-WebRequest -UseBasicParsing -Uri "$RestBase/metrics" -TimeoutSec $TimeoutSeconds).Content
+Assert-True ($metricsText -match 'litegraph_node_info\{node_id="[^"]+"') "REST metrics include node identity" (($metricsText -split "`n" | Where-Object { $_ -like 'litegraph_node_info*' } | Select-Object -First 1))
 Invoke-Api -Name "REST tenants (admin)" -Uri "$RestBase/v1.0/tenants" -Headers $admin | Out-Null
 Invoke-Api -Name "REST settings (admin)" -Uri "$RestBase/v1.0/settings" -Headers $admin | Out-Null
 Invoke-Api -Name "REST rejects missing credentials" -Uri "$RestBase/v1.0/tenants" -Expected @(401) | Out-Null
@@ -179,6 +180,15 @@ Invoke-Api -Name "Dashboard" -Uri $UiBase | Out-Null
 Wait-Ready "Prometheus ready" "$PrometheusBase/-/ready"
 Wait-Ready "Loki ready" "$LokiBase/ready"
 Wait-Ready "Grafana health" "$GrafanaBase/api/health"
+$grafanaAuth = @{ Authorization = "Basic " + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("admin:admin")) }
+foreach ($uid in @("litegraph-overview", "litegraph-cluster")) {
+    $dash = $null
+    for ($i = 0; $i -lt 20 -and -not $dash; $i++) {
+        try { $dash = Invoke-RestMethod -Uri "$GrafanaBase/api/dashboards/uid/$uid" -Headers $grafanaAuth -TimeoutSec $TimeoutSeconds } catch { Start-Sleep -Seconds 2 }
+    }
+    $hasNodeVar = $dash -and (@($dash.dashboard.templating.list | Where-Object { $_.name -eq "node" }).Count -eq 1)
+    Assert-True $hasNodeVar "Grafana dashboard $uid provisioned with a node variable" $(if ($dash) { $dash.dashboard.title } else { "missing" })
+}
 
 #
 # Vector write and search round trip
@@ -309,6 +319,23 @@ try {
 
         $pong = (Invoke-Compose @("exec", "-T", "redis", "redis-cli", "ping") | Out-String).Trim()
         Assert-True ($pong -eq "PONG") "Redis answers" $pong
+
+        #
+        # Prometheus scrapes every node under its node label, and every node reports Healthy
+        #
+
+        $upNodes = @()
+        $healthy = 0
+        for ($i = 0; $i -lt 30; $i++) {
+            $up = Invoke-RestMethod -Uri ("$PrometheusBase/api/v1/query?query=" + [uri]::EscapeDataString('up{job="litegraph"} == 1')) -TimeoutSec $TimeoutSeconds
+            $upNodes = @($up.data.result | ForEach-Object { $_.metric.node } | Sort-Object)
+            $state = Invoke-RestMethod -Uri ("$PrometheusBase/api/v1/query?query=" + [uri]::EscapeDataString('sum(litegraph_node_state{state="Healthy"})')) -TimeoutSec $TimeoutSeconds
+            $healthy = if ($state.data.result.Count -gt 0) { [int] $state.data.result[0].value[1] } else { 0 }
+            if ($upNodes.Count -eq 3 -and $healthy -eq 3) { break }
+            Start-Sleep -Seconds 2
+        }
+        Assert-True ($upNodes.Count -eq 3) "Prometheus scrapes every node by node label" ($upNodes -join ",")
+        Assert-True ($healthy -eq 3) "Every node reports Healthy in Prometheus" "healthy=$healthy"
 
         $ext = Invoke-Compose @("exec", "-T", "postgresql", "psql", "-U", "postgres", "-d", "litegraph", "-tAc", "SELECT extversion FROM pg_extension WHERE extname = 'vector'")
         Assert-True (-not [string]::IsNullOrWhiteSpace($ext)) "pgvector extension in litegraph database" "version $ext"

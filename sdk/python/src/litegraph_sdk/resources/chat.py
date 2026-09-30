@@ -1,6 +1,10 @@
+import contextlib
 import json
 from typing import Generator, Optional, Union
 
+import httpx
+
+from ..base import RETRYABLE_STATUS_CODES
 from ..configuration import get_client
 from ..enums.chat_endpoint_type_enum import ChatEndpointType_Enum
 from ..enums.chat_feedback_rating_enum import ChatFeedbackRating_Enum
@@ -312,40 +316,71 @@ class Chat:
         url = f"{cls._base_url()}/completions"
         headers = client._get_headers()
 
-        with client.client.stream("POST", url, json=data, headers=headers) as response:
-            if response.status_code >= 400:
-                cls._raise_stream_error(response)
-            for line in response.iter_lines():
-                if line is None:
-                    continue
-                if isinstance(line, bytes):
-                    line = line.decode("utf-8", errors="replace")
-                line = line.strip()
-                if not line.startswith(SSE_DATA_PREFIX):
-                    continue
-                payload = line[len(SSE_DATA_PREFIX):].strip()
-                if payload == SSE_DONE_SENTINEL:
-                    return
+        # Retried only before the stream starts (502/503/504 or a connection failure while connecting), and only
+        # when the client has retry_post enabled, because this is a POST. Once the response body is being read it
+        # is never retried.
+        attempt = 0
+        while True:
+            with contextlib.ExitStack() as stack:
                 try:
-                    yield json.loads(payload)
-                except json.JSONDecodeError:
-                    log_warning(
-                        Severity_Enum.Warn.value,
-                        f"Skipping malformed SSE frame: {payload}",
-                    )
+                    response = stack.enter_context(client.client.stream("POST", url, json=data, headers=headers))
+                except httpx.RequestError:
+                    if not client._can_retry("POST", attempt):
+                        raise
+                    response = None
+                if response is not None:
+                    client._record_node_id(response)
+                    if not (response.status_code in RETRYABLE_STATUS_CODES and client._can_retry("POST", attempt)):
+                        yield from cls._read_stream(response)
+                        return
+            attempt += 1
+            client._sleep_before_retry(attempt)
+
+    @classmethod
+    def _read_stream(cls, response) -> Generator[dict, None, None]:
+        """Yield parsed SSE event dicts from an open streaming response."""
+        if response.status_code >= 400:
+            cls._raise_stream_error(response)
+        for line in response.iter_lines():
+            if line is None:
+                continue
+            if isinstance(line, bytes):
+                line = line.decode("utf-8", errors="replace")
+            line = line.strip()
+            if not line.startswith(SSE_DATA_PREFIX):
+                continue
+            payload = line[len(SSE_DATA_PREFIX):].strip()
+            if payload == SSE_DONE_SENTINEL:
+                return
+            try:
+                yield json.loads(payload)
+            except json.JSONDecodeError:
+                log_warning(
+                    Severity_Enum.Warn.value,
+                    f"Skipping malformed SSE frame: {payload}",
+                )
 
     @classmethod
     def _raise_stream_error(cls, response) -> None:
         body = response.read()
-        content_type = response.headers.get("Content-Type", "")
+        headers = response.headers
+        node_id = headers.get("x-litegraph-node") if hasattr(headers, "get") else None
+        node_id = node_id if isinstance(node_id, str) else None
+        content_type = headers.get("Content-Type", "")
         if "application/json" in content_type:
             try:
                 error_response = ApiErrorResponseModel(**json.loads(body))
-                raise get_exception_for_error_code(error_response.error)
+                exception = get_exception_for_error_code(error_response.error)
             except (json.JSONDecodeError, ValueError):
-                pass
+                exception = None
+            if exception is not None:
+                exception.node_id = node_id
+                exception.status_code = response.status_code
+                raise exception
         raise SdkException(
-            f"Streaming request failed with status {response.status_code}"
+            f"Streaming request failed with status {response.status_code}",
+            node_id=node_id,
+            status_code=response.status_code,
         )
 
     # endregion

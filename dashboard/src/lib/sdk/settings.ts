@@ -67,7 +67,7 @@ export interface ClusterRestartResult {
   RequestedUtc?: string;
 }
 
-const getBaseUrl = (): string => {
+export const getBaseUrl = (): string => {
   const endpoint = sdk.config.endpoint || '/';
   return endpoint.endsWith('/') ? endpoint.slice(0, -1) : endpoint;
 };
@@ -87,7 +87,8 @@ const buildHeaders = (): Record<string, string> => {
   return headers;
 };
 
-const request = async <T>(method: string, url: string, body?: unknown): Promise<T> => {
+/** Authenticated JSON request against the server's admin routes; throws with the server's error description. */
+export const request = async <T>(method: string, url: string, body?: unknown): Promise<T> => {
   const headers = buildHeaders();
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   const response = await fetch(url, {

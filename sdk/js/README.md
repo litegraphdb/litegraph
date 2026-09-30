@@ -112,6 +112,39 @@ sdk.searchNodes(searchRequest).then((response) => {
 })
 ```
 
+## Retries and Load Balancers (v10.0)
+
+Connection failures and 502, 503, and 504 responses are retried with exponential backoff and jitter. GET, HEAD, PUT, and DELETE are retried; POST only when `retryPost` is true, because a retried POST can apply twice if the first attempt reached the server. Streaming responses are never retried once any of the body has been read.
+
+| Property | Default | Range | Meaning |
+|----------|---------|-------|---------|
+| `maxRetries` | `2` | 0 to 10 | Retries after the first attempt |
+| `retryBaseDelayMs` | `200` | 0 to 5000 | First retry delay; doubles per retry, capped at 5000 ms, less up to half as jitter |
+| `retryPost` | `false` | | Also retry POST requests |
+| `lastNodeId` | `null` | read only | Node that answered the most recent request (`x-litegraph-node` header) |
+
+### Behind a load balancer
+
+A LiteGraph cluster runs several identical nodes behind a load balancer, so any request may be answered by any node. A node that is restarting returns 502 or 503 through the load balancer, and the retries absorb it. API errors carry `nodeId`, naming the node whose logs to read.
+
+```javascript
+const api = new LiteGraphSdk('http://127.0.0.1:8701/', 'default', 'litegraphadmin');
+api.maxRetries = 3;
+
+const cluster = await api.readClusterNodes();
+cluster.Nodes.forEach((n) => console.log(n.NodeId, n.State, n.RestartPending ? '(restart pending)' : ''));
+console.log('answered by', api.lastNodeId);
+
+try {
+  await api.readClusterNode('no-such-node');
+} catch (err) {
+  console.log(err.error, 'from node', err.nodeId);
+}
+
+const ready = await api.healthReady(); // body for both 200 and 503
+console.log(ready.Status, ready.Checks);
+```
+
 ## Graph Transactions
 
 Graph transactions execute create, update, delete, attach, detach, and upsert operations atomically inside one tenant and graph. The transaction API preserves diagnostic result bodies returned by LiteGraph with HTTP `400` validation failures or HTTP `409` rollback/conflict failures.
@@ -198,9 +231,23 @@ Requires system-administrator authentication.
 
 | Method | Description | Parameters | Returns | Endpoint |
 |--------|-------------|------------|---------|----------|
-| `readSettings` | Reads the effective server settings (secrets redacted). | `cancellationToken` (optional) - `AbortController` | `Promise<Object>` | `GET /v1.0/settings` |
+| `readSettings` | Reads the settings file shared by every node. | `cancellationToken` (optional) - `AbortController` | `Promise<Object>` | `GET /v1.0/settings` |
 | `updateSettings` | Persists server settings; hot-reloads live fields. | `settings` (Object) - Settings object <br> `cancellationToken` (optional) - `AbortController` | `Promise<SettingsUpdateResult>` | `PUT /v1.0/settings` |
-| `restartServer` | Flushes and exits the process so the orchestrator restarts it. | `cancellationToken` (optional) - `AbortController` | `Promise<void>` | `POST /v1.0/settings/restart` |
+| `restartServer` | Applies saved settings by restarting: a rolling restart of every node in cluster mode, otherwise this server. | `cancellationToken` (optional) - `AbortController` | `Promise<Object>` restart result | `POST /v1.0/settings/restart` |
+
+### Cluster Operations (v10.0)
+
+Requires system-administrator authentication, except the health checks. On a single node the answering server is the only node.
+
+| Method | Description | Parameters | Returns | Endpoint |
+|--------|-------------|------------|---------|----------|
+| `readClusterNodes` | Lists every node with its state, health checks, settings version, and pending restart. | `cancellationToken` (optional) | `Promise<Object>` cluster status | `GET /v1.0/cluster/nodes` |
+| `readClusterNode` | Reads one node. Rejects with NotFound if it is not in the registry. | `nodeId` (string) <br> `cancellationToken` (optional) | `Promise<Object>` node | `GET /v1.0/cluster/nodes/{nodeId}` |
+| `restartCluster` | Requests a rolling restart: every node restarts, one at a time. | `cancellationToken` (optional) | `Promise<Object>` restart result | `POST /v1.0/cluster/restart` |
+| `restartClusterNode` | Requests a restart of one node. Rejects with the server's error (NotFound, Conflict for an offline node, Unavailable). | `nodeId` (string) <br> `cancellationToken` (optional) | `Promise<Object>` restart result | `POST /v1.0/cluster/nodes/{nodeId}/restart` |
+| `deleteClusterNode` | Removes an Offline or Stopped node from the registry. | `nodeId` (string) <br> `cancellationToken` (optional) | `Promise<void>` | `DELETE /v1.0/cluster/nodes/{nodeId}` |
+| `healthLive` | Liveness. No authentication. | `cancellationToken` (optional) | `Promise<Object>` health | `GET /v1.0/health/live` |
+| `healthReady` | Readiness. Resolves with the body for both 200 and 503. No authentication. | `cancellationToken` (optional) | `Promise<Object>` health | `GET /v1.0/health/ready` |
 
 ### Chat Operations (v8.1)
 

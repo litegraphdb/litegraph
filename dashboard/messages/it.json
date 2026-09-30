@@ -1409,7 +1409,9 @@
       "aiSettings": "Impostazioni chat",
       "aiSettingsTitle": "Configurazione chat del tenant",
       "algorithms": "Algorithms",
-      "algorithmsTitle": "Run graph algorithms and export projections"
+      "algorithmsTitle": "Run graph algorithms and export projections",
+      "cluster": "Cluster",
+      "clusterTitle": "Nodi del cluster e riavvii"
     }
   },
   "secure": {
@@ -1530,7 +1532,8 @@
         "heartbeat": "Ultimo heartbeat",
         "settingsVersion": "Versione impostazioni",
         "restartPending": "Riavvio in sospeso"
-      }
+      },
+      "openPage": "Apri la pagina Cluster"
     }
   },
   "ai": {
@@ -2017,5 +2020,91 @@
     "embeddingsModel": "Model",
     "embeddingsDimensionality": "Dimensionality",
     "close": "Close"
+  },
+  "cluster": {
+    "title": "Cluster",
+    "subtitle": "Tutti i nodi di questa installazione, il loro stato e i riavvii. Il filtro per stato si applica all'elenco dei nodi ottenuto dal server.",
+    "loading": "Caricamento dello stato del cluster...",
+    "refresh": "Aggiorna",
+    "autoRefresh": "Aggiornamento ogni {seconds} s",
+    "autoRefreshPaused": "Aggiornamento automatico in pausa",
+    "reconnecting": "Connessione persa, nuovo tentativo",
+    "lastUpdated": "aggiornato {time}",
+    "singleNode": "Nodo singolo",
+    "singleNodeDescription": "Questo server non è in modalità cluster. È l'unico nodo e riavviarlo riavvia il server.",
+    "registryUnavailable": "Il registro dei nodi (Redis) non è raggiungibile. Viene mostrato solo il nodo che ha risposto e non è possibile richiedere riavvii finché Redis non torna disponibile.",
+    "loadError": "Impossibile caricare lo stato del cluster.",
+    "cards": {
+      "nodes": "Nodi integri",
+      "cluster": "Cluster",
+      "registry": "Registro dei nodi",
+      "registryUp": "Disponibile",
+      "registryDown": "Non disponibile",
+      "registryNa": "Non usato",
+      "settings": "Versione impostazioni",
+      "settingsLagging": "{count} in ritardo, {pending} in attesa di riavvio",
+      "lastRestart": "Ultima richiesta di riavvio",
+      "never": "Mai"
+    },
+    "filter": {
+      "state": "Stato",
+      "all": "Tutti gli stati",
+      "localNote": "Visualizzati {shown} di {total} nodi"
+    },
+    "columns": {
+      "node": "Nodo",
+      "host": "Host",
+      "version": "Versione",
+      "state": "Stato",
+      "started": "Avviato",
+      "heartbeat": "Ultimo heartbeat",
+      "checks": "Controlli",
+      "settingsVersion": "Versione impostazioni",
+      "restartPending": "Riavvio in sospeso",
+      "actions": "Azioni"
+    },
+    "checks": {
+      "database": "Database",
+      "clutch": "Clutch",
+      "redis": "Redis"
+    },
+    "secondsAgo": "{seconds} s fa",
+    "yes": "Sì",
+    "no": "No",
+    "actions": {
+      "copyNodeId": "Copia ID nodo",
+      "restartNode": "Riavvia nodo",
+      "remove": "Rimuovi dal registro",
+      "rollingRestart": "Riavvio progressivo"
+    },
+    "restartNodeModal": {
+      "title": "Riavviare il nodo {node}?",
+      "body": "Il nodo smette di accettare richieste, si riavvia e rientra. Se un altro nodo si sta riavviando, attende prima quel nodo.",
+      "bodySingle": "Il server termina e il suo supervisore lo riavvia. Le richieste vengono interrotte brevemente."
+    },
+    "removeModal": {
+      "title": "Rimuovere il nodo {node}?",
+      "body": "Rimuove questo nodo dal registro. Se si avvia di nuovo, si registra di nuovo."
+    },
+    "rollingModal": {
+      "title": "Riavviare tutti i nodi?",
+      "body": "Tutti i nodi vengono riavviati uno alla volta, ciascuno dopo che il precedente risulta di nuovo integro. Il cluster continua a gestire le richieste per tutto il tempo."
+    },
+    "progress": {
+      "title": "Avanzamento del riavvio progressivo",
+      "complete": "Tutti i nodi sono stati riavviati.",
+      "pending": "In attesa",
+      "restarting": "In riavvio",
+      "restarted": "Riavviato",
+      "dismiss": "Chiudi",
+      "requested": "Richiesto {time}"
+    },
+    "toast": {
+      "restartRequested": "Riavvio richiesto per {node}.",
+      "rollingRequested": "Riavvio progressivo richiesto.",
+      "removed": "Nodo {node} rimosso.",
+      "actionFailed": "Richiesta non riuscita: {message}"
+    },
+    "empty": "Nessun nodo registrato."
   }
 }

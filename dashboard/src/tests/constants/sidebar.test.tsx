@@ -63,7 +63,15 @@ describe('buildNavForPrincipal — role-aware nav', () => {
       'administer',
     ]);
     expect(itemKeys(systemAdmin)).toEqual(
-      expect.arrayContaining(['/tenants', '/users', '/credentials', '/authorization', '/backups', '/settings'])
+      expect.arrayContaining([
+        '/tenants',
+        '/users',
+        '/credentials',
+        '/authorization',
+        '/backups',
+        '/settings',
+        '/cluster',
+      ])
     );
   });
 
@@ -74,6 +82,7 @@ describe('buildNavForPrincipal — role-aware nav', () => {
     expect(itemKeys(tenantAdmin)).toContain('/authorization');
     expect(itemKeys(tenantAdmin)).not.toContain('/settings');
     expect(itemKeys(tenantAdmin)).not.toContain('/backups');
+    expect(itemKeys(tenantAdmin)).not.toContain('/cluster');
   });
 
   it('Regular user sees SECURE users/credentials but not authorization or ADMINISTER', () => {

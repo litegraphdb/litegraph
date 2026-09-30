@@ -30,6 +30,7 @@ const ENFORCED_DIRS = [
   'page/edges',
   'page/login',
   'page/settings',
+  'page/cluster',
   'page/user-dashboard/home',
   'page/labels',
   'page/tags',

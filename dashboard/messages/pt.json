@@ -1409,7 +1409,9 @@
       "aiSettings": "Definições de chat",
       "aiSettingsTitle": "Configuração de chat do tenant",
       "algorithms": "Algorithms",
-      "algorithmsTitle": "Run graph algorithms and export projections"
+      "algorithmsTitle": "Run graph algorithms and export projections",
+      "cluster": "Cluster",
+      "clusterTitle": "Nós do cluster e reinícios"
     }
   },
   "secure": {
@@ -1530,7 +1532,8 @@
         "heartbeat": "Último heartbeat",
         "settingsVersion": "Versão das configurações",
         "restartPending": "Reinício pendente"
-      }
+      },
+      "openPage": "Abrir a página do cluster"
     }
   },
   "ai": {
@@ -2017,5 +2020,91 @@
     "embeddingsModel": "Model",
     "embeddingsDimensionality": "Dimensionality",
     "close": "Close"
+  },
+  "cluster": {
+    "title": "Cluster",
+    "subtitle": "Todos os nós desta implantação, seu estado e os reinícios. O filtro de estado se aplica à lista de nós obtida do servidor.",
+    "loading": "Carregando o estado do cluster...",
+    "refresh": "Atualizar",
+    "autoRefresh": "Atualiza a cada {seconds} s",
+    "autoRefreshPaused": "Atualização automática pausada",
+    "reconnecting": "Conexão perdida, tentando novamente",
+    "lastUpdated": "atualizado {time}",
+    "singleNode": "Nó único",
+    "singleNodeDescription": "Este servidor não está em modo cluster. Ele é o único nó, e reiniciá-lo reinicia o servidor.",
+    "registryUnavailable": "O registro de nós (Redis) está inacessível. Apenas o nó que respondeu é exibido, e reinícios não podem ser solicitados até o Redis voltar.",
+    "loadError": "Não foi possível carregar o estado do cluster.",
+    "cards": {
+      "nodes": "Nós íntegros",
+      "cluster": "Cluster",
+      "registry": "Registro de nós",
+      "registryUp": "Disponível",
+      "registryDown": "Indisponível",
+      "registryNa": "Não usado",
+      "settings": "Versão das configurações",
+      "settingsLagging": "{count} atrasados, {pending} aguardando reinício",
+      "lastRestart": "Última solicitação de reinício",
+      "never": "Nunca"
+    },
+    "filter": {
+      "state": "Estado",
+      "all": "Todos os estados",
+      "localNote": "Exibindo {shown} de {total} nós"
+    },
+    "columns": {
+      "node": "Nó",
+      "host": "Host",
+      "version": "Versão",
+      "state": "Estado",
+      "started": "Iniciado",
+      "heartbeat": "Último heartbeat",
+      "checks": "Verificações",
+      "settingsVersion": "Versão das configurações",
+      "restartPending": "Reinício pendente",
+      "actions": "Ações"
+    },
+    "checks": {
+      "database": "Banco de dados",
+      "clutch": "Clutch",
+      "redis": "Redis"
+    },
+    "secondsAgo": "há {seconds} s",
+    "yes": "Sim",
+    "no": "Não",
+    "actions": {
+      "copyNodeId": "Copiar ID do nó",
+      "restartNode": "Reiniciar nó",
+      "remove": "Remover do registro",
+      "rollingRestart": "Reinício gradual"
+    },
+    "restartNodeModal": {
+      "title": "Reiniciar o nó {node}?",
+      "body": "O nó para de aceitar solicitações, reinicia e volta ao cluster. Se outro nó estiver reiniciando, ele espera esse nó primeiro.",
+      "bodySingle": "O servidor é encerrado e seu supervisor o inicia novamente. As solicitações são interrompidas brevemente."
+    },
+    "removeModal": {
+      "title": "Remover o nó {node}?",
+      "body": "Remove este nó do registro. Se ele iniciar novamente, será registrado de novo."
+    },
+    "rollingModal": {
+      "title": "Reiniciar todos os nós?",
+      "body": "Todos os nós serão reiniciados um de cada vez, cada um depois que o anterior voltar a ficar íntegro. O cluster continua atendendo às solicitações durante todo o processo."
+    },
+    "progress": {
+      "title": "Progresso do reinício gradual",
+      "complete": "Todos os nós foram reiniciados.",
+      "pending": "Pendente",
+      "restarting": "Reiniciando",
+      "restarted": "Reiniciado",
+      "dismiss": "Dispensar",
+      "requested": "Solicitado {time}"
+    },
+    "toast": {
+      "restartRequested": "Reinício solicitado para {node}.",
+      "rollingRequested": "Reinício gradual solicitado.",
+      "removed": "Nó {node} removido.",
+      "actionFailed": "A solicitação falhou: {message}"
+    },
+    "empty": "Nenhum nó registrado."
   }
 }

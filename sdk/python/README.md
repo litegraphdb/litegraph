@@ -160,9 +160,9 @@ Requires system-administrator authentication.
 
 | Operation        | Method | Endpoint                  | Description                                              |
 | ---------------- | ------ | ------------------------- | ------------------------------------------------------- |
-| Read Settings    | GET    | `v1.0/settings`           | Read effective server settings (secrets redacted)       |
+| Read Settings    | GET    | `v1.0/settings`           | Read the settings file shared by every node             |
 | Update Settings  | PUT    | `v1.0/settings`           | Persist settings; hot-reloads live fields               |
-| Restart Server   | POST   | `v1.0/settings/restart`   | Flush and exit so the orchestrator restarts the process |
+| Restart Server   | POST   | `v1.0/settings/restart`   | Rolling restart of every node in cluster mode, otherwise this server |
 
 ```python
 from litegraph_sdk import Admin
@@ -170,6 +170,30 @@ from litegraph_sdk import Admin
 current = Admin.read_settings()
 result = Admin.update_settings({"RequestTimeoutSeconds": 30})
 Admin.restart_server()
+```
+
+### Cluster Operations (v10.0)
+
+Requires system-administrator authentication, except the health checks. On a single node the answering server is the only node.
+
+| Operation            | Method | Endpoint                               | Description                                                     |
+| -------------------- | ------ | -------------------------------------- | --------------------------------------------------------------- |
+| Read Cluster Nodes   | GET    | `v1.0/cluster/nodes`                   | Every node with state, health, settings version, pending restart |
+| Read Cluster Node    | GET    | `v1.0/cluster/nodes/{node_id}`         | One node; `ResourceNotFoundError` if not in the registry        |
+| Restart Cluster      | POST   | `v1.0/cluster/restart`                 | Rolling restart, one node at a time                             |
+| Restart Cluster Node | POST   | `v1.0/cluster/nodes/{node_id}/restart` | Restart one node                                                |
+| Delete Cluster Node  | DELETE | `v1.0/cluster/nodes/{node_id}`         | Remove an Offline or Stopped node from the registry             |
+| Health Live          | GET    | `v1.0/health/live`                     | Liveness                                                        |
+| Health Ready         | GET    | `v1.0/health/ready`                    | Readiness; returns the body for both 200 and 503                |
+
+```python
+status = Admin.read_cluster_nodes()
+for node in status["Nodes"]:
+    print(node["NodeId"], node["State"], node["RestartPending"])
+
+Admin.restart_cluster_node("litegraph-2")
+Admin.delete_cluster_node("decommissioned-node")
+print(Admin.health_ready()["Status"])
 ```
 
 ### Credential Operations
@@ -324,6 +348,31 @@ search_request = {
 results = Graph.search(**search_request)
 ```
 
+### Retries and Load Balancers (v10.0)
+
+Connection failures and 502, 503, and 504 responses are retried with exponential backoff and jitter. GET, HEAD, PUT, and DELETE are retried; POST only when `retry_post` is `True`, because a retried POST can apply twice if the first attempt reached the server. Streaming chat responses are never retried once any of the body has been read.
+
+```python
+from litegraph_sdk import configure
+from litegraph_sdk.configuration import get_client
+
+configure(
+    endpoint="http://127.0.0.1:8701",
+    tenant_guid="00000000-0000-0000-0000-000000000000",
+    access_key="litegraphadmin",
+    max_retries=3,             # retries after the first attempt, 0 to 10 (default 2)
+    retry_base_delay_ms=250,   # first retry delay; doubles per retry, capped at 5000 ms (default 200)
+    retry_post=False,          # default False
+)
+
+client = get_client()
+print("last request answered by", client.last_node_id)
+```
+
+#### Behind a load balancer
+
+A LiteGraph cluster runs several identical nodes behind a load balancer, so any request may be answered by any node. A node that is restarting returns 502 or 503 through the load balancer, and the retries absorb it. `get_client().last_node_id` names the node that answered the most recent request (the `x-litegraph-node` header), and SDK exceptions raised for HTTP errors carry `node_id` and `status_code`, naming the node whose logs to read.
+
 ### Error Handling
 
 The SDK includes comprehensive error handling with specific exception types:
@@ -333,6 +382,9 @@ The SDK includes comprehensive error handling with specific exception types:
 - `BadRequestError`: Invalid request parameters
 - `TimeoutError`: Request timeout
 - `ServerError`: Server-side issues
+- `ServiceUnavailableError`: A required service (for example the cluster node registry) is unavailable (v10.0)
+
+Exceptions raised for HTTP error responses carry `node_id` (the answering node) and `status_code`.
 
 ## Logging
 

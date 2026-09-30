@@ -1,5 +1,28 @@
 # LiteGraph Observability
 
+## v10.0: Node Labels, Cluster Metrics, And The Cluster Dashboard
+
+In a cluster every node is scraped directly, never through the load balancer, and Prometheus attaches a `node` label to each scrape target (`docker/*/prometheus.yaml`). Every LiteGraph series therefore carries the node that produced it, and `up{job="litegraph"}` shows which nodes answered the last scrape; an offline node shows up there as `0`. Every provisioned dashboard has a **Node** variable (default All) that filters its queries, and the logs dashboard filters on the Loki `hostname` label, which the Docker deployments set to the node identifier by giving each node container its node identifier as host name.
+
+**Node and cluster metric inventory.** Per-node gauges carry a `node_id` label from the server itself, so they identify the node even where the scrape configuration adds no `node` label. Lock metrics are labeled by key class, the first segment of the lock key (`schema`, `vectorindex`, `job`, `settings`, `restart`), never a GUID.
+
+| Metric | Type | Labels | Meaning |
+|---|---|---|---|
+| `litegraph_node_info` | gauge | `node_id`, `cluster`, `version` | Always 1; identifies the node, its cluster (empty on a single node), and its version |
+| `litegraph_node_start_time_seconds` | gauge | `node_id` | Unix time the process started; `time() - ...` is uptime, and a drop is a restart |
+| `litegraph_node_state` | gauge | `node_id`, `state` | 1 for the node's current registry state (`Healthy`, `Degraded`, `Unavailable`, `Draining`, `Restarting`, `Stopped`), 0 for the others. Cluster nodes only |
+| `litegraph_node_restart_pending` | gauge | `node_id` | 1 while the node needs a restart to apply saved settings or has a requested restart still to take |
+| `litegraph_node_settings_version` | gauge | `node_id` | Most recent cluster settings version the node has seen; nodes disagreeing means one has not yet noticed a change |
+| `litegraph_clutch_connected` | gauge | `node_id` | 1 while the node holds an open lock connection to Clutch. Cluster nodes only |
+| `litegraph_redis_connected` | gauge | `node_id` | 1 while the node can reach the Redis node registry. Cluster nodes only |
+| `litegraph_lock_acquires_total` | counter | `key_class`, `outcome` | Lock acquisition attempts; `outcome` is `acquired`, `denied`, `unavailable`, or `cancelled`. Denied `job` locks are normal: another node ran the job |
+| `litegraph_lock_acquire_duration_ms` | summary (`_sum`/`_count`) | `key_class`, `outcome` | Time spent acquiring, including waiting |
+| `litegraph_lock_lost_total` | counter | `key_class` | Held locks lost before release, usually because a Clutch node stopped; the protected work stops and is retried |
+
+With OTLP export enabled, cluster nodes also set the OpenTelemetry resource attributes `service.instance.id` (the node identifier) and `service.namespace` (the cluster name).
+
+A provisioned **LiteGraph Cluster** Grafana dashboard (`litegraph-cluster`) shows nodes up and down, healthy and degraded nodes, pending restarts, and nodes behind the latest settings; a node state table with uptime and Clutch and Redis connectivity; requests, errors, request latency, and vector search latency per node; lock acquisitions, acquisition time, and lost locks by key class; and node uptime, where a rolling restart shows as each node's uptime dropping to zero in turn.
+
 ## v9.0 — Graph Algorithm Metrics And Traces
 
 Every graph algorithm run through the REST route is instrumented. Labels stay low-cardinality (`algorithm`, `success`); tenant and graph GUIDs never appear on metric labels.

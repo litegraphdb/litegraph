@@ -200,6 +200,11 @@
         public string BackupFilename { get; set; } = null;
 
         /// <summary>
+        /// Cluster node identifier.
+        /// </summary>
+        public string NodeId { get; set; } = null;
+
+        /// <summary>
         /// Backup request.
         /// </summary>
         public BackupRequest BackupRequest { get; set; } = null;
@@ -670,6 +675,7 @@
                 if (_Url.UrlParameters != null && _Url.UrlParameters.Count > 0)
                 {
                     if (_Url.UrlParameters.AllKeys.Contains("backupFilename")) BackupFilename = _Url.GetParameter("backupFilename");
+                    if (_Url.UrlParameters.AllKeys.Contains("nodeId")) NodeId = _Url.GetParameter("nodeId");
                     if (_Url.UrlParameters.AllKeys.Contains("tenantGuid")) TenantGUID = Guid.Parse(_Url.GetParameter("tenantGuid"));
                     if (_Url.UrlParameters.AllKeys.Contains("userGuid")) UserGUID = Guid.Parse(_Url.GetParameter("userGuid"));
                     if (_Url.UrlParameters.AllKeys.Contains("credentialGuid")) CredentialGUID = Guid.Parse(_Url.GetParameter("credentialGuid"));

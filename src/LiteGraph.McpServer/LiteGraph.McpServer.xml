@@ -814,6 +814,33 @@
             <param name="server">WebSocket server instance.</param>
             <param name="sdk">LiteGraph SDK instance.</param>
         </member>
+        <member name="T:LiteGraph.McpServer.Registrations.ClusterRegistrations">
+            <summary>
+            Registration methods for read-only cluster tools: cluster/status, cluster/nodes, and cluster/node.
+            Cluster operations that change state (restarts, removing nodes) are deliberately not exposed over MCP.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.ClusterRegistrations.RegisterHttpTools(Voltaic.Mcp.McpHttpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers cluster tools on HTTP server.
+            </summary>
+            <param name="server">HTTP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.ClusterRegistrations.RegisterTcpMethods(Voltaic.Mcp.McpTcpServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers cluster methods on TCP server.
+            </summary>
+            <param name="server">TCP server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
+        <member name="M:LiteGraph.McpServer.Registrations.ClusterRegistrations.RegisterWebSocketMethods(Voltaic.Mcp.McpWebsocketsServer,LiteGraph.Sdk.LiteGraphSdk)">
+            <summary>
+            Registers cluster methods on WebSocket server.
+            </summary>
+            <param name="server">WebSocket server instance.</param>
+            <param name="sdk">LiteGraph SDK instance.</param>
+        </member>
         <member name="T:LiteGraph.McpServer.Registrations.CredentialRegistrations">
             <summary>
             Registration methods for Credential operations.

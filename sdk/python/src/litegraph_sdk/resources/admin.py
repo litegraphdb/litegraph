@@ -1,4 +1,7 @@
+from urllib.parse import quote
+
 from ..configuration import get_client
+from ..exceptions import SdkException
 from ..models.enumeration_result import EnumerationResultModel, parse_enumeration_result
 from ..utils.url_helper import _append_query, _pagination_params
 
@@ -115,3 +118,66 @@ class Admin:
         except Exception:
             # A single server may drop the connection as it exits; this is expected.
             return None
+
+    @classmethod
+    def read_cluster_node(cls, node_id: str):
+        """Read one cluster node from the node registry. Requires system administrator privileges.
+
+        Returns the node dict {NodeId, Hostname, Version, StartedUtc, LastHeartbeatUtc, HeartbeatAgeMs, State,
+        Checks, SettingsVersion, RestartPending, RestartVersion}. Raises ResourceNotFoundError when the node is not
+        in the registry.
+        """
+        if not node_id:
+            raise ValueError("node_id is required")
+        client = get_client()
+        return client.request("GET", f"v1.0/cluster/nodes/{quote(node_id, safe='')}")
+
+    @classmethod
+    def restart_cluster_node(cls, node_id: str):
+        """Request a restart of one cluster node (on a single node, of the server itself).
+
+        The node waits for any other node that is restarting, then restarts. Requires system administrator
+        privileges. Returns the restart result, or None if the connection dropped as a single server exited.
+        Raises the server's error (for example ResourceNotFoundError, ConflictError for an offline node, or
+        ServiceUnavailableError when Redis is unreachable).
+        """
+        if not node_id:
+            raise ValueError("node_id is required")
+        client = get_client()
+        try:
+            return client.request(
+                "POST", f"v1.0/cluster/nodes/{quote(node_id, safe='')}/restart", json={"confirm": True}
+            )
+        except SdkException as e:
+            if getattr(e, "status_code", None):
+                raise
+            # A single server may drop the connection as it exits; this is expected.
+            return None
+
+    @classmethod
+    def delete_cluster_node(cls, node_id: str):
+        """Remove an Offline or Stopped node from the node registry. Requires system administrator privileges.
+
+        A running node cannot be removed, because it registers again on its next heartbeat; the server answers
+        ConflictError.
+        """
+        if not node_id:
+            raise ValueError("node_id is required")
+        client = get_client()
+        return client.request("DELETE", f"v1.0/cluster/nodes/{quote(node_id, safe='')}")
+
+    @classmethod
+    def health_live(cls):
+        """Liveness check (GET /v1.0/health/live). Returns the health body."""
+        client = get_client()
+        return client.request("GET", "v1.0/health/live", accepted_status_codes=[503])
+
+    @classmethod
+    def health_ready(cls):
+        """Readiness check (GET /v1.0/health/ready).
+
+        Returns the health body for both 200 and 503, so a node that is not ready reports why. Status is Healthy,
+        Degraded, or Unavailable. A 503 is returned, not retried.
+        """
+        client = get_client()
+        return client.request("GET", "v1.0/health/ready", accepted_status_codes=[503])

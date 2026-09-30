@@ -504,6 +504,7 @@
                 throw new InvalidOperationException("Servers and SDK have not been initialized");
 
             Registrations.AdminRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
+            Registrations.ClusterRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.AuthorizationRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.BatchRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
             Registrations.CredentialRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
@@ -523,6 +524,7 @@
             Registrations.ChatRegistrations.RegisterHttpTools(_McpHttpServer, _McpSdk);
 
             Registrations.AdminRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
+            Registrations.ClusterRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.AuthorizationRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.BatchRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
             Registrations.CredentialRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
@@ -542,6 +544,7 @@
             Registrations.ChatRegistrations.RegisterTcpMethods(_McpTcpServer, _McpSdk);
 
             Registrations.AdminRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
+            Registrations.ClusterRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.AuthorizationRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.BatchRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);
             Registrations.CredentialRegistrations.RegisterWebSocketMethods(_McpWebsocketServer, _McpSdk);

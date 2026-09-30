@@ -866,6 +866,9 @@ namespace LiteGraph.Server.Services
                 case RequestTypeEnum.SettingsRestart:
                 case RequestTypeEnum.ClusterNodesRead:
                 case RequestTypeEnum.ClusterRestart:
+                case RequestTypeEnum.ClusterNodeRead:
+                case RequestTypeEnum.ClusterNodeRestart:
+                case RequestTypeEnum.ClusterNodeDelete:
                 case RequestTypeEnum.ChatEndpointCreate:
                 case RequestTypeEnum.ChatEndpointReadAll:
                 case RequestTypeEnum.ChatEndpointRead:

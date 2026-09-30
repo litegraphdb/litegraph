@@ -105,7 +105,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_graph_algorithms_total[$__rate_interval]))",
+          "expr": "sum(rate(litegraph_graph_algorithms_total{node=~\"$node\"}[$__rate_interval]))",
           "range": true,
           "refId": "A",
           "legendFormat": ""
@@ -167,7 +167,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(litegraph_graph_algorithms_total)",
+          "expr": "sum(litegraph_graph_algorithms_total{node=~\"$node\"})",
           "range": true,
           "refId": "A",
           "legendFormat": ""
@@ -229,7 +229,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(litegraph_graph_algorithms_total{success=\"false\"})",
+          "expr": "sum(litegraph_graph_algorithms_total{node=~\"$node\", success=\"false\"})",
           "range": true,
           "refId": "A",
           "legendFormat": ""
@@ -322,7 +322,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_graph_algorithms_total[$__rate_interval])) by (algorithm)",
+          "expr": "sum(rate(litegraph_graph_algorithms_total{node=~\"$node\"}[$__rate_interval])) by (algorithm)",
           "range": true,
           "refId": "A",
           "legendFormat": "{{algorithm}}"
@@ -415,7 +415,7 @@
             "uid": "DS_PROMETHEUS"
           },
           "editorMode": "code",
-          "expr": "sum(rate(litegraph_graph_algorithm_duration_ms_sum[$__rate_interval])) by (algorithm) / clamp_min(sum(rate(litegraph_graph_algorithm_duration_ms_count[$__rate_interval])) by (algorithm), 1)",
+          "expr": "sum(rate(litegraph_graph_algorithm_duration_ms_sum{node=~\"$node\"}[$__rate_interval])) by (algorithm) / clamp_min(sum(rate(litegraph_graph_algorithm_duration_ms_count{node=~\"$node\"}[$__rate_interval])) by (algorithm), 1)",
           "range": true,
           "refId": "A",
           "legendFormat": "{{algorithm}}"
@@ -434,7 +434,41 @@
     "graphs"
   ],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "DS_PROMETHEUS"
+        },
+        "definition": "label_values(up{job=~\"litegraph.*\"}, node)",
+        "description": "LiteGraph node (the node label Prometheus attaches to each scrape target). All includes single-node deployments.",
+        "hide": 0,
+        "includeAll": true,
+        "allValue": ".*",
+        "label": "Node",
+        "multi": true,
+        "name": "node",
+        "options": [],
+        "query": {
+          "query": "label_values(up{job=~\"litegraph.*\"}, node)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
   },
   "time": {
     "from": "now-6h",

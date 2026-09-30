@@ -29,9 +29,9 @@
 #   CLUTCH_AUTH_SIGNING_KEY, and a dedicated Clutch access key (LITEGRAPH_CLUTCH_ACCESS_KEY),
 # then set Cluster.AllowInsecureDefaults to false in litegraph.json.
 #
-# Adding a node: copy the litegraph-3 service as litegraph-4 (new LITEGRAPH_NODE_ID and log
-# directory), add it to nginx/litegraph.conf, prometheus.yaml, and the litegraph-lb
-# depends_on list, then docker compose up -d.
+# Adding a node: copy the litegraph-3 service as litegraph-4 (new LITEGRAPH_NODE_ID, hostname,
+# and log directory), add it to nginx/litegraph.conf, prometheus.yaml (with its node label),
+# and the litegraph-lb depends_on list, then docker compose up -d.
 #
 # Image tags: LITEGRAPH_IMAGE_TAG selects the LiteGraph images (default v10.0.0).
 #
@@ -219,6 +219,7 @@ services:
 
   litegraph-1:
     <<: *litegraph-node
+    hostname: 'litegraph-1'
     environment:
       <<: *litegraph-db-env
       LITEGRAPH_NODE_ID: 'litegraph-1'
@@ -229,6 +230,7 @@ services:
 
   litegraph-2:
     <<: *litegraph-node
+    hostname: 'litegraph-2'
     environment:
       <<: *litegraph-db-env
       LITEGRAPH_NODE_ID: 'litegraph-2'
@@ -239,6 +241,7 @@ services:
 
   litegraph-3:
     <<: *litegraph-node
+    hostname: 'litegraph-3'
     environment:
       <<: *litegraph-db-env
       LITEGRAPH_NODE_ID: 'litegraph-3'
