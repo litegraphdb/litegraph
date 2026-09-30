@@ -26,7 +26,7 @@ Some work genuinely has to happen on one node at a time: migrating the schema at
 | `vectorindex/cosine/<dimensions>` | a pgvector index is created, rebuilt, or dropped | two nodes never build the same index at once |
 | `job/chat-retention`, `job/request-history-purge` | an hourly retention pass runs | exactly one node runs each pass; the others skip it |
 
-Keys are prefixed with `litegraph/<ClusterName>/`, so several clusters can share one Clutch deployment. LiteGraph talks to Clutch over its REST lock API with one lock session per node. Leases are renewed in the background every third of `Cluster.Clutch.LeaseMs` (30 seconds by default). If a node dies holding a lock, Clutch releases it when the lease expires. If a node cannot renew a lease, it treats the lock as lost and stops the work it was protecting.
+Keys are prefixed with `litegraph/<ClusterName>/`, so several clusters can share one Clutch deployment. Each node holds one WebSocket lock connection to Clutch through `Clutch.Sdk`, and every lock it takes rides on that connection. Leases (`Cluster.Clutch.LeaseMs`, 30 seconds by default) are renewed in the background over the connection. If the connection drops, Clutch releases every lock it held, and the node treats those locks as lost, stops the work they were protecting, and reconnects on its own. If a node dies holding a lock, Clutch releases it when the connection drops or the lease expires.
 
 Just as important is what takes no lock: reads, writes, searches, graph transactions, and chat. None of them depend on Clutch being reachable.
 
@@ -45,7 +45,7 @@ Turn it on with `Cluster.Enable = true` (or `LITEGRAPH_CLUSTER_ENABLE=true`) plu
 Each node answers:
 
 - `GET /v1.0/health/live`: 200 while the process is running.
-- `GET /v1.0/health/ready`: 200 when the database answers, Clutch is reachable (in cluster mode), and the node is not shutting down; 503 otherwise, with a body listing each check.
+- `GET /v1.0/health/ready`: 200 when the database answers and the node is not shutting down; 503 otherwise, with a body listing each check. A cluster node whose Clutch connection is down still answers 200, with `Status` `Degraded` and `Checks.Clutch` false, because it can still serve reads, writes, and searches; taking every node out of rotation would turn a Clutch outage into a full outage.
 
 Point the load balancer's health checks at the readiness endpoint. Every response also carries `x-litegraph-node`, which is the fastest way to see which node answered a request.
 
@@ -62,11 +62,11 @@ Open-source Nginx detects failed nodes passively, when requests to them fail. Sw
 | What fails | What happens | What recovers it |
 |---|---|---|
 | One LiteGraph node | The load balancer stops sending it traffic. Requests in flight on that node fail, and the client or load balancer retries idempotent ones. Nothing is lost, because the node held no data. | Restart the node. It is ready when its readiness check passes. |
-| One Clutch node | The Clutch load balancer sends lock requests to the other node. Nothing visible changes. | Restart it. |
-| All of Clutch | Reads, writes, searches, and chat continue. Starting a node, building a vector index, and the retention jobs wait or skip until Clutch returns. Readiness reports Clutch unavailable. | Restore Clutch. Nodes reconnect on their own. |
+| One Clutch node | Lock connections on that node close, so any lock held through it is released and the work it protected stops (a vector index build fails and can be retried; a retention job runs next cycle). Nodes reconnect through the other Clutch node within seconds. Reads, writes, and searches are unaffected. | Restart it. |
+| All of Clutch | Reads, writes, searches, and chat continue. Starting a node, building a vector index, and the retention jobs wait or skip until Clutch returns. Readiness stays 200 but reports `Degraded` with `Checks.Clutch` false. | Restore Clutch. Nodes reconnect on their own. |
 | PostgreSQL | Everything stops. Readiness reports the database unavailable. | Restore PostgreSQL. For high availability, run PostgreSQL itself highly available (a managed service, or a replication manager such as Patroni) and give LiteGraph its single connection string. |
 
-The `docker/multi-node/failover.ps1` script checks the first two rows under load: it keeps requests flowing while it stops and restarts a LiteGraph node and then a Clutch node, and fails if more than 2% of requests fail.
+The `docker/multi-node/failover.ps1` script checks the first two rows under load: it keeps requests flowing while it stops and restarts a LiteGraph node and then each Clutch node in turn (so every node's lock connection is cut at least once), checks that an index build succeeds and that every node reconnects while a Clutch node is down, and fails if more than 2% of requests fail.
 
 ## Operating a cluster
 

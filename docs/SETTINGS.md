@@ -117,8 +117,8 @@ The `Cluster` section turns a server into one node of a multi-node cluster: seve
 | `EndpointResyncIntervalMs` | `30000` | 5000 to 600000 | How often each node re-reads chat endpoints from the database, so endpoints changed through another node are monitored |
 | `Clutch.Endpoint` | `http://127.0.0.1:8090` | http or https URL | Clutch server, or the load balancer in front of its nodes |
 | `Clutch.AccessKey` | none | | Clutch application access key (secret) |
-| `Clutch.LeaseMs` | `30000` | 5000 to 300000 | Lock lease. Held locks are renewed every third of a lease; a node that stops renewing loses its locks when the lease runs out |
-| `Clutch.RequestTimeoutMs` | `10000` | 1000 to 120000 | Timeout for each request to Clutch, not counting time spent waiting for a lock |
+| `Clutch.LeaseMs` | `30000` | 5000 to 300000 | Lock lease. Held locks are renewed over the node's lock connection at the interval Clutch advertises; a lock left unrenewed this long is treated as lost, and a node that dies loses its locks when its connection drops or the lease runs out |
+| `Clutch.RequestTimeoutMs` | `10000` | 1000 to 120000 | Timeout for opening the lock connection and for each lock request to Clutch, not counting time spent waiting for a lock |
 | `Clutch.StartupConnectTimeoutMs` | `120000` | 0 to 3600000 | How long a starting node keeps retrying Clutch before exiting |
 
 Every node in a cluster must run with the same settings file, the same database, and the same `Encryption.Key` and `Encryption.Iv`; a security token issued by one node is decrypted by whichever node receives the next request. In cluster mode the server also forces `Caching.Enable` off and stops caching authorization policy, because those caches only learn about changes made through their own process. All `Cluster` fields are read at startup and are restart-required.

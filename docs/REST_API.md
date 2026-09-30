@@ -845,7 +845,7 @@ The health routes (v10.0) require no authentication and are not recorded in requ
 }
 ```
 
-`Checks.Database` is true when the database answered a query. `Checks.Clutch` is null on a single node and, on a cluster node, true when the Clutch lock service is reachable. `Checks.Draining` is true once the node has been asked to stop. `Status` is `Unavailable` and the status code 503 when any check fails. The liveness body has the same shape without `Checks`.
+`Checks.Database` is true when the database answered a query. `Checks.Clutch` is null on a single node and, on a cluster node, true when the node has an open lock connection to Clutch. `Checks.Draining` is true once the node has been asked to stop. `Status` is `Unavailable` and the status code 503 when the database check fails or the node is draining. When only Clutch is unreachable, `Status` is `Degraded` and the status code stays 200: the node still serves reads, writes, and searches, and only coordinated work (vector index builds, retention jobs, starting new nodes) waits for Clutch. The liveness body has the same shape without `Checks`.
 
 Every response carries an `x-litegraph-node` header naming the node that answered (the configured `NodeId`, or the host name), alongside the existing `x-hostname` header.
 

@@ -28,7 +28,6 @@ ECHO   - nginx/clutch.conf
 ECHO   - switchboard/sb.json
 ECHO   - postgresql/init/01-litegraph.sh
 ECHO   - postgresql/init/02-clutch.sh
-ECHO   - clutch/Dockerfile
 ECHO.
 SET /P "CONFIRM=Type RESET to continue: "
 IF NOT "%CONFIRM%"=="RESET" (
@@ -52,7 +51,6 @@ COPY /Y "%FACTORY%nginx\clutch.conf" "nginx\clutch.conf" >NUL
 COPY /Y "%FACTORY%switchboard\sb.json" "switchboard\sb.json" >NUL
 COPY /Y "%FACTORY%postgresql\init\01-litegraph.sh" "postgresql\init\01-litegraph.sh" >NUL
 COPY /Y "%FACTORY%postgresql\init\02-clutch.sh" "postgresql\init\02-clutch.sh" >NUL
-COPY /Y "%FACTORY%clutch\Dockerfile" "clutch\Dockerfile" >NUL
 POPD
 
 ECHO.

@@ -8,7 +8,9 @@ namespace LiteGraph.Server.Classes
     public class HealthResponse
     {
         /// <summary>
-        /// Healthy when every check passes, otherwise Unavailable.
+        /// Healthy when every check passes.  Degraded when the node can serve requests but the Clutch lock service is
+        /// unreachable, so only coordinated work (startup migration, vector index builds, retention jobs) waits.
+        /// Unavailable when the database does not answer or the node is draining.
         /// </summary>
         public string Status { get; set; } = "Healthy";
 

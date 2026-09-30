@@ -5,8 +5,10 @@
 .DESCRIPTION
   Sends continuous authenticated traffic through the load balancer while it:
     1. stops litegraph-2, checks the cluster keeps serving, and starts it again;
-    2. stops clutch-1, checks reads, writes, and index builds keep working through clutch-2,
-       and starts it again.
+    2. stops each Clutch node in turn, checks reads, writes, and index builds keep working
+       through the other one, starts it again, and checks every LiteGraph node has its lock
+       connection back.  Stopping both in turn guarantees every node's lock connection is cut
+       at least once, whichever Clutch node it was on.
   Fails if more than MaxErrorPercent of requests fail during either phase, or if a stopped
   service does not return to healthy.  Run after 'docker compose up -d' and smoke.ps1.
 #>
@@ -56,6 +58,19 @@ function Wait-Healthy([string] $service, [int] $seconds = 120) {
     throw "$service did not return to healthy within $seconds seconds"
 }
 
+function Wait-ClutchConnected([string[]] $services, [int] $seconds = 60) {
+    $deadline = (Get-Date).AddSeconds($seconds)
+    foreach ($svc in $services) {
+        while ($true) {
+            $json = (& docker compose exec -T $svc curl -s http://127.0.0.1:8701/v1.0/health/ready | Out-String)
+            try { $ready = $json | ConvertFrom-Json } catch { $ready = $null }
+            if ($ready -and $ready.Checks.Clutch -eq $true) { break }
+            if ((Get-Date) -gt $deadline) { throw "$svc did not reconnect to Clutch within $seconds seconds" }
+            Start-Sleep -Seconds 2
+        }
+    }
+}
+
 function Assert-Phase([string] $name, $result) {
     $total = $result.Ok + $result.Fail
     $pct = if ($total -gt 0) { [math]::Round(100.0 * $result.Fail / $total, 2) } else { 100 }
@@ -88,28 +103,35 @@ try {
     Write-Host "PASS litegraph-2 healthy again"
 
     #
-    # Phase 2: lose a Clutch node.  Reads and writes need no lock; an index build needs one.
+    # Phase 2: lose each Clutch node in turn.  Reads and writes need no lock; an index build needs one.
     #
 
-    $job = Start-Traffic $PhaseSeconds
-    Start-Sleep -Seconds 3
-    Write-Host "stopping clutch-1"
-    & docker compose stop clutch-1 | Out-Null
-
     $admin = @{ Authorization = "Bearer $AdminBearerToken" }
-    $graph = Invoke-RestMethod -Method PUT -Uri "$RestBase/v1.0/tenants/$TenantGuid/graphs" -Headers $admin -ContentType "application/json" -Body (@{ Name = "failover-" + [guid]::NewGuid().ToString("N").Substring(0, 8) } | ConvertTo-Json)
-    Write-Host "PASS Write through the load balancer with clutch-1 stopped  graph $($graph.GUID)"
-    Invoke-RestMethod -Method PUT -Uri "$RestBase/v1.0/tenants/$TenantGuid/graphs/$($graph.GUID)/vectorindex/enable" -Headers $admin -ContentType "application/json" -Body (@{ VectorIndexType = "HnswRam"; VectorDimensionality = 12 } | ConvertTo-Json) | Out-Null
-    Write-Host "PASS Index build (Clutch lock) with clutch-1 stopped"
-    Invoke-RestMethod -Method DELETE -Uri "$RestBase/v1.0/tenants/$TenantGuid/graphs/$($graph.GUID)?force" -Headers $admin | Out-Null
+    $nodes = @("litegraph-1", "litegraph-2", "litegraph-3")
 
-    Start-Sleep -Seconds 3
-    Write-Host "starting clutch-1"
-    & docker compose start clutch-1 | Out-Null
-    $result = Receive-Job -Job $job -Wait -AutoRemoveJob
-    Assert-Phase "Traffic while clutch-1 stopped and restarted" $result
-    Wait-Healthy "clutch-1"
-    Write-Host "PASS clutch-1 healthy again"
+    foreach ($clutch in @("clutch-1", "clutch-2")) {
+        $job = Start-Traffic $PhaseSeconds
+        Start-Sleep -Seconds 3
+        Write-Host "stopping $clutch"
+        & docker compose stop $clutch | Out-Null
+
+        $graph = Invoke-RestMethod -Method PUT -Uri "$RestBase/v1.0/tenants/$TenantGuid/graphs" -Headers $admin -ContentType "application/json" -Body (@{ Name = "failover-" + [guid]::NewGuid().ToString("N").Substring(0, 8) } | ConvertTo-Json)
+        Write-Host "PASS Write through the load balancer with $clutch stopped  graph $($graph.GUID)"
+        Invoke-RestMethod -Method PUT -Uri "$RestBase/v1.0/tenants/$TenantGuid/graphs/$($graph.GUID)/vectorindex/enable" -Headers $admin -ContentType "application/json" -Body (@{ VectorIndexType = "HnswRam"; VectorDimensionality = 12 } | ConvertTo-Json) | Out-Null
+        Write-Host "PASS Index build (Clutch lock) with $clutch stopped"
+        Invoke-RestMethod -Method DELETE -Uri "$RestBase/v1.0/tenants/$TenantGuid/graphs/$($graph.GUID)?force" -Headers $admin | Out-Null
+
+        Wait-ClutchConnected $nodes
+        Write-Host "PASS Every LiteGraph node has a lock connection with $clutch stopped"
+
+        Start-Sleep -Seconds 3
+        Write-Host "starting $clutch"
+        & docker compose start $clutch | Out-Null
+        $result = Receive-Job -Job $job -Wait -AutoRemoveJob
+        Assert-Phase "Traffic while $clutch stopped and restarted" $result
+        Wait-Healthy $clutch
+        Write-Host "PASS $clutch healthy again"
+    }
 
     foreach ($svc in @("litegraph-1", "litegraph-2", "litegraph-3")) { Wait-Healthy $svc 30 }
     Write-Host "PASS All LiteGraph nodes healthy"

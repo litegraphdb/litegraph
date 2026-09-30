@@ -1,7 +1,7 @@
 namespace LiteGraph.Server.Services.Cluster
 {
     /// <summary>
-    /// Result of one acquisition attempt against Clutch: a handle when granted, otherwise the denial reason.
+    /// Result of one lock acquisition attempt against Clutch: a handle when granted, otherwise the denial reason.
     /// </summary>
     internal sealed class AcquireOutcome
     {

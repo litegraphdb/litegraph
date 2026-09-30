@@ -35,8 +35,10 @@ namespace LiteGraph.Server.Classes
         public string AccessKey { get; set; } = null;
 
         /// <summary>
-        /// Lock lease duration in milliseconds.  Held locks are renewed at a third of this interval.
-        /// A node that stops renewing (for example because it crashed) loses its locks when the lease expires.
+        /// Lock lease duration in milliseconds.  Held locks are renewed over the lock connection at the interval Clutch
+        /// advertises (a third of Clutch's own default lease); a warning is logged at connect if that interval is more
+        /// than half of this value.  A lock whose lease goes unrenewed for this long is treated as lost.  A node that
+        /// stops renewing (for example because it crashed) loses its locks when its connection drops or the lease expires.
         /// Default is 30000.  Minimum is 5000, maximum is 300000.
         /// </summary>
         public int LeaseMs
@@ -53,7 +55,8 @@ namespace LiteGraph.Server.Classes
         }
 
         /// <summary>
-        /// Timeout for each HTTP request to Clutch, in milliseconds, excluding time spent waiting for a lock.
+        /// Timeout for opening the lock connection and for each lock request to Clutch, in milliseconds, excluding time
+        /// spent waiting for a lock.
         /// Default is 10000.  Minimum is 1000, maximum is 120000.
         /// </summary>
         public int RequestTimeoutMs

@@ -69,7 +69,7 @@ Tenant → Graph → Nodes/Edges → Labels/Tags/Vectors
   **Nodes must keep no state that another node could disagree with**: no caches that answer for data (client object
   caches and `AuthorizationService` caches are off in cluster mode), no in-process indexes, no node-local settings.
 - Coordination that needs one actor at a time goes through `ILockProvider` (`LiteGraph.Coordination`): `LocalLockProvider`
-  (Padlock) on a single node, `ClutchLockProvider` (server, Clutch REST lock API) in a cluster. Lock keys live in
+  (Padlock) on a single node, `ClutchLockProvider` (server, `Clutch.Sdk` WebSocket lock connection) in a cluster. Lock keys live in
   `LockKeys`. Ordinary reads, writes, and searches must never take a distributed lock.
 - Invariants are enforced with database unique constraints plus retry, not with locks.
 - See `docs/CLUSTERING.md`.

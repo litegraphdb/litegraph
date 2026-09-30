@@ -4,21 +4,20 @@ namespace LiteGraph.Server.Services.Cluster
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
-    using System.Net.Http;
-    using System.Text;
-    using System.Text.Json;
     using System.Threading;
     using System.Threading.Tasks;
+    using Clutch.Sdk;
     using LiteGraph.Coordination;
     using LiteGraph.Server.Classes;
     using SyslogLogging;
 
     /// <summary>
-    /// Distributed lock provider backed by Clutch, using Clutch's REST lock API.
-    /// All locks held by this process share one Clutch lock session.  Leases are renewed in the background at a third of
-    /// the lease duration; a lock whose lease cannot be renewed is marked lost and its LostToken is cancelled, so work done
-    /// under it stops.  If the process dies, Clutch releases its locks when their leases expire.
+    /// Distributed lock provider backed by Clutch, using the Clutch.Sdk WebSocket lock client.
+    /// All locks held by this process share one lock connection, and the SDK renews their leases in the background.
+    /// When the connection closes, Clutch releases every lock it held, so each of those handles is marked lost and its
+    /// LostToken is cancelled; a handle whose lease goes unrenewed for a full lease period is marked lost the same way.
+    /// The provider reconnects in the background, so a Clutch restart or failover costs only the locks held at that
+    /// moment.  If the process dies, Clutch releases its locks when the connection drops or the leases expire.
     /// Thread safety: safe for concurrent use.
     /// </summary>
     public class ClutchLockProvider : ILockProvider
@@ -32,12 +31,7 @@ namespace LiteGraph.Server.Services.Cluster
         public bool IsDistributed { get { return true; } }
 
         /// <inheritdoc />
-        public bool IsAvailable { get { return Volatile.Read(ref _Available) == 1; } }
-
-        /// <summary>
-        /// UTC timestamp of the last successful exchange with Clutch, or null if none yet.
-        /// </summary>
-        public DateTime? LastContactUtc { get; private set; } = null;
+        public bool IsAvailable { get { return Volatile.Read(ref _Client) != null; } }
 
         /// <summary>
         /// Number of locks currently held by this process.
@@ -50,21 +44,20 @@ namespace LiteGraph.Server.Services.Cluster
 
         private static readonly string _Header = "[ClutchLockProvider] ";
         private static readonly int _MaxServerWaitMs = 55000;
-        private const int MaxTransientRetries = 10;
+        private static readonly int _MaxTransientRetries = 10;
+        private static readonly int _MonitorIntervalMs = 1000;
+        private static readonly int _ReconnectIntervalMs = 5000;
 
         private readonly ClutchSettings _Settings;
         private readonly string _KeyPrefix;
         private readonly LoggingModule _Logging;
-        private readonly HttpClient _Http;
         private readonly ConcurrentDictionary<string, ClutchLockHandle> _Held = new ConcurrentDictionary<string, ClutchLockHandle>(StringComparer.Ordinal);
-        private readonly SemaphoreSlim _AuthLock = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _ConnectLock = new SemaphoreSlim(1, 1);
         private readonly CancellationTokenSource _Cts = new CancellationTokenSource();
-        private readonly Task _HeartbeatTask;
+        private readonly Task _MonitorTask;
 
-        private string _Token = null;
-        private string _TenantId = null;
-        private string _SessionId = null;
-        private int _Available = 0;
+        private ClutchLockClient _Client = null;
+        private DateTime _LastReconnectAttemptUtc = DateTime.MinValue;
         private bool _Disposed = false;
 
         #endregion
@@ -86,11 +79,7 @@ namespace LiteGraph.Server.Services.Cluster
             _Logging = logging ?? throw new ArgumentNullException(nameof(logging));
             _KeyPrefix = "litegraph/" + clusterName + "/";
 
-            _Http = new HttpClient();
-            _Http.BaseAddress = new Uri(settings.Endpoint + "/");
-            _Http.Timeout = Timeout.InfiniteTimeSpan;
-
-            _HeartbeatTask = Task.Run(() => HeartbeatLoopAsync(_Cts.Token));
+            _MonitorTask = Task.Run(() => MonitorLoopAsync(_Cts.Token));
         }
 
         #endregion
@@ -98,7 +87,7 @@ namespace LiteGraph.Server.Services.Cluster
         #region Public-Methods
 
         /// <summary>
-        /// Authenticate with Clutch, retrying until it answers or the startup connect timeout elapses.
+        /// Open the lock connection to Clutch, retrying until it answers or the startup connect timeout elapses.
         /// </summary>
         /// <param name="token">Cancellation token.</param>
         /// <exception cref="LockProviderUnavailableException">Clutch did not answer within StartupConnectTimeoutMs.</exception>
@@ -112,11 +101,10 @@ namespace LiteGraph.Server.Services.Cluster
                 token.ThrowIfCancellationRequested();
                 try
                 {
-                    await AuthenticateAsync(token).ConfigureAwait(false);
-                    _Logging.Info(_Header + "connected to Clutch at " + _Settings.Endpoint + " (tenant " + _TenantId + ")");
+                    await GetClientAsync(token).ConfigureAwait(false);
                     return;
                 }
-                catch (Exception e) when (!(e is OperationCanceledException && token.IsCancellationRequested))
+                catch (LockProviderUnavailableException e)
                 {
                     if (DateTime.UtcNow >= deadline)
                         throw new LockProviderUnavailableException(Name, "Unable to reach Clutch at " + _Settings.Endpoint + ": " + e.Message, e);
@@ -136,7 +124,6 @@ namespace LiteGraph.Server.Services.Cluster
             if (options == null) options = new LockAcquireOptions();
 
             DateTime deadline = DateTime.UtcNow.AddMilliseconds(options.Wait ? options.TimeoutMs : 0);
-
             int transientFailures = 0;
 
             while (true)
@@ -151,9 +138,9 @@ namespace LiteGraph.Server.Services.Cluster
                 {
                     outcome = await TryAcquireCoreAsync(key, mode, wait, serverWaitMs, token).ConfigureAwait(false);
                 }
-                catch (LockProviderUnavailableException e) when (options.Wait && DateTime.UtcNow < deadline && transientFailures < MaxTransientRetries)
+                catch (LockProviderUnavailableException e) when (options.Wait && DateTime.UtcNow < deadline && transientFailures < _MaxTransientRetries)
                 {
-                    // Clutch occasionally answers 5xx under contention; retry with backoff while the caller is willing to wait.
+                    // A Clutch node restarting or failing over drops the connection; reconnect and retry while the caller is willing to wait.
                     transientFailures++;
                     _Logging.Warn(_Header + "transient failure acquiring " + key + " (attempt " + transientFailures + "): " + e.Message);
                     await Task.Delay(Math.Min(250 * transientFailures, 2000), token).ConfigureAwait(false);
@@ -177,7 +164,7 @@ namespace LiteGraph.Server.Services.Cluster
         }
 
         /// <summary>
-        /// Dispose, releasing every lock held by this process.
+        /// Dispose, closing the lock connection, which releases every lock held by this process.
         /// </summary>
         public void Dispose()
         {
@@ -201,18 +188,13 @@ namespace LiteGraph.Server.Services.Cluster
             if (disposing)
             {
                 _Cts.Cancel();
-                try
-                {
-                    ReleaseSessionAsync().GetAwaiter().GetResult();
-                }
-                catch (Exception e)
-                {
-                    _Logging.Warn(_Header + "unable to release Clutch session during shutdown: " + e.Message);
-                }
+                try { _MonitorTask.Wait(TimeSpan.FromSeconds(2)); } catch (AggregateException) { }
 
-                try { _HeartbeatTask.Wait(TimeSpan.FromSeconds(2)); } catch (AggregateException) { }
-                _Http.Dispose();
-                _AuthLock.Dispose();
+                ClutchLockClient client = Interlocked.Exchange(ref _Client, null);
+                foreach (ClutchLockHandle handle in _Held.Values.ToList()) handle.MarkLost();
+                if (client != null) CloseClient(client);
+
+                _ConnectLock.Dispose();
                 _Cts.Dispose();
             }
         }
@@ -227,26 +209,17 @@ namespace LiteGraph.Server.Services.Cluster
             _Held.TryRemove(handle.HolderId, out _);
             if (_Disposed) return;
 
+            // A closed connection has already released every lock it held.
+            if (!ReferenceEquals(Volatile.Read(ref _Client), handle.Client)) return;
+
             try
             {
-                string body = JsonSerializer.Serialize(new Dictionary<string, object>
+                using (CancellationTokenSource timeout = new CancellationTokenSource(_Settings.RequestTimeoutMs))
                 {
-                    { "holderId", handle.HolderId },
-                    { "sessionId", _SessionId }
-                });
-
-                using (HttpResponseMessage response = await SendAsync(
-                    HttpMethod.Post,
-                    "v1.0/api/tenants/" + _TenantId + "/locks/" + Uri.EscapeDataString(handle.QualifiedKey) + "/release",
-                    body,
-                    _Settings.RequestTimeoutMs,
-                    CancellationToken.None).ConfigureAwait(false))
-                {
-                    if (!response.IsSuccessStatusCode)
-                        _Logging.Warn(_Header + "release of " + handle.Key + " returned " + (int)response.StatusCode + "; the lease will expire on its own");
+                    await handle.Client.ReleaseAsync(handle.HolderId, timeout.Token).ConfigureAwait(false);
                 }
             }
-            catch (Exception e)
+            catch (Exception e) when (e is ClutchException || e is OperationCanceledException || e is ObjectDisposedException)
             {
                 _Logging.Warn(_Header + "release of " + handle.Key + " failed (" + e.Message + "); the lease will expire on its own");
             }
@@ -254,111 +227,152 @@ namespace LiteGraph.Server.Services.Cluster
 
         private async Task<AcquireOutcome> TryAcquireCoreAsync(string key, LockModeEnum mode, bool wait, int serverWaitMs, CancellationToken token)
         {
-            if (_Token == null || _TenantId == null) await AuthenticateAsync(token).ConfigureAwait(false);
-            string qualifiedKey = _KeyPrefix + key;
+            ClutchLockClient client = await GetClientAsync(token).ConfigureAwait(false);
 
-            Dictionary<string, object> payload = new Dictionary<string, object>
+            AcquireOptions acquireOptions = new AcquireOptions
             {
-                { "mode", MapMode(mode) },
-                { "behavior", wait ? "Wait" : "FailFast" },
-                { "leaseMs", _Settings.LeaseMs }
+                Behavior = wait ? LockBehavior.Wait : LockBehavior.FailFast,
+                LeaseMs = _Settings.LeaseMs
             };
-            if (wait) payload["timeoutMs"] = Math.Max(1, serverWaitMs);
-            if (_SessionId != null) payload["sessionId"] = _SessionId;
+            if (wait) acquireOptions.TimeoutMs = Math.Max(1, serverWaitMs);
 
-            int requestTimeoutMs = _Settings.RequestTimeoutMs + (wait ? serverWaitMs : 0);
-
-            using (HttpResponseMessage response = await SendAsync(
-                HttpMethod.Post,
-                "v1.0/api/tenants/" + _TenantId + "/locks/" + Uri.EscapeDataString(qualifiedKey) + "/acquire",
-                JsonSerializer.Serialize(payload),
-                requestTimeoutMs,
-                token).ConfigureAwait(false))
+            AcquiredLock acquired;
+            using (CancellationTokenSource timeout = CancellationTokenSource.CreateLinkedTokenSource(token))
             {
-                string json = await response.Content.ReadAsStringAsync(token).ConfigureAwait(false);
-
-                if (response.StatusCode == HttpStatusCode.Created || response.StatusCode == HttpStatusCode.OK)
+                timeout.CancelAfter(_Settings.RequestTimeoutMs + (wait ? serverWaitMs : 0));
+                try
                 {
-                    using (JsonDocument doc = JsonDocument.Parse(json))
+                    acquired = await client.AcquireAsync(_KeyPrefix + key, MapMode(mode), acquireOptions, timeout.Token).ConfigureAwait(false);
+                }
+                catch (LockDeniedException e)
+                {
+                    return new AcquireOutcome(null, e.Result.ToString());
+                }
+                catch (Exception e) when (e is ClutchException || e is ObjectDisposedException || (e is OperationCanceledException && !token.IsCancellationRequested))
+                {
+                    // A timed-out request may still be granted later; that hold is unknown to this process, so the SDK
+                    // does not renew it and Clutch releases it when its lease expires.
+                    throw new LockProviderUnavailableException(Name, "Clutch lock request for '" + key + "' failed: " + e.Message, e);
+                }
+            }
+
+            ClutchLockHandle handle = new ClutchLockHandle(this, client, key, mode, acquired);
+            _Held[handle.HolderId] = handle;
+
+            // The connection may have closed between the grant and registering the handle; its locks are gone.
+            if (!ReferenceEquals(Volatile.Read(ref _Client), client))
+            {
+                handle.MarkLost();
+                throw new LockProviderUnavailableException(Name, "The Clutch connection closed while acquiring '" + key + "'.");
+            }
+
+            return new AcquireOutcome(handle, null);
+        }
+
+        private async Task<ClutchLockClient> GetClientAsync(CancellationToken token)
+        {
+            ClutchLockClient current = Volatile.Read(ref _Client);
+            if (current != null) return current;
+
+            await _ConnectLock.WaitAsync(token).ConfigureAwait(false);
+            try
+            {
+                current = Volatile.Read(ref _Client);
+                if (current != null) return current;
+                ThrowIfDisposed();
+
+                ClutchLockClient client = new ClutchLockClient(_Settings.Endpoint, _Settings.AccessKey);
+                client.HeartbeatReceived += OnHeartbeatReceived;
+                client.Closed += OnClosed;
+
+                WelcomeInfo welcome;
+                try
+                {
+                    using (CancellationTokenSource timeout = CancellationTokenSource.CreateLinkedTokenSource(token))
                     {
-                        JsonElement root = doc.RootElement;
-                        string holderId = root.GetProperty("holderId").GetString();
-                        string sessionId = root.TryGetProperty("sessionId", out JsonElement s) ? s.GetString() : null;
-                        long fencing = root.TryGetProperty("fencingToken", out JsonElement f) && f.ValueKind == JsonValueKind.Number ? f.GetInt64() : 0;
-
-                        if (_SessionId == null && !String.IsNullOrEmpty(sessionId)) _SessionId = sessionId;
-
-                        ClutchLockHandle handle = new ClutchLockHandle(this, key, qualifiedKey, mode, holderId, fencing);
-                        _Held[holderId] = handle;
-                        return new AcquireOutcome(handle, null);
+                        timeout.CancelAfter(_Settings.RequestTimeoutMs);
+                        welcome = await client.ConnectAsync(timeout.Token).ConfigureAwait(false);
                     }
                 }
-
-                if (response.StatusCode == HttpStatusCode.Conflict)
+                catch (Exception e) when (e is ClutchException || (e is OperationCanceledException && !token.IsCancellationRequested))
                 {
-                    string reason = "Denied";
-                    try
-                    {
-                        using (JsonDocument doc = JsonDocument.Parse(json))
-                        {
-                            if (doc.RootElement.TryGetProperty("result", out JsonElement r)) reason = r.GetString();
-                        }
-                    }
-                    catch (JsonException)
-                    {
-                    }
-                    return new AcquireOutcome(null, reason);
+                    CloseClient(client);
+                    throw new LockProviderUnavailableException(Name, "Unable to open a lock connection to Clutch at " + _Settings.Endpoint + ": " + e.Message, e);
                 }
 
-                throw new LockProviderUnavailableException(Name, "Clutch returned " + (int)response.StatusCode + " acquiring '" + key + "': " + Truncate(json));
+                if (welcome.HeartbeatIntervalMs * 2 > _Settings.LeaseMs)
+                {
+                    _Logging.Warn(
+                        _Header + "Clutch heartbeat interval " + welcome.HeartbeatIntervalMs + "ms is more than half of Cluster.Clutch.LeaseMs "
+                        + _Settings.LeaseMs + "ms; leases may expire between renewals");
+                }
+
+                Volatile.Write(ref _Client, client);
+                _Logging.Info(_Header + "connected to Clutch at " + _Settings.Endpoint + " (tenant " + welcome.TenantId + ", session " + welcome.SessionId + ")");
+                return client;
+            }
+            finally
+            {
+                _ConnectLock.Release();
             }
         }
 
-        private async Task HeartbeatLoopAsync(CancellationToken token)
+        private void OnHeartbeatReceived(object sender, IReadOnlyList<AcquiredLock> renewed)
+        {
+            foreach (AcquiredLock acquired in renewed)
+            {
+                if (acquired != null && _Held.TryGetValue(acquired.HolderId, out ClutchLockHandle handle)) handle.MarkRenewed();
+            }
+        }
+
+        private void OnClosed(object sender, string reason)
+        {
+            ClutchLockClient client = sender as ClutchLockClient;
+            if (client == null) return;
+
+            bool wasCurrent = ReferenceEquals(Interlocked.CompareExchange(ref _Client, null, client), client);
+            List<ClutchLockHandle> lost = _Held.Values.Where(h => ReferenceEquals(h.Client, client)).ToList();
+
+            if (wasCurrent && !_Disposed)
+            {
+                if (lost.Count > 0)
+                    _Logging.Warn(_Header + "Clutch lock connection closed (" + reason + "); " + lost.Count + " held lock(s) lost");
+                else
+                    _Logging.Info(_Header + "Clutch lock connection closed (" + reason + "); reconnecting");
+            }
+
+            foreach (ClutchLockHandle handle in lost) handle.MarkLost();
+            if (wasCurrent) Task.Run(() => CloseClient(client));
+        }
+
+        private async Task MonitorLoopAsync(CancellationToken token)
         {
             while (!token.IsCancellationRequested)
             {
                 try
                 {
-                    await Task.Delay(Math.Max(1000, _Settings.LeaseMs / 3), token).ConfigureAwait(false);
-                    if (_Held.IsEmpty || _SessionId == null) continue;
+                    await Task.Delay(_MonitorIntervalMs, token).ConfigureAwait(false);
 
-                    List<ClutchLockHandle> held = _Held.Values.ToList();
-                    string body = JsonSerializer.Serialize(new Dictionary<string, object>
+                    DateTime cutoff = DateTime.UtcNow.AddMilliseconds(-_Settings.LeaseMs);
+                    foreach (ClutchLockHandle handle in _Held.Values.ToList())
                     {
-                        { "holderIds", held.Select(h => h.HolderId).ToList() }
-                    });
-
-                    HashSet<string> renewed = new HashSet<string>(StringComparer.Ordinal);
-                    using (HttpResponseMessage response = await SendAsync(
-                        HttpMethod.Post,
-                        "v1.0/api/tenants/" + _TenantId + "/lock-sessions/" + _SessionId + "/heartbeat",
-                        body,
-                        _Settings.RequestTimeoutMs,
-                        token).ConfigureAwait(false))
-                    {
-                        string json = await response.Content.ReadAsStringAsync(token).ConfigureAwait(false);
-                        if (!response.IsSuccessStatusCode)
-                            throw new HttpRequestException("heartbeat returned " + (int)response.StatusCode + ": " + Truncate(json));
-
-                        using (JsonDocument doc = JsonDocument.Parse(json))
+                        if (handle.LastRenewedUtc < cutoff)
                         {
-                            if (doc.RootElement.TryGetProperty("renewed", out JsonElement arr) && arr.ValueKind == JsonValueKind.Array)
-                            {
-                                foreach (JsonElement item in arr.EnumerateArray())
-                                {
-                                    if (item.TryGetProperty("holderId", out JsonElement id)) renewed.Add(id.GetString());
-                                }
-                            }
+                            _Logging.Warn(_Header + "lease for " + handle.Key + " was not renewed within " + _Settings.LeaseMs + "ms; treating the lock as lost");
+                            handle.MarkLost();
                         }
                     }
 
-                    foreach (ClutchLockHandle handle in held)
+                    if (Volatile.Read(ref _Client) == null && DateTime.UtcNow - _LastReconnectAttemptUtc >= TimeSpan.FromMilliseconds(_ReconnectIntervalMs))
                     {
-                        if (!renewed.Contains(handle.HolderId) && handle.IsHeld)
+                        _LastReconnectAttemptUtc = DateTime.UtcNow;
+                        try
                         {
-                            _Logging.Warn(_Header + "lease for " + handle.Key + " was not renewed; treating the lock as lost");
-                            handle.MarkLost();
+                            await GetClientAsync(token).ConfigureAwait(false);
+                        }
+                        catch (LockProviderUnavailableException e)
+                        {
+                            _Logging.Warn(_Header + "reconnect to Clutch failed: " + e.Message);
                         }
                     }
                 }
@@ -368,154 +382,42 @@ namespace LiteGraph.Server.Services.Cluster
                 }
                 catch (Exception e)
                 {
-                    _Logging.Warn(_Header + "lease renewal failed: " + e.Message);
-                    DateTime cutoff = DateTime.UtcNow.AddMilliseconds(-_Settings.LeaseMs);
-                    if (LastContactUtc == null || LastContactUtc.Value < cutoff)
-                    {
-                        foreach (ClutchLockHandle handle in _Held.Values.ToList())
-                        {
-                            _Logging.Warn(_Header + "no contact with Clutch for a full lease; treating " + handle.Key + " as lost");
-                            handle.MarkLost();
-                        }
-                    }
+                    _Logging.Warn(_Header + "lock monitor error: " + e.Message);
                 }
             }
         }
 
-        private async Task ReleaseSessionAsync()
+        private void CloseClient(ClutchLockClient client)
         {
-            if (_SessionId == null || _TenantId == null) return;
-
-            using (HttpResponseMessage response = await SendAsync(
-                HttpMethod.Post,
-                "v1.0/api/tenants/" + _TenantId + "/lock-sessions/" + _SessionId + "/release",
-                "{}",
-                _Settings.RequestTimeoutMs,
-                CancellationToken.None).ConfigureAwait(false))
-            {
-                _Held.Clear();
-            }
-        }
-
-        private async Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, string body, int timeoutMs, CancellationToken token)
-        {
-            if (_Token == null) await AuthenticateAsync(token).ConfigureAwait(false);
-
-            HttpResponseMessage response = await SendOnceAsync(method, path, body, timeoutMs, token).ConfigureAwait(false);
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                response.Dispose();
-                await AuthenticateAsync(token).ConfigureAwait(false);
-                response = await SendOnceAsync(method, path, body, timeoutMs, token).ConfigureAwait(false);
-            }
-
-            return response;
-        }
-
-        private async Task<HttpResponseMessage> SendOnceAsync(HttpMethod method, string path, string body, int timeoutMs, CancellationToken token)
-        {
-            using (CancellationTokenSource timeout = CancellationTokenSource.CreateLinkedTokenSource(token))
-            {
-                timeout.CancelAfter(timeoutMs);
-                using (HttpRequestMessage request = new HttpRequestMessage(method, path))
-                {
-                    request.Headers.TryAddWithoutValidation("Authorization", "Bearer " + _Token);
-                    if (body != null) request.Content = new StringContent(body, Encoding.UTF8, "application/json");
-
-                    try
-                    {
-                        HttpResponseMessage response = await _Http.SendAsync(request, timeout.Token).ConfigureAwait(false);
-                        MarkContact(true);
-                        return response;
-                    }
-                    catch (Exception e) when (!(e is OperationCanceledException && token.IsCancellationRequested))
-                    {
-                        MarkContact(false);
-                        throw new LockProviderUnavailableException(Name, "Clutch request to " + path + " failed: " + e.Message, e);
-                    }
-                }
-            }
-        }
-
-        private async Task AuthenticateAsync(CancellationToken token)
-        {
-            await _AuthLock.WaitAsync(token).ConfigureAwait(false);
+            client.HeartbeatReceived -= OnHeartbeatReceived;
+            client.Closed -= OnClosed;
             try
             {
-                string body = JsonSerializer.Serialize(new Dictionary<string, object> { { "accessKey", _Settings.AccessKey } });
-                using (CancellationTokenSource timeout = CancellationTokenSource.CreateLinkedTokenSource(token))
+                using (CancellationTokenSource timeout = new CancellationTokenSource(2000))
                 {
-                    timeout.CancelAfter(_Settings.RequestTimeoutMs);
-                    using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "v1.0/token"))
-                    {
-                        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
-                        HttpResponseMessage response;
-                        try
-                        {
-                            response = await _Http.SendAsync(request, timeout.Token).ConfigureAwait(false);
-                        }
-                        catch (Exception e) when (!(e is OperationCanceledException && token.IsCancellationRequested))
-                        {
-                            MarkContact(false);
-                            throw new LockProviderUnavailableException(Name, "Unable to authenticate with Clutch at " + _Settings.Endpoint + ": " + e.Message, e);
-                        }
-
-                        using (response)
-                        {
-                            string json = await response.Content.ReadAsStringAsync(token).ConfigureAwait(false);
-                            if (!response.IsSuccessStatusCode)
-                            {
-                                MarkContact(false);
-                                throw new LockProviderUnavailableException(Name, "Clutch rejected the configured access key (" + (int)response.StatusCode + ").");
-                            }
-
-                            using (JsonDocument doc = JsonDocument.Parse(json))
-                            {
-                                _Token = doc.RootElement.GetProperty("token").GetString();
-                                _TenantId = doc.RootElement.GetProperty("tenantId").GetString();
-                            }
-
-                            MarkContact(true);
-                        }
-                    }
+                    client.CloseAsync(timeout.Token).GetAwaiter().GetResult();
                 }
+            }
+            catch (Exception e) when (e is ClutchException || e is OperationCanceledException || e is ObjectDisposedException)
+            {
             }
             finally
             {
-                _AuthLock.Release();
+                client.Dispose();
             }
         }
 
-        private void MarkContact(bool success)
-        {
-            if (success)
-            {
-                LastContactUtc = DateTime.UtcNow;
-                Interlocked.Exchange(ref _Available, 1);
-            }
-            else
-            {
-                Interlocked.Exchange(ref _Available, 0);
-            }
-        }
-
-        private static string MapMode(LockModeEnum mode)
+        private static LockMode MapMode(LockModeEnum mode)
         {
             switch (mode)
             {
                 case LockModeEnum.Read:
-                    return "Read";
+                    return LockMode.Read;
                 case LockModeEnum.Write:
-                    return "Write";
+                    return LockMode.Write;
                 default:
-                    return "Delete";
+                    return LockMode.Delete;
             }
-        }
-
-        private static string Truncate(string value)
-        {
-            if (String.IsNullOrEmpty(value)) return value;
-            return value.Length <= 256 ? value : value.Substring(0, 256) + "...";
         }
 
         private void ThrowIfDisposed()

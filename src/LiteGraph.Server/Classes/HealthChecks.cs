@@ -11,7 +11,8 @@ namespace LiteGraph.Server.Classes
         public bool Database { get; set; } = false;
 
         /// <summary>
-        /// True when the Clutch lock service is reachable.  Null when the server is not running as a cluster node.
+        /// True when the node holds an open lock connection to Clutch.  Null when the server is not running as a cluster node.
+        /// False does not make the node unready: reads, writes, and searches take no distributed lock.
         /// </summary>
         public bool? Clutch { get; set; } = null;
 

@@ -1147,8 +1147,12 @@
                 health.Checks.Database = false;
             }
 
-            bool ready = health.Checks.Database && !health.Checks.Draining && (health.Checks.Clutch ?? true);
-            health.Status = ready ? "Healthy" : "Unavailable";
+            // Clutch is not required for readiness: reads, writes, and searches take no distributed lock, and taking every
+            // node out of rotation because Clutch is unreachable would turn a coordination outage into a full outage.
+            bool ready = health.Checks.Database && !health.Checks.Draining;
+            if (!ready) health.Status = "Unavailable";
+            else if (health.Checks.Clutch == false) health.Status = "Degraded";
+            else health.Status = "Healthy";
 
             ctx.Response.StatusCode = ready ? 200 : 503;
             ctx.Response.ContentType = Constants.JsonContentType;

@@ -29,7 +29,6 @@ echo "  - nginx/clutch.conf"
 echo "  - switchboard/sb.json"
 echo "  - postgresql/init/01-litegraph.sh"
 echo "  - postgresql/init/02-clutch.sh"
-echo "  - clutch/Dockerfile"
 echo
 read -r -p "Type RESET to continue: " CONFIRM
 if [ "$CONFIRM" != "RESET" ]; then
@@ -53,7 +52,6 @@ cp "$FACTORY/nginx/clutch.conf" "./nginx/clutch.conf"
 cp "$FACTORY/switchboard/sb.json" "./switchboard/sb.json"
 cp "$FACTORY/postgresql/init/01-litegraph.sh" "./postgresql/init/01-litegraph.sh"
 cp "$FACTORY/postgresql/init/02-clutch.sh" "./postgresql/init/02-clutch.sh"
-cp "$FACTORY/clutch/Dockerfile" "./clutch/Dockerfile"
 
 echo
 echo "Factory reset complete.  Start again with: docker compose up -d"

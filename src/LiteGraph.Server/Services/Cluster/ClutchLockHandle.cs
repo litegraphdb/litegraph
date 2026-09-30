@@ -3,10 +3,12 @@ namespace LiteGraph.Server.Services.Cluster
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Clutch.Sdk;
     using LiteGraph.Coordination;
 
     /// <summary>
-    /// Handle for a lock held in Clutch.  Release is idempotent; a lease that could not be renewed marks the handle lost.
+    /// Handle for a lock held in Clutch over one lock connection.  Release is idempotent.  The handle is marked lost
+    /// when its connection closes or its lease goes unrenewed for a full lease period.
     /// Thread safety: members may be read from any thread.
     /// </summary>
     internal sealed class ClutchLockHandle : ILockHandle
@@ -25,21 +27,31 @@ namespace LiteGraph.Server.Services.Cluster
 
         internal string HolderId { get; }
 
-        internal string QualifiedKey { get; }
+        internal ClutchLockClient Client { get; }
+
+        internal DateTime LastRenewedUtc { get { return new DateTime(Interlocked.Read(ref _LastRenewedTicks), DateTimeKind.Utc); } }
 
         private readonly ClutchLockProvider _Provider;
         private readonly CancellationTokenSource _Lost = new CancellationTokenSource();
+        private long _LastRenewedTicks;
         private int _Held = 1;
 
-        internal ClutchLockHandle(ClutchLockProvider provider, string key, string qualifiedKey, LockModeEnum mode, string holderId, long fencingToken)
+        internal ClutchLockHandle(ClutchLockProvider provider, ClutchLockClient client, string key, LockModeEnum mode, AcquiredLock acquired)
         {
             _Provider = provider ?? throw new ArgumentNullException(nameof(provider));
+            Client = client ?? throw new ArgumentNullException(nameof(client));
+            if (acquired == null) throw new ArgumentNullException(nameof(acquired));
             Key = key;
-            QualifiedKey = qualifiedKey;
             Mode = mode;
-            HolderId = holderId;
-            FencingToken = fencingToken;
+            HolderId = acquired.HolderId;
+            FencingToken = acquired.FencingToken;
             AcquiredUtc = DateTime.UtcNow;
+            _LastRenewedTicks = AcquiredUtc.Ticks;
+        }
+
+        internal void MarkRenewed()
+        {
+            Interlocked.Exchange(ref _LastRenewedTicks, DateTime.UtcNow.Ticks);
         }
 
         internal void MarkLost()

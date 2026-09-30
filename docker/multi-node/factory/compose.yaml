@@ -6,7 +6,7 @@
 # balancer) provides the distributed locks used for schema migrations, background jobs,
 # vector index builds, and settings writes.
 #
-# Start:     docker compose up -d                 (first start builds the small Clutch+curl image)
+# Start:     docker compose up -d
 # Stop:      docker compose down
 # Update:    update.bat
 # Validate:  smoke.bat (or pwsh ./smoke.ps1), then failover.bat
@@ -119,9 +119,7 @@ services:
   #
 
   clutch-1:
-    build:
-      context: ./clutch
-    image: 'litegraph-clutch-server:v0.2.0'
+    image: 'jchristn77/clutch-server:v0.2.0'
     restart: 'unless-stopped'
     depends_on:
       postgresql:
@@ -137,7 +135,7 @@ services:
       start_period: 30s
 
   clutch-2:
-    image: 'litegraph-clutch-server:v0.2.0'
+    image: 'jchristn77/clutch-server:v0.2.0'
     restart: 'unless-stopped'
     depends_on:
       clutch-1:
