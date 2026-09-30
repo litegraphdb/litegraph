@@ -55,18 +55,25 @@
         public RequestTypeEnum RequestType { get; set; } = RequestTypeEnum.Unknown;
 
         /// <summary>
-        /// Requestor IP.
+        /// Requestor IP: the client address resolved from X-Forwarded-For when the request came through a trusted proxy
+        /// (see Cluster.TrustForwardedHeaders and Cluster.TrustedProxies), otherwise the connection's peer address.
         /// </summary>
         public string Ip
         {
             get
             {
+                if (!String.IsNullOrEmpty(ClientIp)) return ClientIp;
                 if (_Http != null)
                     return _Http.Request.Source.IpAddress;
 
                 return null;
             }
         }
+
+        /// <summary>
+        /// Client address resolved from forwarded headers, set by the REST handler.  Null to use the peer address.
+        /// </summary>
+        public string ClientIp { get; set; } = null;
 
         /// <summary>
         /// HTTP context.

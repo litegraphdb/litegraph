@@ -80,7 +80,7 @@ The `Chat` section of `litegraph.json` is the operator's side of the chat featur
 | `RetryBackoffMs` | `500` | 50–30000 | Base delay for exponential retry backoff; doubles per attempt |
 | `MaxToolIterationsCap` | `25` | 1–100 | Hard ceiling on tool loop iterations per turn. The effective limit is the smaller of this and the tenant's `MaxToolIterations` |
 | `MaxConcurrentChats` | `50` | 1–1000 | Server-wide cap on in-flight completions; requests beyond it receive `429` immediately rather than queueing |
-| `SseKeepAliveSeconds` | `15` | 1–300 | Interval between SSE keep-alive comment frames on streaming responses, so idle proxies do not sever long generations |
+| `SseKeepAliveSeconds` | `15` | 1–300 | After this many seconds of silence on a streaming response, the server writes a keepalive event (`retry: 3000`), so idle proxies and load balancers do not sever long generations. Applies to the native and OpenAI-format SSE streams; Ollama-format NDJSON streams have no keepalive |
 | `DefaultTimeoutMs` | `120000` | >= 1000 | Upstream request timeout applied when an endpoint does not specify its own |
 
 The block is read once at startup — the chat service, its concurrency semaphore, and its provider clients are built from it when the server boots — so every field is restart-required. Edits made through `PUT /v1.0/settings` land in the `RestartRequired` list and take effect after the next restart; none of the `Chat` fields hot-apply today. Tenant chat settings are the opposite: they are read per request and apply on the next completion without any restart.
@@ -123,8 +123,8 @@ The `Cluster` section turns a server into one node of a multi-node cluster: seve
 | `Enable` | `false` | | Run as a cluster node. Requires `Database.Type = Postgresql` and a Clutch access key; the server refuses to start otherwise |
 | `ClusterName` | `litegraph` | 1 to 64 of `a-z`, `0-9`, `-` | Prefixes every Clutch lock key, so several clusters can share one Clutch deployment |
 | `NodeId` | host name | | Unique node identifier, returned in the `x-litegraph-node` header and the health endpoints. Set it per node with `LITEGRAPH_NODE_ID` rather than in the shared file |
-| `TrustForwardedHeaders` | `false` | | Trust `X-Forwarded-For` from the proxies in `TrustedProxies` when recording client addresses. Never used for access control |
-| `TrustedProxies` | empty | | Proxy addresses or CIDR ranges whose forwarded headers are trusted |
+| `TrustForwardedHeaders` | `false` | | Trust `X-Forwarded-For` from the proxies in `TrustedProxies` when recording client addresses in request history, authorization audit, and traces. The header is read right to left, skipping trusted proxies, and the first untrusted address is the client; a request that does not come from a trusted proxy keeps its connection address, so clients cannot spoof it. Never used for access control |
+| `TrustedProxies` | empty | | Proxy addresses or CIDR ranges (IPv4 or IPv6) whose forwarded headers are trusted; an invalid entry stops the server at startup |
 | `AllowInsecureDefaults` | `false` | | Let a cluster node start with the all-zero encryption key or the default administrator token. Only for demonstrations; the `docker/multi-node` deployment sets it so it starts without setup |
 | `EndpointResyncIntervalMs` | `30000` | 5000 to 600000 | How often each node re-reads chat endpoints from the database, so endpoints changed through another node are monitored |
 | `Clutch.Endpoint` | `http://127.0.0.1:8090` | http or https URL | Clutch server, or the load balancer in front of its nodes |

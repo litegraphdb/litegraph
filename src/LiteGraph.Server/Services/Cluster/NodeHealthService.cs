@@ -33,6 +33,11 @@ namespace LiteGraph.Server.Services.Cluster
         /// </summary>
         public ClusterRegistry Registry { get; set; } = null;
 
+        /// <summary>
+        /// Storage provider reported in health responses: Sqlite or Postgresql.  Null to omit.
+        /// </summary>
+        public string StorageProvider { get; set; } = null;
+
         #endregion
 
         #region Private-Members
@@ -79,6 +84,8 @@ namespace LiteGraph.Server.Services.Cluster
                 ClusterName = _Cluster.Enabled ? _Cluster.ClusterName : null,
                 Version = Version,
                 StartedUtc = _Cluster.StartedUtc,
+                StorageProvider = StorageProvider,
+                VectorIndexProvider = StorageProvider == null ? null : (String.Equals(StorageProvider, "Postgresql", StringComparison.OrdinalIgnoreCase) ? "pgvector" : "HnswLite"),
                 Utc = DateTime.UtcNow
             };
         }

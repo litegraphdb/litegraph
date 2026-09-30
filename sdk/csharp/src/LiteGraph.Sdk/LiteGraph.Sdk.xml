@@ -1144,6 +1144,161 @@
             Instantiate.
             </summary>
         </member>
+        <member name="T:LiteGraph.Sdk.ClusterJobList">
+            <summary>
+            Most recent run of each cluster singleton job, returned by GET /v1.0/cluster/jobs.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobList.ClusterEnabled">
+            <summary>
+            True when the server runs as a cluster node.  A single node records no runs, so Jobs is empty.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobList.RegistryAvailable">
+            <summary>
+            True when Redis answered.  Null on a single node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobList.Jobs">
+            <summary>
+            Most recent run of each job, ordered by job name.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobList.Utc">
+            <summary>
+            UTC timestamp at which the list was produced.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ClusterJobList.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ClusterJobRun">
+            <summary>
+            The most recent run of a cluster singleton job (one node per cycle).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobRun.Job">
+            <summary>
+            Job name, for example chat-retention or request-history-purge.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobRun.NodeId">
+            <summary>
+            Node that ran the job.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobRun.StartedUtc">
+            <summary>
+            UTC timestamp at which the run started.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobRun.CompletedUtc">
+            <summary>
+            UTC timestamp at which the run finished.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobRun.DurationMs">
+            <summary>
+            Run duration in milliseconds.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobRun.Success">
+            <summary>
+            True when the run completed without an error.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterJobRun.Message">
+            <summary>
+            Error message when the run failed; otherwise null.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ClusterJobRun.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ClusterLock">
+            <summary>
+            A distributed lock currently held in Clutch by a node of the cluster.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLock.Key">
+            <summary>
+            Lock key without the cluster prefix, for example job/chat-retention.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLock.KeyClass">
+            <summary>
+            Key class: the first key segment (schema, vectorindex, job, settings, restart).
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLock.Mode">
+            <summary>
+            Lock mode: Read, Write, or Delete.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLock.NodeId">
+            <summary>
+            LiteGraph node holding the lock, or null when its Clutch session is not in the node registry.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLock.ClutchNodeId">
+            <summary>
+            Clutch node the holder is connected to.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLock.FencingToken">
+            <summary>
+            Monotonic fencing token issued for this hold.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLock.AcquiredUtc">
+            <summary>
+            UTC timestamp at which the lock was acquired.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLock.LeaseExpiresUtc">
+            <summary>
+            UTC timestamp at which the current lease expires unless renewed.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ClusterLock.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Sdk.ClusterLockList">
+            <summary>
+            Locks currently held by the cluster, returned by GET /v1.0/cluster/locks.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLockList.ClusterEnabled">
+            <summary>
+            True when the server runs as a cluster node.  A single node takes only in-process locks, so Locks is empty.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLockList.LockServiceAvailable">
+            <summary>
+            True when Clutch answered.  Null on a single node.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLockList.Locks">
+            <summary>
+            Held locks, ordered by key.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.ClusterLockList.Utc">
+            <summary>
+            UTC timestamp at which the list was produced.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ClusterLockList.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
         <member name="T:LiteGraph.Sdk.ClusterNode">
             <summary>
             A node's entry in the cluster node registry.
@@ -2771,6 +2926,16 @@
             Server software version.
             </summary>
         </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.StorageProvider">
+            <summary>
+            Storage provider: Sqlite or Postgresql.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.HealthResponse.VectorIndexProvider">
+            <summary>
+            Vector index implementation that goes with the storage provider: HnswLite (SQLite) or pgvector (PostgreSQL).
+            </summary>
+        </member>
         <member name="P:LiteGraph.Sdk.HealthResponse.StartedUtc">
             <summary>
             UTC timestamp at which the server process started.
@@ -2841,6 +3006,12 @@
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.ReadClusterNode(System.String,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.ReadClusterLocks(System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.ReadClusterJobs(System.Threading.CancellationToken)">
             <inheritdoc />
         </member>
         <member name="M:LiteGraph.Sdk.Implementations.AdminMethods.RestartClusterNode(System.String,System.Threading.CancellationToken)">
@@ -3704,6 +3875,22 @@
             <param name="token">Cancellation token.</param>
             <returns>Node, or null if it is not in the registry.</returns>
             <exception cref="T:System.ArgumentNullException">Thrown when nodeId is null or empty.</exception>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.ReadClusterLocks(System.Threading.CancellationToken)">
+            <summary>
+            List the distributed locks the cluster currently holds in Clutch.  On a single node the list is empty and
+            ClusterEnabled is false.  Requires system administrator privileges.
+            </summary>
+            <param name="token">Cancellation token.</param>
+            <returns>Lock list.</returns>
+        </member>
+        <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.ReadClusterJobs(System.Threading.CancellationToken)">
+            <summary>
+            List the most recent run of each cluster singleton job.  On a single node the list is empty and ClusterEnabled
+            is false.  Requires system administrator privileges.
+            </summary>
+            <param name="token">Cancellation token.</param>
+            <returns>Job list.</returns>
         </member>
         <member name="M:LiteGraph.Sdk.Interfaces.IAdminMethods.RestartClusterNode(System.String,System.Threading.CancellationToken)">
             <summary>

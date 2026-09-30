@@ -1051,6 +1051,16 @@
         /// </summary>
         [EnumMember(Value = "ClusterNodeDelete")]
         ClusterNodeDelete,
+        /// <summary>
+        /// ClusterLocksRead
+        /// </summary>
+        [EnumMember(Value = "ClusterLocksRead")]
+        ClusterLocksRead,
+        /// <summary>
+        /// ClusterJobsRead
+        /// </summary>
+        [EnumMember(Value = "ClusterJobsRead")]
+        ClusterJobsRead,
 
         #endregion
 

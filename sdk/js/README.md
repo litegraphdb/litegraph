@@ -246,6 +246,8 @@ Requires system-administrator authentication, except the health checks. On a sin
 | `restartCluster` | Requests a rolling restart: every node restarts, one at a time. | `cancellationToken` (optional) | `Promise<Object>` restart result | `POST /v1.0/cluster/restart` |
 | `restartClusterNode` | Requests a restart of one node. Rejects with the server's error (NotFound, Conflict for an offline node, Unavailable). | `nodeId` (string) <br> `cancellationToken` (optional) | `Promise<Object>` restart result | `POST /v1.0/cluster/nodes/{nodeId}/restart` |
 | `deleteClusterNode` | Removes an Offline or Stopped node from the registry. | `nodeId` (string) <br> `cancellationToken` (optional) | `Promise<void>` | `DELETE /v1.0/cluster/nodes/{nodeId}` |
+| `readClusterLocks` | Lists the distributed locks the cluster holds in Clutch, with the node holding each. Empty on a single node. | `cancellationToken` (optional) | `Promise<Object>` lock list | `GET /v1.0/cluster/locks` |
+| `readClusterJobs` | Lists the most recent run of each cluster singleton job. Empty on a single node. | `cancellationToken` (optional) | `Promise<Object>` job list | `GET /v1.0/cluster/jobs` |
 | `healthLive` | Liveness. No authentication. | `cancellationToken` (optional) | `Promise<Object>` health | `GET /v1.0/health/live` |
 | `healthReady` | Readiness. Resolves with the body for both 200 and 503. No authentication. | `cancellationToken` (optional) | `Promise<Object>` health | `GET /v1.0/health/ready` |
 

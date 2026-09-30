@@ -150,6 +150,20 @@
         }
 
         /// <inheritdoc />
+        public async Task<ClusterLockList> ReadClusterLocks(CancellationToken token = default)
+        {
+            string url = _Sdk.Endpoint + "v1.0/cluster/locks";
+            return await _Sdk.Get<ClusterLockList>(url, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
+        public async Task<ClusterJobList> ReadClusterJobs(CancellationToken token = default)
+        {
+            string url = _Sdk.Endpoint + "v1.0/cluster/jobs";
+            return await _Sdk.Get<ClusterJobList>(url, token).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc />
         public Task<ClusterRestartResult> RestartClusterNode(string nodeId, CancellationToken token = default)
         {
             if (String.IsNullOrEmpty(nodeId)) throw new ArgumentNullException(nameof(nodeId));

@@ -29,6 +29,7 @@ jest.mock('@/lib/sdk/requestHistory', () => {
         {
           GUID: 'request-1',
           CreatedUtc: '2026-04-17T00:00:00Z',
+          NodeId: 'litegraph-2',
           Method: 'GET',
           Path: '/v1.0/tenants',
           Url: 'http://localhost/v1.0/tenants',
@@ -167,5 +168,26 @@ describe('RequestHistoryPage observability', () => {
     expect(screen.getByText('Request History Entry JSON')).toBeInTheDocument();
     expect(screen.getByTestId('view-json-content')).toHaveTextContent('request-1');
     expect(screen.queryByText('Request Detail')).not.toBeInTheDocument();
+  });
+
+  it('shows the handling node and filters by node', async () => {
+    render(<RequestHistoryPage mode="admin" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('request-history-node')).toHaveTextContent('litegraph-2');
+    });
+
+    await act(async () => {
+      fireEvent.change(screen.getByTestId('request-history-node-filter'), {
+        target: { value: 'litegraph-3' },
+      });
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(listRequestHistoryMock).toHaveBeenLastCalledWith(
+        expect.objectContaining({ nodeId: 'litegraph-3', page: 0 })
+      );
+    });
   });
 });

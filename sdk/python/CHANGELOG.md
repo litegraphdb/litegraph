@@ -9,6 +9,7 @@ v10.0.0
 - Replaced the fixed retry loop with a retry policy: `max_retries` (default 2), `retry_base_delay_ms` (default 200, exponential with jitter, capped at 5000 ms), and `retry_post` (default False), also accepted by `configure`; connection failures and 502/503/504 are retried for GET, HEAD, PUT, and DELETE, and streams are never retried after the first byte. `retries` remains as total attempts (`max_retries + 1`)
 - Added `last_node_id` on the client and `node_id` and `status_code` on SDK exceptions
 - Added the `Unavailable` error code and `ServiceUnavailableError`
+- Added `Admin.read_cluster_locks` and `Admin.read_cluster_jobs`; health bodies document `StorageProvider`, `VectorIndexProvider`, and the `Redis` check
 
 v7.0.0
 

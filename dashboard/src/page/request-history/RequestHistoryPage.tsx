@@ -158,6 +158,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
   const [transactionFilter, setTransactionFilter] = useState<string>('');
   const [transactionId, setTransactionId] = useState<string>('');
   const [path, setPath] = useState<string>('');
+  const [nodeId, setNodeId] = useState<string>('');
   const [result, setResult] = useState<RequestHistorySearchResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -220,6 +221,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
         : undefined,
       transactionId: transactionId || undefined,
       path: path || undefined,
+      nodeId: nodeId.trim() || undefined,
       tenantGuid: mode === 'tenant' ? tenantScope : undefined,
     })
       .then((data) => setResult(data))
@@ -237,6 +239,7 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
     transactionFilter,
     transactionId,
     path,
+    nodeId,
     mode,
     tenantScope,
     refreshKey,
@@ -302,6 +305,20 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
         dataIndex: 'Path',
         ellipsis: true,
         render: (v: string) => <Text code>{v}</Text>,
+      },
+      {
+        title: columnTooltip(t('columns.node'), t('columns.nodeDesc')),
+        dataIndex: 'NodeId',
+        width: 120,
+        onHeaderCell: () => ({ style: noWrapStyle }),
+        render: (v?: string | null) =>
+          v ? (
+            <span data-testid="request-history-node" style={noWrapStyle}>
+              {v}
+            </span>
+          ) : (
+            ''
+          ),
       },
       {
         title: columnTooltip(t('columns.status'), t('columns.statusDesc')),
@@ -552,6 +569,18 @@ const RequestHistoryPage: React.FC<Props> = ({ tenantScope, mode }) => {
             onPressEnter={() => setPage(0)}
             style={{ width: 280, maxWidth: '100%' }}
             allowClear
+          />
+          <Input
+            placeholder={t('filters.nodePlaceholder')}
+            aria-label={t('filters.nodePlaceholder')}
+            value={nodeId}
+            onChange={(e) => {
+              setNodeId(e.target.value);
+              setPage(0);
+            }}
+            style={{ width: 180, maxWidth: '100%' }}
+            allowClear
+            data-testid="request-history-node-filter"
           />
         </div>
       </div>

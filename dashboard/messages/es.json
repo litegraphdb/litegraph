@@ -60,7 +60,8 @@
     "signOut": "Cerrar la sesión del panel",
     "logoutAria": "Cerrar sesión",
     "language": "Idioma",
-    "selectLanguage": "Seleccionar idioma"
+    "selectLanguage": "Seleccionar idioma",
+    "answeredBy": "Última respuesta del nodo {node}"
   },
   "login": {
     "serverUrl": "URL del servidor LiteGraph",
@@ -273,7 +274,12 @@
         "status": "Si el índice está cargado actualmente en memoria",
         "distanceMetric": "Métrica de distancia utilizada para los cálculos de similitud"
       }
-    }
+    },
+    "providerLabel": "Proveedor del índice vectorial: {provider}",
+    "providerPgvector": "pgvector (PostgreSQL)",
+    "providerHnswLite": "HnswLite (SQLite)",
+    "pgvectorNote": "El índice reside en PostgreSQL. Los grafos con la misma dimensionalidad de vectores comparten un índice, cuyos parámetros fija el primer grafo que lo habilita. Los vectores de más de 4000 dimensiones se buscan de forma exacta en lugar de mediante un índice. No se usa ningún archivo de índice.",
+    "hnswliteNote": "El índice lo mantiene este proceso del servidor y se guarda en el archivo de índice indicado abajo."
   },
   "importExport": {
     "exportJsonl": "Exportar a JSONL",
@@ -844,7 +850,9 @@
       "transactionDesc": "Diagnóstico de transacción para solicitudes de escritura: identificador, resultado, nivel de aislamiento y proveedor.",
       "durationDesc": "Tiempo de procesamiento en el servidor desde la recepción de la solicitud hasta completar la respuesta.",
       "sizeDesc": "Tamaños de los cuerpos de solicitud y respuesta en bytes, como solicitud / respuesta.",
-      "tenantDesc": "Inquilino que emitió la solicitud; vacío en solicitudes administrativas."
+      "tenantDesc": "Inquilino que emitió la solicitud; vacío en solicitudes administrativas.",
+      "node": "Nodo",
+      "nodeDesc": "Nodo del servidor que atendió la solicitud."
     },
     "transaction": {
       "noId": "transacción"
@@ -876,7 +884,8 @@
       "nonTransactions": "Sin transacción",
       "allMethods": "Todos los métodos",
       "transactionIdPlaceholder": "ID de transacción...",
-      "pathPlaceholder": "La ruta contiene..."
+      "pathPlaceholder": "La ruta contiene...",
+      "nodePlaceholder": "Filtrar por nodo"
     },
     "summary": {
       "visibleRequests": "Solicitudes visibles:",
@@ -1437,7 +1446,8 @@
       "rest": "Servidor REST",
       "database": "Base de datos",
       "security": "Seguridad",
-      "chat": "Chat"
+      "chat": "Chat",
+      "cluster": "Clúster"
     },
     "fields": {
       "requestTimeoutSeconds": "Tiempo de espera de solicitud (segundos)",
@@ -1485,7 +1495,25 @@
       "chatMaxToolIterationsCap": "Límite de iteraciones de herramientas",
       "chatMaxConcurrentChats": "Chats simultáneos máximos",
       "chatSseKeepAliveSeconds": "Keep-alive SSE (segundos)",
-      "chatDefaultTimeoutMs": "Tiempo de espera predeterminado (ms)"
+      "chatDefaultTimeoutMs": "Tiempo de espera predeterminado (ms)",
+      "clusterEnable": "Ejecutar como nodo de clúster",
+      "clusterName": "Nombre del clúster",
+      "clusterNodeId": "Identificador del nodo",
+      "trustForwardedHeaders": "Confiar en encabezados reenviados",
+      "trustedProxies": "Proxies de confianza",
+      "allowInsecureDefaults": "Permitir valores predeterminados inseguros",
+      "endpointResyncIntervalMs": "Intervalo de resincronización de endpoints de chat (ms)",
+      "clutchEndpoint": "Endpoint de Clutch",
+      "clutchAccessKey": "Clave de acceso de Clutch",
+      "clutchLeaseMs": "Concesión de Clutch (ms)",
+      "clutchRequestTimeoutMs": "Tiempo de espera de solicitudes a Clutch (ms)",
+      "clutchStartupConnectTimeoutMs": "Tiempo de espera de conexión inicial a Clutch (ms)",
+      "redisConnectionString": "Cadena de conexión de Redis",
+      "redisPollIntervalMs": "Intervalo de sondeo de Redis (ms)",
+      "redisNodeTimeoutMs": "Nodo fuera de línea tras (ms)",
+      "redisNodeRetentionMs": "Olvidar nodos detenidos tras (ms)",
+      "restartDrainMs": "Drenaje en reinicio escalonado (ms)",
+      "restartPeerTimeoutMs": "Espera a otros nodos en reinicio escalonado (ms)"
     },
     "status": {
       "appliedLive": "Aplicado en vivo",
@@ -1534,7 +1562,20 @@
         "restartPending": "Reinicio pendiente"
       },
       "openPage": "Abrir la página del clúster"
-    }
+    },
+    "hints": {
+      "range": "Rango permitido de {min} a {max}",
+      "envOverride": "Definido por variable de entorno",
+      "nodeIdEnv": "Se define en cada nodo con la variable de entorno LITEGRAPH_NODE_ID.",
+      "trustedProxies": "Direcciones o rangos CIDR separados por comas, por ejemplo 10.0.0.0/8.",
+      "clusterName": "Letras minúsculas, dígitos y guiones."
+    },
+    "clusterBanner": {
+      "title": "Esta configuración se aplica a todos los nodos",
+      "body": "Todos los nodos comparten este archivo de configuración. Los ajustes que requieren reinicio se aplican tras un reinicio del clúster, que reinicia los nodos de uno en uno.",
+      "link": "Abrir la página del clúster"
+    },
+    "cachingDisabledInCluster": "La caché de objetos está desactivada en modo clúster, independientemente de esta configuración, para que cada nodo lea datos actuales."
   },
   "ai": {
     "chat": {
@@ -2105,6 +2146,42 @@
       "removed": "Nodo {node} quitado.",
       "actionFailed": "La solicitud falló: {message}"
     },
-    "empty": "No hay nodos registrados."
+    "empty": "No hay nodos registrados.",
+    "jobs": {
+      "title": "Tareas en segundo plano",
+      "description": "La ejecución más reciente de cada tarea que se ejecuta en un nodo por ciclo.",
+      "empty": "Aún no se ha ejecutado ninguna tarea en este clúster.",
+      "emptySingle": "En un único nodo todas las tareas se ejecutan localmente, por lo que aquí no se registran ejecuciones.",
+      "unavailable": "El registro de nodos (Redis) no está disponible, por lo que no se pueden mostrar las ejecuciones.",
+      "success": "Correcta",
+      "failed": "Fallida",
+      "durationMs": "{ms} ms",
+      "columns": {
+        "job": "Tarea",
+        "node": "Nodo",
+        "started": "Inicio",
+        "completed": "Fin",
+        "duration": "Duración",
+        "result": "Resultado"
+      }
+    },
+    "locks": {
+      "title": "Bloqueos distribuidos",
+      "description": "Bloqueos que este clúster tiene ahora en Clutch. La mayoría se mantienen solo un instante.",
+      "empty": "No hay bloqueos en este momento.",
+      "emptySingle": "Un único nodo solo usa bloqueos en proceso, así que no hay nada que mostrar.",
+      "unavailable": "Clutch no está disponible, por lo que no se pueden listar los bloqueos.",
+      "unknownNode": "Nodo desconocido",
+      "columns": {
+        "key": "Clave",
+        "keyClass": "Clase",
+        "mode": "Modo",
+        "node": "Nodo",
+        "clutchNode": "Nodo de Clutch",
+        "fencingToken": "Token de exclusión",
+        "acquired": "Adquirido",
+        "leaseExpires": "La concesión vence"
+      }
+    }
   }
 }

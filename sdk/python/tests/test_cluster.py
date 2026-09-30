@@ -68,3 +68,37 @@ class TestHealth:
         ready = Admin.health_ready()
         assert ready["Status"] == "Unavailable"
         mock_client.request.assert_called_once_with("GET", "v1.0/health/ready", accepted_status_codes=[503])
+
+
+class TestClusterLocksAndJobs:
+    def test_read_cluster_locks(self, mock_client):
+        mock_client.request.return_value = {
+            "ClusterEnabled": True,
+            "LockServiceAvailable": True,
+            "Locks": [{"Key": "job/chat-retention", "KeyClass": "job", "NodeId": "litegraph-2"}],
+        }
+        locks = Admin.read_cluster_locks()
+        assert locks["Locks"][0]["NodeId"] == "litegraph-2"
+        mock_client.request.assert_called_once_with("GET", "v1.0/cluster/locks")
+
+    def test_read_cluster_locks_single_node(self, mock_client):
+        mock_client.request.return_value = {"ClusterEnabled": False, "Locks": []}
+        locks = Admin.read_cluster_locks()
+        assert locks["ClusterEnabled"] is False
+        assert locks["Locks"] == []
+
+    def test_read_cluster_jobs(self, mock_client):
+        mock_client.request.return_value = {
+            "ClusterEnabled": True,
+            "RegistryAvailable": True,
+            "Jobs": [{"Job": "request-history-purge", "NodeId": "litegraph-1", "Success": True}],
+        }
+        jobs = Admin.read_cluster_jobs()
+        assert jobs["Jobs"][0]["Job"] == "request-history-purge"
+        mock_client.request.assert_called_once_with("GET", "v1.0/cluster/jobs")
+
+    def test_health_reports_providers(self, mock_client):
+        mock_client.request.return_value = {"Status": "Healthy", "StorageProvider": "Sqlite", "VectorIndexProvider": "HnswLite"}
+        live = Admin.health_live()
+        assert live["StorageProvider"] == "Sqlite"
+        assert live["VectorIndexProvider"] == "HnswLite"

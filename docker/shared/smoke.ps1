@@ -320,6 +320,22 @@ try {
         $pong = (Invoke-Compose @("exec", "-T", "redis", "redis-cli", "ping") | Out-String).Trim()
         Assert-True ($pong -eq "PONG") "Redis answers" $pong
 
+        $locks = Invoke-RestMethod -Uri "$RestBase/v1.0/cluster/locks" -Headers $admin -TimeoutSec $TimeoutSeconds
+        Assert-True ($locks.ClusterEnabled -and $locks.LockServiceAvailable -eq $true) "Cluster locks listed from Clutch" "$(@($locks.Locks).Count) held"
+        $jobs = Invoke-RestMethod -Uri "$RestBase/v1.0/cluster/jobs" -Headers $admin -TimeoutSec $TimeoutSeconds
+        Assert-True ($jobs.ClusterEnabled -and $jobs.RegistryAvailable -eq $true) "Cluster job runs listed from Redis" (($jobs.Jobs | ForEach-Object { "$($_.Job)@$($_.NodeId)" }) -join ",")
+
+        # Request history records the handling node and, through the trusted load balancer, the client's own address.
+        $history = Invoke-RestMethod -Uri "$RestBase/v1.0/requesthistory?max-keys=20" -Headers $admin -TimeoutSec $TimeoutSeconds
+        $recent = @($history.Objects | Where-Object { $_.NodeId })
+        Assert-True ($recent.Count -gt 0) "Request history records the handling node" (($recent | Select-Object -First 3 | ForEach-Object { $_.NodeId }) -join ",")
+        $lbAddress = (& docker inspect (& docker compose ps -q litegraph-lb) --format "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}" | Out-String).Trim()
+        $sources = @($history.Objects | ForEach-Object { $_.SourceIp } | Sort-Object -Unique)
+        Assert-True ($sources.Count -gt 0 -and -not ($sources -contains $lbAddress)) "Request history records the client address, not the load balancer" "sources=$($sources -join ',') lb=$lbAddress"
+        $firstNode = $recent[0].NodeId
+        $filtered = Invoke-RestMethod -Uri "$RestBase/v1.0/requesthistory?max-keys=20&nodeId=$firstNode" -Headers $admin -TimeoutSec $TimeoutSeconds
+        Assert-True (@($filtered.Objects).Count -gt 0 -and @($filtered.Objects | Where-Object { $_.NodeId -ne $firstNode }).Count -eq 0) "Request history filters by node" $firstNode
+
         #
         # Prometheus scrapes every node under its node label, and every node reports Healthy
         #

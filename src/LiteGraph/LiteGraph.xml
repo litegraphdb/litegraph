@@ -16216,6 +16216,11 @@
             Source IP address.
             </summary>
         </member>
+        <member name="P:LiteGraph.RequestHistoryEntry.NodeId">
+            <summary>
+            Identifier of the server node that handled the request (v10.0).  Null for records written before v10.0.
+            </summary>
+        </member>
         <member name="P:LiteGraph.RequestHistoryEntry.TenantGUID">
             <summary>
             Tenant GUID associated with the request, if any.
@@ -16329,6 +16334,11 @@
         <member name="P:LiteGraph.RequestHistorySearchRequest.SourceIp">
             <summary>
             Source IP filter.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.RequestHistorySearchRequest.NodeId">
+            <summary>
+            Filter by the server node that handled the request (exact match, v10.0).  Null for no filter.
             </summary>
         </member>
         <member name="P:LiteGraph.RequestHistorySearchRequest.HasTransactionDiagnostics">

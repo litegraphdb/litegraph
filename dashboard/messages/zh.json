@@ -60,7 +60,8 @@
     "signOut": "退出仪表板登录",
     "logoutAria": "退出登录",
     "language": "语言",
-    "selectLanguage": "选择语言"
+    "selectLanguage": "选择语言",
+    "answeredBy": "最近一次响应来自节点 {node}"
   },
   "login": {
     "serverUrl": "LiteGraph 服务器 URL",
@@ -273,7 +274,12 @@
         "status": "索引当前是否已加载到内存中",
         "distanceMetric": "用于相似度计算的距离度量"
       }
-    }
+    },
+    "providerLabel": "向量索引提供方：{provider}",
+    "providerPgvector": "pgvector (PostgreSQL)",
+    "providerHnswLite": "HnswLite (SQLite)",
+    "pgvectorNote": "索引位于 PostgreSQL 中。向量维度相同的图共享一个索引，其参数由第一个启用它的图决定。超过 4,000 维的向量不使用索引，而是精确搜索。不使用索引文件。",
+    "hnswliteNote": "索引由此服务器进程维护，并保存在下方的索引文件中。"
   },
   "importExport": {
     "exportJsonl": "导出为 JSONL",
@@ -844,7 +850,9 @@
       "transactionDesc": "写入请求的事务诊断：标识符、结果、隔离级别和提供方。",
       "durationDesc": "从收到请求到完成响应的服务器端处理时间。",
       "sizeDesc": "请求与响应正文的大小（字节），按“请求 / 响应”显示。",
-      "tenantDesc": "发出请求的租户；管理请求为空。"
+      "tenantDesc": "发出请求的租户；管理请求为空。",
+      "node": "节点",
+      "nodeDesc": "处理该请求的服务器节点。"
     },
     "transaction": {
       "noId": "事务"
@@ -876,7 +884,8 @@
       "nonTransactions": "非事务",
       "allMethods": "所有方法",
       "transactionIdPlaceholder": "事务 ID……",
-      "pathPlaceholder": "路径包含……"
+      "pathPlaceholder": "路径包含……",
+      "nodePlaceholder": "按节点筛选"
     },
     "summary": {
       "visibleRequests": "可见请求：",
@@ -1437,7 +1446,8 @@
       "rest": "REST 服务器",
       "database": "数据库",
       "security": "安全",
-      "chat": "聊天"
+      "chat": "聊天",
+      "cluster": "集群"
     },
     "fields": {
       "requestTimeoutSeconds": "请求超时（秒）",
@@ -1485,7 +1495,25 @@
       "chatMaxToolIterationsCap": "工具迭代上限",
       "chatMaxConcurrentChats": "最大并发聊天数",
       "chatSseKeepAliveSeconds": "SSE 保活（秒）",
-      "chatDefaultTimeoutMs": "默认超时（毫秒）"
+      "chatDefaultTimeoutMs": "默认超时（毫秒）",
+      "clusterEnable": "作为集群节点运行",
+      "clusterName": "集群名称",
+      "clusterNodeId": "节点标识",
+      "trustForwardedHeaders": "信任转发的请求头",
+      "trustedProxies": "受信任的代理",
+      "allowInsecureDefaults": "允许不安全的默认值",
+      "endpointResyncIntervalMs": "聊天端点重新同步间隔 (毫秒)",
+      "clutchEndpoint": "Clutch 端点",
+      "clutchAccessKey": "Clutch 访问密钥",
+      "clutchLeaseMs": "Clutch 租约 (毫秒)",
+      "clutchRequestTimeoutMs": "Clutch 请求超时 (毫秒)",
+      "clutchStartupConnectTimeoutMs": "启动时连接 Clutch 的超时 (毫秒)",
+      "redisConnectionString": "Redis 连接字符串",
+      "redisPollIntervalMs": "Redis 轮询间隔 (毫秒)",
+      "redisNodeTimeoutMs": "节点离线判定时间 (毫秒)",
+      "redisNodeRetentionMs": "遗忘已停止节点的时间 (毫秒)",
+      "restartDrainMs": "滚动重启排空时间 (毫秒)",
+      "restartPeerTimeoutMs": "滚动重启等待其他节点的时间 (毫秒)"
     },
     "status": {
       "appliedLive": "已实时应用",
@@ -1534,7 +1562,20 @@
         "restartPending": "待重启"
       },
       "openPage": "打开集群页面"
-    }
+    },
+    "hints": {
+      "range": "允许范围 {min} 至 {max}",
+      "envOverride": "由环境变量设置",
+      "nodeIdEnv": "在每个节点上通过环境变量 LITEGRAPH_NODE_ID 设置。",
+      "trustedProxies": "以逗号分隔的地址或 CIDR 范围，例如 10.0.0.0/8。",
+      "clusterName": "小写字母、数字和连字符。"
+    },
+    "clusterBanner": {
+      "title": "这些设置适用于所有节点",
+      "body": "所有节点共享此设置文件。需要重启的设置会在集群重启后生效，集群重启会逐一重启各节点。",
+      "link": "打开集群页面"
+    },
+    "cachingDisabledInCluster": "在集群模式下，无论这些设置如何，对象缓存都会被禁用，以便每个节点读取最新数据。"
   },
   "ai": {
     "chat": {
@@ -2105,6 +2146,42 @@
       "removed": "已移除节点 {node}。",
       "actionFailed": "请求失败：{message}"
     },
-    "empty": "没有已注册的节点。"
+    "empty": "没有已注册的节点。",
+    "jobs": {
+      "title": "后台任务",
+      "description": "每个周期只在一个节点上运行的各项任务的最近一次运行。",
+      "empty": "此集群中尚未运行任何任务。",
+      "emptySingle": "在单节点上所有任务都在本地运行，因此此处不记录运行。",
+      "unavailable": "无法连接节点注册表 (Redis)，因此无法显示任务运行。",
+      "success": "成功",
+      "failed": "失败",
+      "durationMs": "{ms} 毫秒",
+      "columns": {
+        "job": "任务",
+        "node": "节点",
+        "started": "开始",
+        "completed": "结束",
+        "duration": "耗时",
+        "result": "结果"
+      }
+    },
+    "locks": {
+      "title": "分布式锁",
+      "description": "此集群当前在 Clutch 中持有的锁。大多数只持有片刻。",
+      "empty": "当前没有持有的锁。",
+      "emptySingle": "单节点只使用进程内锁，因此没有可显示的内容。",
+      "unavailable": "无法连接 Clutch，因此无法列出持有的锁。",
+      "unknownNode": "未知节点",
+      "columns": {
+        "key": "键",
+        "keyClass": "类别",
+        "mode": "模式",
+        "node": "节点",
+        "clutchNode": "Clutch 节点",
+        "fencingToken": "防护令牌",
+        "acquired": "获取时间",
+        "leaseExpires": "租约到期"
+      }
+    }
   }
 }

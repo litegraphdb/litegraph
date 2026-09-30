@@ -183,6 +183,8 @@ Requires system-administrator authentication, except the health checks. On a sin
 | Restart Cluster      | POST   | `v1.0/cluster/restart`                 | Rolling restart, one node at a time                             |
 | Restart Cluster Node | POST   | `v1.0/cluster/nodes/{node_id}/restart` | Restart one node                                                |
 | Delete Cluster Node  | DELETE | `v1.0/cluster/nodes/{node_id}`         | Remove an Offline or Stopped node from the registry             |
+| Read Cluster Locks   | GET    | `v1.0/cluster/locks`                   | Distributed locks the cluster holds in Clutch                   |
+| Read Cluster Jobs    | GET    | `v1.0/cluster/jobs`                    | Most recent run of each cluster singleton job                   |
 | Health Live          | GET    | `v1.0/health/live`                     | Liveness                                                        |
 | Health Ready         | GET    | `v1.0/health/ready`                    | Readiness; returns the body for both 200 and 503                |
 
@@ -193,7 +195,12 @@ for node in status["Nodes"]:
 
 Admin.restart_cluster_node("litegraph-2")
 Admin.delete_cluster_node("decommissioned-node")
-print(Admin.health_ready()["Status"])
+print(Admin.health_ready()["Status"], Admin.health_live()["StorageProvider"])
+
+for held in Admin.read_cluster_locks()["Locks"]:
+    print(held["Key"], held["NodeId"])
+for run in Admin.read_cluster_jobs()["Jobs"]:
+    print(run["Job"], run["NodeId"], run["Success"])
 ```
 
 ### Credential Operations

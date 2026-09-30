@@ -16726,6 +16726,50 @@
 								"description": "System administrator only. Removes an Offline or Stopped node's registry entry; 409 for running nodes."
 							},
 							"response": []
+						},
+						{
+							"name": "List cluster locks",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"description": "System administrator only. Locks this cluster holds in Clutch, attributed to nodes.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/cluster/locks",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"cluster",
+										"locks"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "List cluster job runs",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"description": "System administrator only. Latest run of each cluster singleton job.",
+								"url": {
+									"raw": "{{protocol}}://{{hostname}}:{{port}}/v1.0/cluster/jobs",
+									"protocol": "{{protocol}}",
+									"host": [
+										"{{hostname}}"
+									],
+									"port": "{{port}}",
+									"path": [
+										"v1.0",
+										"cluster",
+										"jobs"
+									]
+								}
+							},
+							"response": []
 						}
 					]
 				}

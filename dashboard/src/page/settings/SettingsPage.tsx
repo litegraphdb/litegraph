@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { Card, Input, InputNumber, Switch, Table, Tag } from 'antd';
+import { Alert, Card, Input, InputNumber, Switch, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { AreaChartOutlined, ClusterOutlined, ExportOutlined, ReloadOutlined } from '@ant-design/icons';
 import toast from 'react-hot-toast';
@@ -24,7 +24,7 @@ import {
 } from '@/lib/store/slice/slice';
 import { useValidateConnectivity } from '@/lib/sdk/litegraph.service';
 import { ClusterNode, SettingsUpdateResult } from '@/lib/sdk/settings';
-import { SETTINGS_SCHEMA, SettingField, getPath, setPath } from './schema';
+import { SETTINGS_SCHEMA, SettingField, clampToField, getPath, parseList, setPath } from './schema';
 
 const SettingsPage = () => {
   const t = useTranslations('settings');
@@ -193,19 +193,53 @@ const SettingsPage = () => {
     );
   };
 
+  const envOverrides = useMemo(() => new Set(lastResult?.EnvironmentOverrides ?? []), [lastResult]);
+
+  const renderFieldNotes = (field: SettingField) => {
+    const fromEnvironment = envOverrides.has(field.path);
+    const range =
+      field.min !== undefined && field.max !== undefined
+        ? t('hints.range', { min: field.min.toLocaleString(), max: field.max.toLocaleString() })
+        : null;
+    if (!fromEnvironment && !field.hintKey && !range) return null;
+    return (
+      <LitegraphFlex gap={6} align="center" wrap="wrap" style={{ marginTop: 4 }}>
+        {fromEnvironment && (
+          <Tag color="purple" data-testid={`settings-env-${field.path}`}>
+            {t('hints.envOverride')}
+          </Tag>
+        )}
+        {field.hintKey && (
+          <LitegraphText fontSize={12} style={{ color: 'var(--ant-color-text-tertiary)' }}>
+            {t(`hints.${field.hintKey}` as any)}
+          </LitegraphText>
+        )}
+        {range && (
+          <LitegraphText fontSize={12} style={{ color: 'var(--ant-color-text-tertiary)' }}>
+            {range}
+          </LitegraphText>
+        )}
+      </LitegraphFlex>
+    );
+  };
+
   const renderField = (field: SettingField) => {
     const value = draft ? getPath(draft, field.path) : undefined;
     const label = t(`fields.${field.labelKey}` as any);
     if (field.type === 'boolean') {
       return (
-        <LitegraphFlex key={field.path} align="center" justify="space-between" gap={12} style={{ marginBottom: 12 }}>
-          <LitegraphText fontSize={13}>{label}</LitegraphText>
-          <Switch
-            checked={Boolean(value)}
-            onChange={(checked) => handleFieldChange(field, checked)}
-            aria-label={label}
-          />
-        </LitegraphFlex>
+        <div key={field.path} style={{ marginBottom: 12 }}>
+          <LitegraphFlex align="center" justify="space-between" gap={12}>
+            <LitegraphText fontSize={13}>{label}</LitegraphText>
+            <Switch
+              checked={Boolean(value)}
+              onChange={(checked) => handleFieldChange(field, checked)}
+              disabled={field.readOnly}
+              aria-label={label}
+            />
+          </LitegraphFlex>
+          {renderFieldNotes(field)}
+        </div>
       );
     }
     return (
@@ -216,7 +250,10 @@ const SettingsPage = () => {
         {field.type === 'number' ? (
           <InputNumber
             value={value ?? undefined}
-            onChange={(val) => handleFieldChange(field, val)}
+            min={field.min}
+            max={field.max}
+            onChange={(val) => handleFieldChange(field, clampToField(field, val))}
+            readOnly={field.readOnly}
             style={{ width: '100%' }}
             aria-label={label}
           />
@@ -224,16 +261,27 @@ const SettingsPage = () => {
           <Input.Password
             value={value ?? ''}
             onChange={(e) => handleFieldChange(field, e.target.value)}
+            readOnly={field.readOnly}
             autoComplete="new-password"
+            aria-label={label}
+          />
+        ) : field.type === 'list' ? (
+          <Input
+            value={Array.isArray(value) ? value.join(', ') : (value ?? '')}
+            onChange={(e) => handleFieldChange(field, parseList(e.target.value))}
+            readOnly={field.readOnly}
             aria-label={label}
           />
         ) : (
           <Input
             value={value ?? ''}
             onChange={(e) => handleFieldChange(field, e.target.value)}
+            readOnly={field.readOnly}
+            disabled={field.readOnly}
             aria-label={label}
           />
         )}
+        {renderFieldNotes(field)}
       </div>
     );
   };
@@ -350,6 +398,23 @@ const SettingsPage = () => {
           </Card>
         )}
 
+        {isCluster && (
+          <Alert
+            type="info"
+            showIcon
+            data-testid="settings-cluster-banner"
+            message={t('clusterBanner.title')}
+            description={
+              <span>
+                {t('clusterBanner.body')}{' '}
+                <Link href={paths.cluster} data-testid="settings-cluster-banner-link">
+                  {t('clusterBanner.link')}
+                </Link>
+              </span>
+            }
+          />
+        )}
+
         {SETTINGS_SCHEMA.map((section) => (
           <Card
             key={section.id}
@@ -362,6 +427,15 @@ const SettingsPage = () => {
             }
             data-testid={`settings-section-${section.id}`}
           >
+            {section.id === 'caching' && isCluster && (
+              <Alert
+                type="warning"
+                showIcon
+                style={{ marginBottom: 12 }}
+                message={t('cachingDisabledInCluster')}
+                data-testid="settings-caching-cluster-note"
+              />
+            )}
             {section.fields.map((field) => renderField(field))}
           </Card>
         ))}

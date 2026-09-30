@@ -729,6 +729,8 @@ namespace Test.Automated
 			await RunTest("Sdk.RetrySettings", TestSdkRetrySettings).ConfigureAwait(false);
 			await RunTest("Health.Live", TestHealthLive).ConfigureAwait(false);
 			await RunTest("Health.Ready", TestHealthReady).ConfigureAwait(false);
+			await RunTest("Admin.ReadClusterLocks", TestAdminReadClusterLocks).ConfigureAwait(false);
+			await RunTest("Admin.ReadClusterJobs", TestAdminReadClusterJobs).ConfigureAwait(false);
 
 			// Batch tests
 			await RunTest("Batch.Existence", TestBatchExistence).ConfigureAwait(false);
@@ -1901,6 +1903,26 @@ namespace Test.Automated
 			AssertNotNull(ready, "Readiness response");
 			AssertTrue(ready!.IsReady, "Server is ready");
 			AssertNotNull(ready.Checks, "Readiness includes checks");
+			AssertTrue(ready.StorageProvider == "Sqlite" || ready.StorageProvider == "Postgresql", "Readiness reports the storage provider");
+			AssertTrue(ready.VectorIndexProvider == "HnswLite" || ready.VectorIndexProvider == "pgvector", "Readiness reports the vector index provider");
+		}
+
+		private static async Task TestAdminReadClusterLocks()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+			ClusterLockList? locks = await sdk.Admin.ReadClusterLocks().ConfigureAwait(false);
+			AssertNotNull(locks, "Cluster lock list");
+			AssertNotNull(locks!.Locks, "Lock list is never null");
+			if (!locks.ClusterEnabled) AssertEqual(0, locks.Locks.Count, "A single node lists no distributed locks");
+		}
+
+		private static async Task TestAdminReadClusterJobs()
+		{
+			LiteGraphSdk sdk = RequireSdk();
+			ClusterJobList? jobs = await sdk.Admin.ReadClusterJobs().ConfigureAwait(false);
+			AssertNotNull(jobs, "Cluster job list");
+			AssertNotNull(jobs!.Jobs, "Job list is never null");
+			if (!jobs.ClusterEnabled) AssertEqual(0, jobs.Jobs.Count, "A single node records no job runs");
 		}
 
 		#endregion

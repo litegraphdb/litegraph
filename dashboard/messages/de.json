@@ -60,7 +60,8 @@
     "signOut": "Vom Dashboard abmelden",
     "logoutAria": "Abmelden",
     "language": "Sprache",
-    "selectLanguage": "Sprache auswählen"
+    "selectLanguage": "Sprache auswählen",
+    "answeredBy": "Letzte Antwort von Knoten {node}"
   },
   "login": {
     "serverUrl": "LiteGraph Server-URL",
@@ -273,7 +274,12 @@
         "status": "Ob der Index derzeit im Speicher geladen ist",
         "distanceMetric": "Für Ähnlichkeitsberechnungen verwendete Distanzmetrik"
       }
-    }
+    },
+    "providerLabel": "Anbieter des Vektorindex: {provider}",
+    "providerPgvector": "pgvector (PostgreSQL)",
+    "providerHnswLite": "HnswLite (SQLite)",
+    "pgvectorNote": "Der Index liegt in PostgreSQL. Graphen mit derselben Vektordimension teilen sich einen Index, dessen Parameter der erste Graph festlegt, der ihn aktiviert. Vektoren mit mehr als 4.000 Dimensionen werden exakt statt über einen Index durchsucht. Es wird keine Indexdatei verwendet.",
+    "hnswliteNote": "Der Index wird von diesem Serverprozess gehalten und in der unten angegebenen Indexdatei gespeichert."
   },
   "importExport": {
     "exportJsonl": "Nach JSONL exportieren",
@@ -844,7 +850,9 @@
       "transactionDesc": "Transaktionsdiagnose für Schreibanfragen: Kennung, Ergebnis, Isolationsstufe und Provider.",
       "durationDesc": "Serverseitige Verarbeitungszeit vom Empfang der Anfrage bis zum Abschluss der Antwort.",
       "sizeDesc": "Größe von Anfrage- und Antwortkörper in Bytes, als Anfrage / Antwort.",
-      "tenantDesc": "Mandant, der die Anfrage gestellt hat; leer bei administrativen Anfragen."
+      "tenantDesc": "Mandant, der die Anfrage gestellt hat; leer bei administrativen Anfragen.",
+      "node": "Knoten",
+      "nodeDesc": "Serverknoten, der die Anfrage bearbeitet hat."
     },
     "transaction": {
       "noId": "Transaktion"
@@ -876,7 +884,8 @@
       "nonTransactions": "Keine Transaktionen",
       "allMethods": "Alle Methoden",
       "transactionIdPlaceholder": "Transaktions-ID...",
-      "pathPlaceholder": "Pfad enthält..."
+      "pathPlaceholder": "Pfad enthält...",
+      "nodePlaceholder": "Nach Knoten filtern"
     },
     "summary": {
       "visibleRequests": "Sichtbare Anfragen:",
@@ -1437,7 +1446,8 @@
       "rest": "REST-Server",
       "database": "Datenbank",
       "security": "Sicherheit",
-      "chat": "Chat"
+      "chat": "Chat",
+      "cluster": "Cluster"
     },
     "fields": {
       "requestTimeoutSeconds": "Anfrage-Timeout (Sekunden)",
@@ -1485,7 +1495,25 @@
       "chatMaxToolIterationsCap": "Obergrenze für Tool-Iterationen",
       "chatMaxConcurrentChats": "Maximale gleichzeitige Chats",
       "chatSseKeepAliveSeconds": "SSE-Keep-Alive (Sekunden)",
-      "chatDefaultTimeoutMs": "Standard-Timeout (ms)"
+      "chatDefaultTimeoutMs": "Standard-Timeout (ms)",
+      "clusterEnable": "Als Clusterknoten ausführen",
+      "clusterName": "Clustername",
+      "clusterNodeId": "Knotenkennung",
+      "trustForwardedHeaders": "Weitergeleiteten Headern vertrauen",
+      "trustedProxies": "Vertrauenswürdige Proxys",
+      "allowInsecureDefaults": "Unsichere Standardwerte zulassen",
+      "endpointResyncIntervalMs": "Intervall für Chat-Endpunkt-Abgleich (ms)",
+      "clutchEndpoint": "Clutch-Endpunkt",
+      "clutchAccessKey": "Clutch-Zugriffsschlüssel",
+      "clutchLeaseMs": "Clutch-Lease (ms)",
+      "clutchRequestTimeoutMs": "Clutch-Anfragetimeout (ms)",
+      "clutchStartupConnectTimeoutMs": "Clutch-Verbindungstimeout beim Start (ms)",
+      "redisConnectionString": "Redis-Verbindungszeichenfolge",
+      "redisPollIntervalMs": "Redis-Abfrageintervall (ms)",
+      "redisNodeTimeoutMs": "Knoten offline nach (ms)",
+      "redisNodeRetentionMs": "Gestoppte Knoten vergessen nach (ms)",
+      "restartDrainMs": "Entleerzeit beim rollierenden Neustart (ms)",
+      "restartPeerTimeoutMs": "Wartezeit auf andere Knoten beim rollierenden Neustart (ms)"
     },
     "status": {
       "appliedLive": "Live übernommen",
@@ -1534,7 +1562,20 @@
         "restartPending": "Neustart ausstehend"
       },
       "openPage": "Cluster-Seite öffnen"
-    }
+    },
+    "hints": {
+      "range": "Zulässiger Bereich {min} bis {max}",
+      "envOverride": "Durch Umgebungsvariable gesetzt",
+      "nodeIdEnv": "Wird pro Knoten über die Umgebungsvariable LITEGRAPH_NODE_ID gesetzt.",
+      "trustedProxies": "Durch Kommas getrennte Adressen oder CIDR-Bereiche, zum Beispiel 10.0.0.0/8.",
+      "clusterName": "Kleinbuchstaben, Ziffern und Bindestriche."
+    },
+    "clusterBanner": {
+      "title": "Diese Einstellungen gelten für alle Knoten",
+      "body": "Alle Knoten teilen sich diese Einstellungsdatei. Einstellungen, die einen Neustart erfordern, werden nach einem Cluster-Neustart wirksam, bei dem die Knoten nacheinander neu starten.",
+      "link": "Clusterseite öffnen"
+    },
+    "cachingDisabledInCluster": "Das Objekt-Caching ist im Clustermodus unabhängig von diesen Einstellungen deaktiviert, damit jeder Knoten aktuelle Daten liest."
   },
   "ai": {
     "chat": {
@@ -2105,6 +2146,42 @@
       "removed": "Knoten {node} entfernt.",
       "actionFailed": "Anfrage fehlgeschlagen: {message}"
     },
-    "empty": "Es sind keine Knoten registriert."
+    "empty": "Es sind keine Knoten registriert.",
+    "jobs": {
+      "title": "Hintergrundaufgaben",
+      "description": "Der letzte Lauf jeder Aufgabe, die pro Zyklus auf einem Knoten ausgeführt wird.",
+      "empty": "In diesem Cluster ist noch keine Aufgabe gelaufen.",
+      "emptySingle": "Auf einem einzelnen Knoten laufen alle Aufgaben lokal, daher werden hier keine Läufe erfasst.",
+      "unavailable": "Die Knotenregistrierung (Redis) ist nicht erreichbar, daher können keine Aufgabenläufe angezeigt werden.",
+      "success": "Erfolgreich",
+      "failed": "Fehlgeschlagen",
+      "durationMs": "{ms} ms",
+      "columns": {
+        "job": "Aufgabe",
+        "node": "Knoten",
+        "started": "Gestartet",
+        "completed": "Beendet",
+        "duration": "Dauer",
+        "result": "Ergebnis"
+      }
+    },
+    "locks": {
+      "title": "Verteilte Sperren",
+      "description": "Sperren, die dieser Cluster derzeit in Clutch hält. Die meisten werden nur kurz gehalten.",
+      "empty": "Derzeit werden keine Sperren gehalten.",
+      "emptySingle": "Ein einzelner Knoten verwendet nur prozessinterne Sperren, daher gibt es nichts anzuzeigen.",
+      "unavailable": "Clutch ist nicht erreichbar, daher können gehaltene Sperren nicht aufgelistet werden.",
+      "unknownNode": "Unbekannter Knoten",
+      "columns": {
+        "key": "Schlüssel",
+        "keyClass": "Klasse",
+        "mode": "Modus",
+        "node": "Knoten",
+        "clutchNode": "Clutch-Knoten",
+        "fencingToken": "Fencing-Token",
+        "acquired": "Erworben",
+        "leaseExpires": "Lease läuft ab"
+      }
+    }
   }
 }

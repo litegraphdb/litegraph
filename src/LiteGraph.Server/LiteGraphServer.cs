@@ -698,6 +698,7 @@ namespace LiteGraph.Server
             _ServiceHandler.Authorization = _AuthenticationService.Authorization;
 
             _NodeHealth = new NodeHealthService(_LiteGraph, _Cluster, _Logging);
+            _NodeHealth.StorageProvider = _Settings.LiteGraph.Database.Type.ToString();
             _SettingsFile = new SettingsFileService(Constants.SettingsFile, _Serializer, _Settings);
             if (_SettingsFile.OverriddenPaths.Count > 0)
                 _Logging.Info(_Header + "settings not taken from the settings file (kept out of settings saves): " + String.Join(", ", _SettingsFile.OverriddenPaths));
@@ -710,6 +711,10 @@ namespace LiteGraph.Server
             {
                 _Registry = new ClusterRegistry(_Settings.Cluster, _Cluster, _NodeHealth, _Serializer, _Logging);
                 _Registry.Observability = _ObservabilityService;
+                if (_LockProvider is InstrumentedLockProvider wrapped && wrapped.Inner is ClutchLockProvider clutchProvider)
+                    _Registry.ClutchSessionIdProvider = () => clutchProvider.SessionId;
+                _ChatService.Registry = _Registry;
+                _RequestHistoryService.Registry = _Registry;
                 _NodeHealth.Registry = _Registry;
                 _ServiceHandler.Registry = _Registry;
                 _RollingRestart = new RollingRestartCoordinator(_Settings.Cluster, _Cluster, _Registry, _Logging, RequestShutdown);

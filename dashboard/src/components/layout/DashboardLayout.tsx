@@ -28,6 +28,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ThemeEnum } from '@/types/types';
 import LitegraphTooltip from '../base/tooltip/Tooltip';
 import ThemeModeSwitch from '../theme-mode-switch/ThemeModeSwitch';
+import { useLastNodeId } from '@/lib/sdk/nodeTracker';
 
 const { Content } = Layout;
 
@@ -52,6 +53,9 @@ const DashboardLayout = ({
   const [serverUrl, setServerUrl] = useState<string | null>(null);
   const { theme } = useAppContext();
   const t = useTranslations('header');
+  // Node named by the x-litegraph-node header of the most recent response; in a cluster this is the node the load
+  // balancer picked.
+  const lastNodeId = useLastNodeId();
   const dispatch = useAppDispatch();
   const router = useRouter();
   const pathname = usePathname();
@@ -221,8 +225,22 @@ const DashboardLayout = ({
                 />
               </LitegraphTooltip>
               {serverHostDisplay && (
-                <LitegraphTooltip title={t('connectedServer')}>
+                <LitegraphTooltip
+                  title={
+                    lastNodeId ? (
+                      <span data-testid="header-node-tooltip">
+                        {t('connectedServer')}
+                        <br />
+                        {t('answeredBy', { node: lastNodeId })}
+                      </span>
+                    ) : (
+                      t('connectedServer')
+                    )
+                  }
+                >
                   <Tag
+                    data-testid="header-server-tag"
+                    data-node={lastNodeId ?? undefined}
                     bordered={false}
                     style={{
                       fontSize: 11,

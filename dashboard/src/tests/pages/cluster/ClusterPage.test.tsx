@@ -44,7 +44,63 @@ const singleNodeStatus = {
   Nodes: [{ ...baseNode, NodeId: 'host-1', Checks: { Database: true, Clutch: null, Redis: null, Draining: false } }],
 };
 
+const jobList = {
+  ClusterEnabled: true,
+  RegistryAvailable: true,
+  Utc: '2026-09-30T00:10:00.000000Z',
+  Jobs: [
+    {
+      Job: 'chat-retention',
+      NodeId: 'job-node-b',
+      StartedUtc: '2026-09-30T00:05:00.000000Z',
+      CompletedUtc: '2026-09-30T00:05:01.000000Z',
+      DurationMs: 812.4,
+      Success: true,
+      Message: null,
+    },
+    {
+      Job: 'request-history-purge',
+      NodeId: 'job-node-a',
+      StartedUtc: '2026-09-30T00:06:00.000000Z',
+      CompletedUtc: '2026-09-30T00:06:02.000000Z',
+      DurationMs: 2000,
+      Success: false,
+      Message: 'database timeout',
+    },
+  ],
+};
+
+const lockList = {
+  ClusterEnabled: true,
+  LockServiceAvailable: true,
+  Utc: '2026-09-30T00:10:00.000000Z',
+  Locks: [
+    {
+      Key: 'vectorindex/cosine/384',
+      KeyClass: 'vectorindex',
+      Mode: 'Write',
+      NodeId: 'lock-node-c',
+      ClutchNodeId: 'clutch-1',
+      FencingToken: 42,
+      AcquiredUtc: '2026-09-30T00:09:00.000000Z',
+      LeaseExpiresUtc: '2026-09-30T00:09:30.000000Z',
+    },
+    {
+      Key: 'job/chat-retention',
+      KeyClass: 'job',
+      Mode: 'Write',
+      NodeId: null,
+      ClutchNodeId: 'clutch-2',
+      FencingToken: 7,
+      AcquiredUtc: '2026-09-30T00:09:10.000000Z',
+      LeaseExpiresUtc: '2026-09-30T00:09:40.000000Z',
+    },
+  ],
+};
+
 let mockStatus: any = clusterStatus;
+let mockJobs: any = jobList;
+let mockLocks: any = lockList;
 let mockError: any = undefined;
 const mockRefetch = jest.fn();
 const mockRestartCluster = jest.fn();
@@ -64,6 +120,8 @@ jest.mock('@/lib/store/slice/slice', () => ({
       fulfilledTimeStamp: 1759190400000,
     };
   },
+  useGetClusterJobsQuery: () => ({ data: mockJobs }),
+  useGetClusterLocksQuery: () => ({ data: mockLocks }),
   useRestartClusterMutation: () => [mockRestartCluster, { isLoading: false }],
   useRestartClusterNodeMutation: () => [mockRestartNode, { isLoading: false }],
   useDeleteClusterNodeMutation: () => [mockRemoveNode, { isLoading: false }],
@@ -82,6 +140,8 @@ describe('ClusterPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockStatus = clusterStatus;
+    mockJobs = jobList;
+    mockLocks = lockList;
     mockError = undefined;
     mockQueryArgs.length = 0;
   });
@@ -202,5 +262,40 @@ describe('ClusterPage', () => {
     expect(progressFor({ ...baseNode, NodeId: 'a', State: 'Offline' } as any, requested)).toBe('restarting');
     expect(progressFor({ ...baseNode, NodeId: 'a' } as any, requested)).toBe('pending');
     expect(summarize(clusterStatus as any)).toEqual({ total: 3, healthy: 2, lagging: 1, pending: 1 });
+  });
+
+  it('lists the latest job runs and the held locks with their nodes', () => {
+    render(<ClusterPage />);
+    const jobs = screen.getByTestId('cluster-jobs-table');
+    expect(jobs).toHaveTextContent('chat-retention');
+    expect(jobs).toHaveTextContent('job-node-b');
+    expect(jobs).toHaveTextContent('812 ms');
+    expect(jobs).toHaveTextContent('Succeeded');
+    expect(jobs).toHaveTextContent('Failed');
+    const locks = screen.getByTestId('cluster-locks-table');
+    expect(locks).toHaveTextContent('vectorindex/cosine/384');
+    expect(locks).toHaveTextContent('lock-node-c');
+    expect(locks).toHaveTextContent('clutch-2');
+    expect(locks).toHaveTextContent('Unknown node');
+    expect(locks).toHaveTextContent('42');
+  });
+
+  it('explains the empty jobs and locks panels on a single node', () => {
+    mockStatus = singleNodeStatus;
+    mockJobs = { ClusterEnabled: false, RegistryAvailable: null, Jobs: [], Utc: '' };
+    mockLocks = { ClusterEnabled: false, LockServiceAvailable: null, Locks: [], Utc: '' };
+    render(<ClusterPage />);
+    expect(screen.getByTestId('cluster-jobs-table')).toHaveTextContent('every job runs locally');
+    expect(screen.getByTestId('cluster-locks-table')).toHaveTextContent('in-process locks only');
+    expect(screen.queryByTestId('cluster-jobs-unavailable')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('cluster-locks-unavailable')).not.toBeInTheDocument();
+  });
+
+  it('warns when Redis or Clutch cannot be read for the panels', () => {
+    mockJobs = { ...jobList, RegistryAvailable: false, Jobs: [] };
+    mockLocks = { ...lockList, LockServiceAvailable: false, Locks: [] };
+    render(<ClusterPage />);
+    expect(screen.getByTestId('cluster-jobs-unavailable')).toBeInTheDocument();
+    expect(screen.getByTestId('cluster-locks-unavailable')).toBeInTheDocument();
   });
 });

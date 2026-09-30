@@ -119,6 +119,22 @@
         Task<ClusterNode> ReadClusterNode(string nodeId, CancellationToken token = default);
 
         /// <summary>
+        /// List the distributed locks the cluster currently holds in Clutch.  On a single node the list is empty and
+        /// ClusterEnabled is false.  Requires system administrator privileges.
+        /// </summary>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Lock list.</returns>
+        Task<ClusterLockList> ReadClusterLocks(CancellationToken token = default);
+
+        /// <summary>
+        /// List the most recent run of each cluster singleton job.  On a single node the list is empty and ClusterEnabled
+        /// is false.  Requires system administrator privileges.
+        /// </summary>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Job list.</returns>
+        Task<ClusterJobList> ReadClusterJobs(CancellationToken token = default);
+
+        /// <summary>
         /// Request a restart of one cluster node (on a single node, of the server itself).  The node waits for any other node
         /// that is restarting, then restarts.  Requires system administrator privileges.
         /// </summary>

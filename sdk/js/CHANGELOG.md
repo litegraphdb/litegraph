@@ -9,6 +9,7 @@ v10.0.0
 - Added a retry policy: `maxRetries` (default 2), `retryBaseDelayMs` (default 200, exponential with jitter, capped at 5000 ms), and `retryPost` (default false); connection failures and 502/503/504 are retried for GET, HEAD, PUT, and DELETE, and streams are never retried after the first byte
 - Added `lastNodeId`, from the `x-litegraph-node` response header, and `nodeId` on `ApiErrorResponse`
 - Added the `Unavailable` error code (503)
+- Added `readClusterLocks` and `readClusterJobs`; health bodies document `StorageProvider`, `VectorIndexProvider`, and the `Redis` check
 
 v7.0.0
 

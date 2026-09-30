@@ -832,6 +832,8 @@ The health routes (v10.0) require no authentication and are not recorded in requ
 ```
 {
     "Status": "Healthy",
+    "StorageProvider": "Postgresql",
+    "VectorIndexProvider": "pgvector",
     "NodeId": "litegraph-1",
     "ClusterName": "litegraph",
     "Version": "10.0.0",
@@ -846,7 +848,7 @@ The health routes (v10.0) require no authentication and are not recorded in requ
 }
 ```
 
-`Checks.Database` is true when the database answered a query. `Checks.Clutch` and `Checks.Redis` are null on a single node and, on a cluster node, true when the node has an open lock connection to Clutch and can reach Redis. `Checks.Draining` is true once the node has been asked to stop or is taking its turn in a rolling restart. `Status` is `Unavailable` and the status code 503 when the database check fails or the node is draining. When only Clutch or Redis is unreachable, `Status` is `Degraded` and the status code stays 200: the node still serves reads, writes, and searches, and only coordinated work (vector index builds, retention jobs, starting new nodes, the node registry, settings signals, and restarts) waits. The liveness body has the same shape without `Checks`.
+`StorageProvider` is `Sqlite` or `Postgresql`, and `VectorIndexProvider` the vector index that goes with it (`HnswLite` or `pgvector`). `Checks.Database` is true when the database answered a query. `Checks.Clutch` and `Checks.Redis` are null on a single node and, on a cluster node, true when the node has an open lock connection to Clutch and can reach Redis. `Checks.Draining` is true once the node has been asked to stop or is taking its turn in a rolling restart. `Status` is `Unavailable` and the status code 503 when the database check fails or the node is draining. When only Clutch or Redis is unreachable, `Status` is `Degraded` and the status code stays 200: the node still serves reads, writes, and searches, and only coordinated work (vector index builds, retention jobs, starting new nodes, the node registry, settings signals, and restarts) waits. The liveness body has the same shape without `Checks`.
 
 Every response carries an `x-litegraph-node` header naming the node that answered (the configured `NodeId`, or the host name), alongside the existing `x-hostname` header.
 
@@ -898,6 +900,8 @@ Cluster APIs require system-administrator authentication. They also answer on a 
 | Read one node            | GET    | /v1.0/cluster/nodes/{nodeId} |
 | Restart one node         | POST   | /v1.0/cluster/nodes/{nodeId}/restart |
 | Remove a node from the registry | DELETE | /v1.0/cluster/nodes/{nodeId} |
+| List held locks          | GET    | /v1.0/cluster/locks  |
+| List job runs            | GET    | /v1.0/cluster/jobs   |
 
 `GET /v1.0/cluster/nodes` returns the node registry kept in Redis, plus the settings and restart counters:
 
@@ -951,6 +955,53 @@ It returns 503 (`Unavailable`) when Redis is unreachable. On a single node it re
 `POST /v1.0/cluster/nodes/{nodeId}/restart` restarts one node. The node notices within `Cluster.Redis.PollIntervalMs`, takes the same Clutch `restart` lock as a rolling restart (so it still waits for any other node that is restarting), drains, and exits for its supervisor to start it again. It returns a restart result with `Rolling` false, 404 for an unknown node, 409 for a node that is `Offline` or `Stopped` (start it with its supervisor instead), and 503 when Redis is unreachable. On a single node, only the server's own identifier is accepted, and the server restarts.
 
 `DELETE /v1.0/cluster/nodes/{nodeId}` removes a decommissioned node's entry from the registry. Only `Offline` or `Stopped` nodes can be removed (409 otherwise), because a running node registers again on its next heartbeat. Entries also expire on their own after `Cluster.Redis.NodeRetentionMs`. It returns 400 on a single node, which has no registry.
+
+`GET /v1.0/cluster/locks` lists the distributed locks this cluster currently holds in Clutch, read through Clutch's administration API with the configured access key:
+
+```
+{
+    "ClusterEnabled": true,
+    "LockServiceAvailable": true,
+    "Locks": [
+        {
+            "Key": "vectorindex/cosine/384",
+            "KeyClass": "vectorindex",
+            "Mode": "Write",
+            "NodeId": "litegraph-2",
+            "ClutchNodeId": "clutch-1",
+            "FencingToken": 17,
+            "AcquiredUtc": "2026-09-30T06:10:04.112000Z",
+            "LeaseExpiresUtc": "2026-09-30T06:10:34.112000Z"
+        }
+    ],
+    "Utc": "2026-09-30T06:10:05.000000Z"
+}
+```
+
+`Key` is relative to the cluster prefix. `NodeId` is the LiteGraph node holding the lock, matched through its Clutch session; it is null for a session no registered node reports. Most locks are held for seconds, so an empty list is normal. `LockServiceAvailable` is false when Clutch did not answer, and the list is always empty on a single node, which takes only in-process locks.
+
+`GET /v1.0/cluster/jobs` lists the most recent run of each cluster singleton job (`chat-retention`, `request-history-purge`), each run by one node per cycle:
+
+```
+{
+    "ClusterEnabled": true,
+    "RegistryAvailable": true,
+    "Jobs": [
+        {
+            "Job": "request-history-purge",
+            "NodeId": "litegraph-3",
+            "StartedUtc": "2026-09-30T06:00:30.004000Z",
+            "CompletedUtc": "2026-09-30T06:00:30.051000Z",
+            "DurationMs": 47.2,
+            "Success": true,
+            "Message": null
+        }
+    ],
+    "Utc": "2026-09-30T06:10:05.000000Z"
+}
+```
+
+A job appears after its first run (the purge starts 30 seconds after a node starts; chat retention runs hourly). The list is empty on a single node, which runs every job itself.
 
 ## Backup APIs
 
@@ -1258,7 +1309,7 @@ Request history APIs require read/admin access according to the authenticated pr
 | Delete entry            | DELETE | /v1.0/requesthistory/[requestGuid]        |
 | Bulk delete             | DELETE | /v1.0/requesthistory/bulk                 |
 
-`GET /v1.0/requesthistory` returns the [enumeration envelope](#enumeration-and-pagination) of request history entries. Common query-string filters include `tenantGuid`, `method`, `statusCode`, `success`, `path`, `sourceIp`, `hasTransactionDiagnostics`, `transactionId`, paging (legacy `page`/`pageSize` remain accepted, with `max-keys` and `skip` taking precedence), and time-range filters. The summary and per-entry reads return single objects. Detailed entries include captured request/response metadata subject to configured redaction and truncation.
+`GET /v1.0/requesthistory` returns the [enumeration envelope](#enumeration-and-pagination) of request history entries. Common query-string filters include `tenantGuid`, `method`, `statusCode`, `success`, `path`, `sourceIp`, `nodeId` (v10.0, the node that handled the request; every entry carries `NodeId`), `hasTransactionDiagnostics`, `transactionId`, paging (legacy `page`/`pageSize` remain accepted, with `max-keys` and `skip` taking precedence), and time-range filters. The summary and per-entry reads return single objects. Detailed entries include captured request/response metadata subject to configured redaction and truncation.
 
 Graph transaction entries include `TransactionDiagnosticsJson` when LiteGraph can parse the transaction result body. The compact JSON includes transaction ID, operation count, isolation level, provider, rollback and validation state, retry/conflict fields, and provider error code.
 Use `hasTransactionDiagnostics=true` to list only graph transaction rows, `hasTransactionDiagnostics=false` to exclude them, and `transactionId=[full-or-partial-id]` to find entries for a known transaction ID.
@@ -1434,7 +1485,7 @@ With `Stream` true the response is `200 text/event-stream`. Every frame is `data
 | `usage` | `usage` (a `ChatCompletionResult`) | Final telemetry frame on success |
 | `error` | `message`, optional `statusCode` | The turn failed; `statusCode` carries the upstream status when known |
 
-Comment keep-alive frames are emitted every `SseKeepAliveSeconds` (server setting) so idle proxies do not sever long generations.
+When a stream has been silent for `Chat.SseKeepAliveSeconds` (server setting, default 15), for example while the model runs a tool or before its first token, the server writes a keepalive event carrying only `retry: 3000`. SSE clients accept it without dispatching a message, and load balancers and proxies with idle timeouts keep the connection open. Ollama-format (`/chat/ollama`) responses are newline-delimited JSON, which has no equivalent, so they get no keepalive.
 
 Completion error responses:
 

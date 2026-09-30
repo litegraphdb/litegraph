@@ -46,6 +46,7 @@
         private Services.Chat.ChatService _ChatService = null;
         private ChatEndpointHealthService _ChatHealth = null;
         private Services.Cluster.ClusterContext _Cluster = null;
+        private Services.Cluster.ClientAddressResolver _ClientAddresses = null;
 
         private Webserver _Webserver = null;
         private bool _Disposed = false;
@@ -85,6 +86,7 @@
             _ChatService = chatService;
             _ChatHealth = chatHealth;
             _Cluster = cluster;
+            _ClientAddresses = new Services.Cluster.ClientAddressResolver(_Settings.Cluster.TrustForwardedHeaders, _Settings.Cluster.TrustedProxies);
 
             _Webserver = new Webserver(_Settings.Rest, DefaultRoute);
             _Webserver.Routes.PreRouting = PreRoutingHandler;
@@ -239,6 +241,8 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/cluster/nodes", ClusterNodesRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("List cluster nodes with their state and health", "Admin"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/cluster/restart", ClusterRestartRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Request a rolling restart of every node (restarts this server on a single node)", "Admin"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/cluster/nodes/{nodeId}", ClusterNodeReadRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Read one cluster node", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/cluster/locks", ClusterLocksRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("List distributed locks this cluster holds in Clutch", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/cluster/jobs", ClusterJobsRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("List the most recent run of each cluster singleton job", "Admin"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/cluster/nodes/{nodeId}/restart", ClusterNodeRestartRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Restart one cluster node", "Admin"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/cluster/nodes/{nodeId}", ClusterNodeDeleteRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Remove an offline or stopped node from the node registry", "Admin"));
 
@@ -570,6 +574,7 @@
             try
             {
                 req = new RequestContext(ctx);
+                req.ClientIp = _ClientAddresses.Resolve(ctx.Request.Source?.IpAddress, ctx.Request.Headers?.Get("X-Forwarded-For"));
             }
             catch (FormatException fe)
             {
@@ -785,7 +790,8 @@
                     Method = ctx.Request.Method.ToString(),
                     Path = redactedPath,
                     Url = OperationalLogRedactor.RedactUrl(ctx.Request.Url.RawWithQuery),
-                    SourceIp = ctx.Request.Source?.IpAddress,
+                    SourceIp = req?.Ip ?? ctx.Request.Source?.IpAddress,
+                    NodeId = _Cluster?.NodeId ?? _Hostname,
                     TenantGUID = tenantGuid,
                     UserGUID = userGuid,
                     StatusCode = statusCode,
@@ -1108,6 +1114,30 @@
             await WrappedRequestHandler(ctx, req, _ServiceHandler.ClusterRestart);
         }
 
+        private async Task ClusterLocksRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.ClusterLocksRead);
+        }
+
+        private async Task ClusterJobsRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            await WrappedRequestHandler(ctx, req, _ServiceHandler.ClusterJobsRead);
+        }
+
         private async Task ClusterNodeReadRoute(HttpContextBase ctx)
         {
             RequestContext req = (RequestContext)ctx.Metadata;
@@ -1333,7 +1363,7 @@
                 RequestType = req.RequestType.ToString(),
                 Method = req.Http?.Request?.Method.ToString(),
                 Path = OperationalLogRedactor.RedactUrl(req.Http?.Request?.Url?.RawWithoutQuery),
-                SourceIp = req.Http?.Request?.Source?.IpAddress,
+                SourceIp = req.Ip,
                 AuthenticationResult = req.Authentication?.Result.ToString(),
                 AuthorizationResult = result.ToString(),
                 Reason = reason,
@@ -3776,7 +3806,7 @@
             activity.SetTag("url.full", OperationalLogRedactor.RedactUrl(ctx.Request.Url.RawWithQuery));
             activity.SetTag("server.address", _Settings.Rest.Hostname);
             activity.SetTag("server.port", _Settings.Rest.Port);
-            activity.SetTag("client.address", ctx.Request.Source.IpAddress);
+            activity.SetTag("client.address", req.Ip ?? ctx.Request.Source.IpAddress);
             activity.SetTag("litegraph.request.id", req.RequestId);
             activity.SetTag("litegraph.correlation.id", req.CorrelationId);
             activity.SetTag("litegraph.request.type", req.RequestType.ToString());
@@ -3917,6 +3947,7 @@
             if (!string.IsNullOrEmpty(q?["method"])) search.Method = q["method"];
             if (!string.IsNullOrEmpty(q?["path"])) search.Path = q["path"];
             if (!string.IsNullOrEmpty(q?["sourceIp"])) search.SourceIp = q["sourceIp"];
+            if (!string.IsNullOrEmpty(q?["nodeId"])) search.NodeId = q["nodeId"];
             if (!string.IsNullOrEmpty(q?["transactionId"])) search.TransactionId = q["transactionId"];
             if (!string.IsNullOrEmpty(q?["statusCode"]) && int.TryParse(q["statusCode"], out int sc)) search.StatusCode = sc;
             if (!string.IsNullOrEmpty(q?["success"]) && bool.TryParse(q["success"], out bool success)) search.Success = success;

@@ -84,7 +84,8 @@ Point the load balancer's health checks at the readiness endpoint. Every respons
 
 The Nginx configuration in `docker/multi-node/nginx/litegraph.conf` shows the settings that matter for LiteGraph:
 
-- Response buffering off and a long read timeout, so streamed chat responses flow through.
+- Response buffering off and a long read timeout, so streamed chat responses flow through. The server also writes a keepalive event on a silent stream every `Chat.SseKeepAliveSeconds`, for load balancers with shorter idle timeouts.
+- `X-Forwarded-For` set by the load balancer. With `LITEGRAPH_TRUSTED_PROXIES` naming the load balancer's addresses, request history, audit, and traces record the real client address instead of the load balancer's. Request history also records which node handled each request (`NodeId`, filterable).
 - A generous request body limit, for imports.
 - Retries on connection errors and gateway errors. Nginx does not retry POST requests unless told to, and it should not be told to.
 - Node names re-resolved through Docker's DNS (`resolver 127.0.0.11` and `resolve` on each upstream server). Nginx otherwise keeps the addresses it resolved at startup, and a node recreated by `docker compose up` comes back at a new address.
@@ -122,7 +123,7 @@ It fails if more than 2% of requests fail in any phase.
 
 **Observability.** Scrape each node's `/metrics` directly rather than through the load balancer, with a `node` label on each target, as `docker/multi-node/prometheus.yaml` does. The **LiteGraph Cluster** Grafana dashboard shows node states, per-node traffic, lock activity, and Clutch and Redis connectivity, and every other dashboard has a Node filter. Logs from every node flow to Loki through the same syslog path as a single node, labeled with the node's host name. [OBSERVABILITY.md](OBSERVABILITY.md) lists the node and cluster metrics.
 
-**The dashboard's Cluster page** (Administration, system administrators only) lists every node with its state, checks, and settings version, restarts or removes one node, and runs a rolling restart with a live progress view. Restarting a single node (`POST /v1.0/cluster/nodes/{nodeId}/restart`) takes the same `restart` lock as a rolling restart, so it still waits for any node that is restarting. Removing a node only clears the registry entry of a node that is `Offline` or `Stopped`, for example after decommissioning it.
+**The dashboard's Cluster page** (Administration, system administrators only) lists every node with its state, checks, and settings version, restarts or removes one node, runs a rolling restart with a live progress view, and shows the locks the cluster holds in Clutch (`GET /v1.0/cluster/locks`) and the latest run of each singleton job (`GET /v1.0/cluster/jobs`). Restarting a single node (`POST /v1.0/cluster/nodes/{nodeId}/restart`) takes the same `restart` lock as a rolling restart, so it still waits for any node that is restarting. Removing a node only clears the registry entry of a node that is `Offline` or `Stopped`, for example after decommissioning it.
 
 ## Limits and choices worth knowing
 

@@ -60,7 +60,8 @@
     "signOut": "Esci dalla dashboard",
     "logoutAria": "Esci",
     "language": "Lingua",
-    "selectLanguage": "Seleziona lingua"
+    "selectLanguage": "Seleziona lingua",
+    "answeredBy": "Ultima risposta dal nodo {node}"
   },
   "login": {
     "serverUrl": "URL del server LiteGraph",
@@ -273,7 +274,12 @@
         "status": "Se l'indice è attualmente caricato in memoria",
         "distanceMetric": "Metrica di distanza utilizzata per i calcoli di similarità"
       }
-    }
+    },
+    "providerLabel": "Provider dell'indice vettoriale: {provider}",
+    "providerPgvector": "pgvector (PostgreSQL)",
+    "providerHnswLite": "HnswLite (SQLite)",
+    "pgvectorNote": "L'indice risiede in PostgreSQL. I grafi con la stessa dimensionalità vettoriale condividono un indice, i cui parametri sono fissati dal primo grafo che lo abilita. I vettori con più di 4.000 dimensioni vengono cercati in modo esatto anziché tramite un indice. Non viene usato alcun file di indice.",
+    "hnswliteNote": "L'indice è mantenuto da questo processo del server e salvato nel file di indice indicato sotto."
   },
   "importExport": {
     "exportJsonl": "Esporta in JSONL",
@@ -844,7 +850,9 @@
       "transactionDesc": "Diagnostica della transazione per le richieste di scrittura: identificativo, esito, livello di isolamento e provider.",
       "durationDesc": "Tempo di elaborazione lato server dalla ricezione della richiesta al completamento della risposta.",
       "sizeDesc": "Dimensioni dei corpi di richiesta e risposta in byte, come richiesta / risposta.",
-      "tenantDesc": "Tenant che ha emesso la richiesta; vuoto per le richieste amministrative."
+      "tenantDesc": "Tenant che ha emesso la richiesta; vuoto per le richieste amministrative.",
+      "node": "Nodo",
+      "nodeDesc": "Nodo del server che ha gestito la richiesta."
     },
     "transaction": {
       "noId": "transazione"
@@ -876,7 +884,8 @@
       "nonTransactions": "Non transazioni",
       "allMethods": "Tutti i metodi",
       "transactionIdPlaceholder": "ID transazione...",
-      "pathPlaceholder": "Il percorso contiene..."
+      "pathPlaceholder": "Il percorso contiene...",
+      "nodePlaceholder": "Filtra per nodo"
     },
     "summary": {
       "visibleRequests": "Richieste visibili:",
@@ -1437,7 +1446,8 @@
       "rest": "Server REST",
       "database": "Database",
       "security": "Sicurezza",
-      "chat": "Chat"
+      "chat": "Chat",
+      "cluster": "Cluster"
     },
     "fields": {
       "requestTimeoutSeconds": "Timeout richiesta (secondi)",
@@ -1485,7 +1495,25 @@
       "chatMaxToolIterationsCap": "Limite iterazioni strumenti",
       "chatMaxConcurrentChats": "Chat simultanee massime",
       "chatSseKeepAliveSeconds": "Keep-alive SSE (secondi)",
-      "chatDefaultTimeoutMs": "Timeout predefinito (ms)"
+      "chatDefaultTimeoutMs": "Timeout predefinito (ms)",
+      "clusterEnable": "Esegui come nodo del cluster",
+      "clusterName": "Nome del cluster",
+      "clusterNodeId": "Identificatore del nodo",
+      "trustForwardedHeaders": "Considera attendibili le intestazioni inoltrate",
+      "trustedProxies": "Proxy attendibili",
+      "allowInsecureDefaults": "Consenti valori predefiniti non sicuri",
+      "endpointResyncIntervalMs": "Intervallo di risincronizzazione degli endpoint di chat (ms)",
+      "clutchEndpoint": "Endpoint Clutch",
+      "clutchAccessKey": "Chiave di accesso Clutch",
+      "clutchLeaseMs": "Lease Clutch (ms)",
+      "clutchRequestTimeoutMs": "Timeout delle richieste a Clutch (ms)",
+      "clutchStartupConnectTimeoutMs": "Timeout di connessione a Clutch all'avvio (ms)",
+      "redisConnectionString": "Stringa di connessione Redis",
+      "redisPollIntervalMs": "Intervallo di polling Redis (ms)",
+      "redisNodeTimeoutMs": "Nodo offline dopo (ms)",
+      "redisNodeRetentionMs": "Dimentica i nodi arrestati dopo (ms)",
+      "restartDrainMs": "Drenaggio nel riavvio progressivo (ms)",
+      "restartPeerTimeoutMs": "Attesa degli altri nodi nel riavvio progressivo (ms)"
     },
     "status": {
       "appliedLive": "Applicato in tempo reale",
@@ -1534,7 +1562,20 @@
         "restartPending": "Riavvio in sospeso"
       },
       "openPage": "Apri la pagina Cluster"
-    }
+    },
+    "hints": {
+      "range": "Intervallo consentito da {min} a {max}",
+      "envOverride": "Impostato da variabile d'ambiente",
+      "nodeIdEnv": "Impostato su ogni nodo dalla variabile d'ambiente LITEGRAPH_NODE_ID.",
+      "trustedProxies": "Indirizzi o intervalli CIDR separati da virgole, ad esempio 10.0.0.0/8.",
+      "clusterName": "Lettere minuscole, cifre e trattini."
+    },
+    "clusterBanner": {
+      "title": "Queste impostazioni valgono per tutti i nodi",
+      "body": "Tutti i nodi condividono questo file di impostazioni. Le impostazioni che richiedono un riavvio si applicano dopo un riavvio del cluster, che riavvia i nodi uno alla volta.",
+      "link": "Apri la pagina Cluster"
+    },
+    "cachingDisabledInCluster": "La cache degli oggetti è disattivata in modalità cluster, indipendentemente da queste impostazioni, così ogni nodo legge dati aggiornati."
   },
   "ai": {
     "chat": {
@@ -2105,6 +2146,42 @@
       "removed": "Nodo {node} rimosso.",
       "actionFailed": "Richiesta non riuscita: {message}"
     },
-    "empty": "Nessun nodo registrato."
+    "empty": "Nessun nodo registrato.",
+    "jobs": {
+      "title": "Attività in background",
+      "description": "L'esecuzione più recente di ogni attività che gira su un solo nodo per ciclo.",
+      "empty": "In questo cluster non è ancora stata eseguita alcuna attività.",
+      "emptySingle": "Su un nodo singolo tutte le attività vengono eseguite localmente, quindi qui non vengono registrate esecuzioni.",
+      "unavailable": "Il registro dei nodi (Redis) non è raggiungibile, quindi le esecuzioni non possono essere mostrate.",
+      "success": "Riuscita",
+      "failed": "Non riuscita",
+      "durationMs": "{ms} ms",
+      "columns": {
+        "job": "Attività",
+        "node": "Nodo",
+        "started": "Avvio",
+        "completed": "Fine",
+        "duration": "Durata",
+        "result": "Esito"
+      }
+    },
+    "locks": {
+      "title": "Lock distribuiti",
+      "description": "Lock che questo cluster detiene attualmente in Clutch. La maggior parte viene tenuta solo per un istante.",
+      "empty": "Al momento non ci sono lock attivi.",
+      "emptySingle": "Un nodo singolo usa solo lock interni al processo, quindi non c’è nulla da mostrare.",
+      "unavailable": "Clutch non è raggiungibile, quindi i lock detenuti non possono essere elencati.",
+      "unknownNode": "Nodo sconosciuto",
+      "columns": {
+        "key": "Chiave",
+        "keyClass": "Classe",
+        "mode": "Modalità",
+        "node": "Nodo",
+        "clutchNode": "Nodo Clutch",
+        "fencingToken": "Token di fencing",
+        "acquired": "Acquisito",
+        "leaseExpires": "Scadenza del lease"
+      }
+    }
   }
 }

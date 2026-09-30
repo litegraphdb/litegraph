@@ -60,7 +60,8 @@
     "signOut": "Sign out of the dashboard",
     "logoutAria": "Logout",
     "language": "Language",
-    "selectLanguage": "Select language"
+    "selectLanguage": "Select language",
+    "answeredBy": "Last response from node {node}"
   },
   "login": {
     "serverUrl": "LiteGraph Server URL",
@@ -273,7 +274,12 @@
         "status": "Whether the index is currently loaded in memory",
         "distanceMetric": "Distance metric used for similarity calculations"
       }
-    }
+    },
+    "providerLabel": "Vector index provider: {provider}",
+    "providerPgvector": "pgvector (PostgreSQL)",
+    "providerHnswLite": "HnswLite (SQLite)",
+    "pgvectorNote": "The index lives in PostgreSQL. Graphs with the same vector dimensionality share one index, so its parameters are set by the first graph that enables it. Vectors with more than 4,000 dimensions are searched exactly instead of through an index. No index file is used.",
+    "hnswliteNote": "The index is kept by this server process and stored in the index file below."
   },
   "importExport": {
     "exportJsonl": "Export to JSONL",
@@ -874,7 +880,9 @@
       "transactionDesc": "Transaction diagnostics for write requests: identifier, outcome, isolation level, and provider.",
       "durationDesc": "Server-side processing time from receiving the request to completing the response.",
       "sizeDesc": "Request and response body sizes in bytes, shown as request / response.",
-      "tenantDesc": "Tenant that issued the request; empty for administrative requests."
+      "tenantDesc": "Tenant that issued the request; empty for administrative requests.",
+      "node": "Node",
+      "nodeDesc": "Server node that handled the request."
     },
     "transaction": {
       "noId": "transaction"
@@ -906,7 +914,8 @@
       "nonTransactions": "Non-transactions",
       "allMethods": "All methods",
       "transactionIdPlaceholder": "Transaction ID...",
-      "pathPlaceholder": "Path contains..."
+      "pathPlaceholder": "Path contains...",
+      "nodePlaceholder": "Filter by node"
     },
     "summary": {
       "visibleRequests": "Visible requests:",
@@ -1469,7 +1478,8 @@
       "security": "Security",
       "litegraph": "LiteGraph Engine",
       "storage": "Storage",
-      "chat": "Chat"
+      "chat": "Chat",
+      "cluster": "Cluster"
     },
     "fields": {
       "requestTimeoutSeconds": "Request timeout (seconds)",
@@ -1534,7 +1544,25 @@
       "chatMaxToolIterationsCap": "Tool iteration cap",
       "chatMaxConcurrentChats": "Max concurrent chats",
       "chatSseKeepAliveSeconds": "SSE keep-alive (seconds)",
-      "chatDefaultTimeoutMs": "Default timeout (ms)"
+      "chatDefaultTimeoutMs": "Default timeout (ms)",
+      "clusterEnable": "Run as a cluster node",
+      "clusterName": "Cluster name",
+      "clusterNodeId": "Node identifier",
+      "trustForwardedHeaders": "Trust forwarded headers",
+      "trustedProxies": "Trusted proxies",
+      "allowInsecureDefaults": "Allow insecure defaults",
+      "endpointResyncIntervalMs": "Chat endpoint resync interval (ms)",
+      "clutchEndpoint": "Clutch endpoint",
+      "clutchAccessKey": "Clutch access key",
+      "clutchLeaseMs": "Clutch lease (ms)",
+      "clutchRequestTimeoutMs": "Clutch request timeout (ms)",
+      "clutchStartupConnectTimeoutMs": "Clutch startup connect timeout (ms)",
+      "redisConnectionString": "Redis connection string",
+      "redisPollIntervalMs": "Redis poll interval (ms)",
+      "redisNodeTimeoutMs": "Node offline after (ms)",
+      "redisNodeRetentionMs": "Forget stopped nodes after (ms)",
+      "restartDrainMs": "Rolling restart drain (ms)",
+      "restartPeerTimeoutMs": "Rolling restart peer timeout (ms)"
     },
     "status": {
       "appliedLive": "Applied live",
@@ -1593,7 +1621,20 @@
         "restartPending": "Restart pending"
       },
       "openPage": "Open the Cluster page"
-    }
+    },
+    "hints": {
+      "range": "Allowed range {min} to {max}",
+      "envOverride": "Set by environment variable",
+      "nodeIdEnv": "Set per node by the LITEGRAPH_NODE_ID environment variable.",
+      "trustedProxies": "Comma-separated addresses or CIDR ranges, for example 10.0.0.0/8.",
+      "clusterName": "Lowercase letters, digits, and hyphens."
+    },
+    "clusterBanner": {
+      "title": "These settings apply to every node",
+      "body": "Every node shares this settings file. Settings that need a restart take effect after a cluster restart, which restarts the nodes one at a time.",
+      "link": "Open the Cluster page"
+    },
+    "cachingDisabledInCluster": "Object caching is disabled in cluster mode, whatever these settings say, so every node reads current data."
   },
   "ai": {
     "chat": {
@@ -2164,6 +2205,42 @@
       "removed": "Node {node} removed.",
       "actionFailed": "Request failed: {message}"
     },
-    "empty": "No nodes are registered."
+    "empty": "No nodes are registered.",
+    "jobs": {
+      "title": "Background jobs",
+      "description": "The most recent run of each job that runs on one node per cycle.",
+      "empty": "No job has run yet in this cluster.",
+      "emptySingle": "On a single node every job runs locally, so no runs are recorded here.",
+      "unavailable": "The node registry (Redis) is unreachable, so job runs cannot be shown.",
+      "success": "Succeeded",
+      "failed": "Failed",
+      "durationMs": "{ms} ms",
+      "columns": {
+        "job": "Job",
+        "node": "Node",
+        "started": "Started",
+        "completed": "Completed",
+        "duration": "Duration",
+        "result": "Result"
+      }
+    },
+    "locks": {
+      "title": "Distributed locks",
+      "description": "Locks this cluster currently holds in Clutch. Most are held only for moments.",
+      "empty": "No locks are held right now.",
+      "emptySingle": "A single node uses in-process locks only, so there is nothing to show.",
+      "unavailable": "Clutch is unreachable, so held locks cannot be listed.",
+      "unknownNode": "Unknown node",
+      "columns": {
+        "key": "Key",
+        "keyClass": "Class",
+        "mode": "Mode",
+        "node": "Node",
+        "clutchNode": "Clutch node",
+        "fencingToken": "Fencing token",
+        "acquired": "Acquired",
+        "leaseExpires": "Lease expires"
+      }
+    }
   }
 }

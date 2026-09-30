@@ -48,6 +48,16 @@ namespace LiteGraph.Server.Services.Cluster
         public ObservabilityService Observability { get; set; } = null;
 
         /// <summary>
+        /// Returns this node's Clutch session identifier for its registry entry.  Null to report none.
+        /// </summary>
+        public Func<string> ClutchSessionIdProvider { get; set; } = null;
+
+        /// <summary>
+        /// This node's identifier.
+        /// </summary>
+        public string NodeId { get { return _Cluster.NodeId; } }
+
+        /// <summary>
         /// Raised when settings were saved through any node, including this one.  The argument is the settings version.
         /// Raised on the polling thread; handlers must not block.
         /// </summary>
@@ -79,6 +89,7 @@ namespace LiteGraph.Server.Services.Cluster
         private readonly RedisKey _RestartVersionKey;
         private readonly RedisKey _RestartRequestedKey;
         private readonly RedisKey _NodeRestartKey;
+        private readonly RedisKey _JobsKey;
         private readonly string _NodeRestartPrefix;
 
         private ConnectionMultiplexer _Redis = null;
@@ -122,6 +133,7 @@ namespace LiteGraph.Server.Services.Cluster
             _RestartRequestedKey = prefix + "restart:requested-utc";
             _NodeRestartPrefix = prefix + "restart:node:";
             _NodeRestartKey = _NodeRestartPrefix + cluster.NodeId;
+            _JobsKey = prefix + "jobs";
         }
 
         #endregion
@@ -191,6 +203,46 @@ namespace LiteGraph.Server.Services.Cluster
             IDatabase db = Database();
             await db.StringSetAsync(_NodeRestartPrefix + nodeId, FormatUtc(DateTime.UtcNow), TimeSpan.FromMilliseconds(_ClusterSettings.RestartPeerTimeoutMs)).ConfigureAwait(false);
             _Logging.Info(_Header + "restart of node " + nodeId + " requested");
+        }
+
+        /// <summary>
+        /// Record a run of a cluster singleton job, replacing the job's previous run.
+        /// </summary>
+        /// <param name="run">Job run.</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <exception cref="ArgumentNullException">run is null.</exception>
+        /// <exception cref="RedisException">Redis could not be reached.</exception>
+        public async Task RecordJobRunAsync(ClusterJobRun run, CancellationToken token = default)
+        {
+            if (run == null) throw new ArgumentNullException(nameof(run));
+            await Database().HashSetAsync(_JobsKey, run.Job, _Serializer.SerializeJson(run, false)).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Read the most recent run of every cluster singleton job.
+        /// </summary>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Job runs ordered by job name.</returns>
+        /// <exception cref="RedisException">Redis could not be reached.</exception>
+        public async Task<List<ClusterJobRun>> GetJobRunsAsync(CancellationToken token = default)
+        {
+            HashEntry[] entries = await Database().HashGetAllAsync(_JobsKey).ConfigureAwait(false);
+            List<ClusterJobRun> runs = new List<ClusterJobRun>();
+            foreach (HashEntry entry in entries)
+            {
+                try
+                {
+                    ClusterJobRun run = _Serializer.DeserializeJson<ClusterJobRun>(entry.Value.ToString());
+                    run.StartedUtc = run.StartedUtc.ToUniversalTime();
+                    run.CompletedUtc = run.CompletedUtc.ToUniversalTime();
+                    runs.Add(run);
+                }
+                catch (Exception e)
+                {
+                    _Logging.Warn(_Header + "ignoring unreadable job run for " + entry.Name + ": " + e.Message);
+                }
+            }
+            return runs.OrderBy(r => r.Job, StringComparer.Ordinal).ToList();
         }
 
         /// <summary>
@@ -433,7 +485,8 @@ namespace LiteGraph.Server.Services.Cluster
                 Checks = health.Checks,
                 SettingsVersion = Volatile.Read(ref _SettingsVersionSeen),
                 RestartVersion = Volatile.Read(ref _RestartVersionSeen),
-                RestartPending = SettingsRestartPending || Volatile.Read(ref _RestartSignalled) == 1
+                RestartPending = SettingsRestartPending || Volatile.Read(ref _RestartSignalled) == 1,
+                ClutchSessionId = ClutchSessionIdProvider?.Invoke()
             };
 
             Observability?.RecordNodeStatus(node.State, node.Checks.Clutch, node.Checks.Redis, node.RestartPending, node.SettingsVersion);

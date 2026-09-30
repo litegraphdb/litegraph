@@ -1617,6 +1617,13 @@ namespace LiteGraph.GraphRepositories.Sqlite
                 ExecuteQuery("ALTER TABLE 'requesthistory' ADD COLUMN transactiondiagnosticsjson TEXT;");
             }
 
+            if (!ColumnExists(tableInfo, "nodeid"))
+            {
+                ExecuteQuery("ALTER TABLE 'requesthistory' ADD COLUMN nodeid VARCHAR(128);");
+            }
+
+            ExecuteQuery("CREATE INDEX IF NOT EXISTS 'idx_requesthistory_nodeid_createdutc' ON 'requesthistory' (nodeid ASC, createdutc DESC);");
+
             ExecuteQuery("CREATE INDEX IF NOT EXISTS 'idx_requesthistory_requestid' ON 'requesthistory' (requestid ASC);");
             ExecuteQuery("CREATE INDEX IF NOT EXISTS 'idx_requesthistory_correlationid_createdutc' ON 'requesthistory' (correlationid ASC, createdutc DESC);");
             ExecuteQuery("CREATE INDEX IF NOT EXISTS 'idx_requesthistory_traceid_createdutc' ON 'requesthistory' (traceid ASC, createdutc DESC);");

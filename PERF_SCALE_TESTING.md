@@ -381,6 +381,23 @@ Storage metrics:
 - SQLite WAL growth during mixed writes can expose checkpoint pressure.
 - Index byte growth should be reviewed with vector index rebuild and search results.
 
+## Cluster Scaling Through The Load Balancer (v10.0)
+
+The harness above drives the library directly. To see how a cluster scales, the same REST workload was run against one node directly and against all three nodes of `docker/multi-node` through `litegraph-lb`, from a client container on the Compose network.
+
+**Setup.** One graph with 1,000 nodes, each with one 64-dimension vector, and a pgvector index enabled. Mix: 70% node reads by GUID, 20% cosine vector searches (top 10), 10% node creates. 32 concurrent connections for 30 seconds. All containers (three LiteGraph nodes, PostgreSQL, two Clutch nodes, Redis, Nginx, and observability) shared one 24-CPU workstation, so the nodes competed with each other and with PostgreSQL for the same CPUs.
+
+| Target | Throughput | Read p50 / p95 / p99 | Search p50 / p95 / p99 | Write p50 / p95 / p99 | Errors |
+|---|---|---|---|---|---|
+| 1 node (`litegraph-1`) | 46.3 req/s | 134 / 562 / 743 ms | 2,562 / 3,428 / 3,980 ms | 477 / 1,112 / 1,377 ms | 0 |
+| 3 nodes (`litegraph-lb`) | 86.1 req/s | 94 / 280 / 783 ms | 1,180 / 2,103 / 2,449 ms | 265 / 902 / 1,121 ms | 0 |
+
+Three nodes delivered 1.86 times the throughput of one with lower median latency for every operation, and the load balancer spread requests evenly (865 / 863 / 856). With a single connection a node answers reads in 8 ms, writes in 27 ms, and searches in 100 ms (p50), so the latencies above are queueing on a saturated node.
+
+**Finding.** A vector search's own pgvector query is fast; most of its 100 ms goes to loading results, which reads each matching node and then its vectors one at a time (two round trips per result, about 21 queries for a top-10 search). The same pattern exists in 9.x, so it is not a 10.0 regression, but batching those reads (`Node.ReadByGuids` plus one vector query for all matches) is the clearest single-node improvement available and would also raise cluster throughput.
+
+To repeat the measurement, bring up `docker/multi-node`, then run any HTTP load tool from a container on the `litegraph-cluster_default` network against `http://litegraph-1:8701` and `http://litegraph-lb:8701`.
+
 ## Troubleshooting
 
 Unsupported provider:

@@ -60,7 +60,8 @@
     "signOut": "Sair do dashboard",
     "logoutAria": "Sair",
     "language": "Idioma",
-    "selectLanguage": "Selecionar idioma"
+    "selectLanguage": "Selecionar idioma",
+    "answeredBy": "Última resposta do nó {node}"
   },
   "login": {
     "serverUrl": "URL do servidor LiteGraph",
@@ -273,7 +274,12 @@
         "status": "Se o índice está atualmente carregado na memória",
         "distanceMetric": "Métrica de distância usada para cálculos de similaridade"
       }
-    }
+    },
+    "providerLabel": "Provedor do índice vetorial: {provider}",
+    "providerPgvector": "pgvector (PostgreSQL)",
+    "providerHnswLite": "HnswLite (SQLite)",
+    "pgvectorNote": "O índice fica no PostgreSQL. Grafos com a mesma dimensionalidade vetorial compartilham um índice, cujos parâmetros são definidos pelo primeiro grafo que o habilita. Vetores com mais de 4.000 dimensões são pesquisados de forma exata, sem índice. Nenhum arquivo de índice é usado.",
+    "hnswliteNote": "O índice é mantido por este processo do servidor e salvo no arquivo de índice abaixo."
   },
   "importExport": {
     "exportJsonl": "Exportar para JSONL",
@@ -844,7 +850,9 @@
       "transactionDesc": "Diagnóstico de transação para pedidos de escrita: identificador, resultado, nível de isolamento e fornecedor.",
       "durationDesc": "Tempo de processamento no servidor desde a receção do pedido até à conclusão da resposta.",
       "sizeDesc": "Tamanhos dos corpos do pedido e da resposta em bytes, como pedido / resposta.",
-      "tenantDesc": "Tenant que emitiu o pedido; vazio em pedidos administrativos."
+      "tenantDesc": "Tenant que emitiu o pedido; vazio em pedidos administrativos.",
+      "node": "Nó",
+      "nodeDesc": "Nó do servidor que atendeu a requisição."
     },
     "transaction": {
       "noId": "transação"
@@ -876,7 +884,8 @@
       "nonTransactions": "Não transações",
       "allMethods": "Todos os métodos",
       "transactionIdPlaceholder": "ID da transação...",
-      "pathPlaceholder": "O caminho contém..."
+      "pathPlaceholder": "O caminho contém...",
+      "nodePlaceholder": "Filtrar por nó"
     },
     "summary": {
       "visibleRequests": "Requisições visíveis:",
@@ -1437,7 +1446,8 @@
       "rest": "Servidor REST",
       "database": "Banco de dados",
       "security": "Segurança",
-      "chat": "Chat"
+      "chat": "Chat",
+      "cluster": "Cluster"
     },
     "fields": {
       "requestTimeoutSeconds": "Tempo limite da requisição (segundos)",
@@ -1485,7 +1495,25 @@
       "chatMaxToolIterationsCap": "Limite de iterações de ferramentas",
       "chatMaxConcurrentChats": "Máximo de chats simultâneos",
       "chatSseKeepAliveSeconds": "Keep-alive SSE (segundos)",
-      "chatDefaultTimeoutMs": "Tempo limite padrão (ms)"
+      "chatDefaultTimeoutMs": "Tempo limite padrão (ms)",
+      "clusterEnable": "Executar como nó de cluster",
+      "clusterName": "Nome do cluster",
+      "clusterNodeId": "Identificador do nó",
+      "trustForwardedHeaders": "Confiar em cabeçalhos encaminhados",
+      "trustedProxies": "Proxies confiáveis",
+      "allowInsecureDefaults": "Permitir padrões inseguros",
+      "endpointResyncIntervalMs": "Intervalo de ressincronização de endpoints de chat (ms)",
+      "clutchEndpoint": "Endpoint do Clutch",
+      "clutchAccessKey": "Chave de acesso do Clutch",
+      "clutchLeaseMs": "Concessão do Clutch (ms)",
+      "clutchRequestTimeoutMs": "Tempo limite de requisições ao Clutch (ms)",
+      "clutchStartupConnectTimeoutMs": "Tempo limite de conexão ao Clutch na inicialização (ms)",
+      "redisConnectionString": "String de conexão do Redis",
+      "redisPollIntervalMs": "Intervalo de consulta ao Redis (ms)",
+      "redisNodeTimeoutMs": "Nó offline após (ms)",
+      "redisNodeRetentionMs": "Esquecer nós parados após (ms)",
+      "restartDrainMs": "Drenagem no reinício gradual (ms)",
+      "restartPeerTimeoutMs": "Espera por outros nós no reinício gradual (ms)"
     },
     "status": {
       "appliedLive": "Aplicado ao vivo",
@@ -1534,7 +1562,20 @@
         "restartPending": "Reinício pendente"
       },
       "openPage": "Abrir a página do cluster"
-    }
+    },
+    "hints": {
+      "range": "Intervalo permitido de {min} a {max}",
+      "envOverride": "Definido por variável de ambiente",
+      "nodeIdEnv": "Definido em cada nó pela variável de ambiente LITEGRAPH_NODE_ID.",
+      "trustedProxies": "Endereços ou faixas CIDR separados por vírgulas, por exemplo 10.0.0.0/8.",
+      "clusterName": "Letras minúsculas, dígitos e hífens."
+    },
+    "clusterBanner": {
+      "title": "Estas configurações valem para todos os nós",
+      "body": "Todos os nós compartilham este arquivo de configurações. As que exigem reinício passam a valer após um reinício do cluster, que reinicia os nós um de cada vez.",
+      "link": "Abrir a página do cluster"
+    },
+    "cachingDisabledInCluster": "O cache de objetos fica desativado no modo cluster, independentemente destas configurações, para que cada nó leia dados atuais."
   },
   "ai": {
     "chat": {
@@ -2105,6 +2146,42 @@
       "removed": "Nó {node} removido.",
       "actionFailed": "A solicitação falhou: {message}"
     },
-    "empty": "Nenhum nó registrado."
+    "empty": "Nenhum nó registrado.",
+    "jobs": {
+      "title": "Tarefas em segundo plano",
+      "description": "A execução mais recente de cada tarefa que roda em um nó por ciclo.",
+      "empty": "Nenhuma tarefa foi executada ainda neste cluster.",
+      "emptySingle": "Em um único nó todas as tarefas rodam localmente, então nenhuma execução é registrada aqui.",
+      "unavailable": "O registro de nós (Redis) está inacessível, então as execuções não podem ser exibidas.",
+      "success": "Concluída",
+      "failed": "Falhou",
+      "durationMs": "{ms} ms",
+      "columns": {
+        "job": "Tarefa",
+        "node": "Nó",
+        "started": "Início",
+        "completed": "Fim",
+        "duration": "Duração",
+        "result": "Resultado"
+      }
+    },
+    "locks": {
+      "title": "Bloqueios distribuídos",
+      "description": "Bloqueios que este cluster mantém agora no Clutch. A maioria é mantida só por um instante.",
+      "empty": "Nenhum bloqueio está ativo no momento.",
+      "emptySingle": "Um único nó usa apenas bloqueios internos ao processo, então não há nada para mostrar.",
+      "unavailable": "O Clutch está inacessível, então os bloqueios não podem ser listados.",
+      "unknownNode": "Nó desconhecido",
+      "columns": {
+        "key": "Chave",
+        "keyClass": "Classe",
+        "mode": "Modo",
+        "node": "Nó",
+        "clutchNode": "Nó do Clutch",
+        "fencingToken": "Token de fencing",
+        "acquired": "Adquirido",
+        "leaseExpires": "Vencimento da concessão"
+      }
+    }
   }
 }

@@ -116,7 +116,13 @@
 
         private Task EnsureRequestHistoryTransactionDiagnosticsColumnAsync(CancellationToken token)
         {
-            return ExecuteQueryAsync("ALTER TABLE " + QuoteIdentifier(Schema) + "." + QuoteIdentifier("requesthistory") + " ADD COLUMN IF NOT EXISTS transactiondiagnosticsjson TEXT;", true, token);
+            string table = QuoteIdentifier(Schema) + "." + QuoteIdentifier("requesthistory");
+            return ExecuteQueryAsync(
+                "ALTER TABLE " + table + " ADD COLUMN IF NOT EXISTS transactiondiagnosticsjson TEXT; "
+                + "ALTER TABLE " + table + " ADD COLUMN IF NOT EXISTS nodeid VARCHAR(128); "
+                + "CREATE INDEX IF NOT EXISTS idx_requesthistory_nodeid_createdutc ON " + table + " (nodeid ASC, createdutc DESC);",
+                true,
+                token);
         }
 
         private async Task EnsureUserAdminFlagColumnsAsync(CancellationToken token)

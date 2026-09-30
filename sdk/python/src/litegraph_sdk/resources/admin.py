@@ -167,8 +167,33 @@ class Admin:
         return client.request("DELETE", f"v1.0/cluster/nodes/{quote(node_id, safe='')}")
 
     @classmethod
+    def read_cluster_locks(cls):
+        """List the distributed locks the cluster currently holds in Clutch.
+
+        Returns {ClusterEnabled, LockServiceAvailable, Locks, Utc}; each lock has Key, KeyClass, Mode, NodeId,
+        ClutchNodeId, FencingToken, AcquiredUtc, and LeaseExpiresUtc. On a single node Locks is empty and
+        ClusterEnabled is False. Requires system administrator privileges.
+        """
+        client = get_client()
+        return client.request("GET", "v1.0/cluster/locks")
+
+    @classmethod
+    def read_cluster_jobs(cls):
+        """List the most recent run of each cluster singleton job.
+
+        Returns {ClusterEnabled, RegistryAvailable, Jobs, Utc}; each run has Job, NodeId, StartedUtc, CompletedUtc,
+        DurationMs, Success, and Message. On a single node Jobs is empty and ClusterEnabled is False. Requires system
+        administrator privileges.
+        """
+        client = get_client()
+        return client.request("GET", "v1.0/cluster/jobs")
+
+    @classmethod
     def health_live(cls):
-        """Liveness check (GET /v1.0/health/live). Returns the health body."""
+        """Liveness check (GET /v1.0/health/live). Returns the health body.
+
+        The body includes StorageProvider (Sqlite or Postgresql) and VectorIndexProvider (HnswLite or pgvector).
+        """
         client = get_client()
         return client.request("GET", "v1.0/health/live", accepted_status_codes=[503])
 
@@ -177,7 +202,8 @@ class Admin:
         """Readiness check (GET /v1.0/health/ready).
 
         Returns the health body for both 200 and 503, so a node that is not ready reports why. Status is Healthy,
-        Degraded, or Unavailable. A 503 is returned, not retried.
+        Degraded, or Unavailable. A 503 is returned, not retried. Checks holds Database, Clutch, Redis, and Draining;
+        Clutch and Redis are None on a single node.
         """
         client = get_client()
         return client.request("GET", "v1.0/health/ready", accepted_status_codes=[503])

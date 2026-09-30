@@ -60,7 +60,8 @@
     "signOut": "登出儀表板",
     "logoutAria": "登出",
     "language": "語言",
-    "selectLanguage": "選擇語言"
+    "selectLanguage": "選擇語言",
+    "answeredBy": "最近一次回應來自節點 {node}"
   },
   "login": {
     "serverUrl": "LiteGraph 伺服器 URL",
@@ -273,7 +274,12 @@
         "status": "索引而家係咪已載入記憶體",
         "distanceMetric": "計算相似度所用嘅距離度量"
       }
-    }
+    },
+    "providerLabel": "向量索引提供者：{provider}",
+    "providerPgvector": "pgvector (PostgreSQL)",
+    "providerHnswLite": "HnswLite (SQLite)",
+    "pgvectorNote": "索引喺 PostgreSQL 入面。向量維度相同嘅圖共用一個索引，參數由第一個啟用佢嘅圖決定。超過 4,000 維嘅向量唔用索引，而係精確搜尋。唔會用索引檔案。",
+    "hnswliteNote": "索引由呢個伺服器程序維護，並儲存喺下面嘅索引檔案。"
   },
   "importExport": {
     "exportJsonl": "匯出成 JSONL",
@@ -844,7 +850,9 @@
       "transactionDesc": "寫入請求嘅交易診斷：識別碼、結果、隔離等級同提供者。",
       "durationDesc": "由收到請求到完成回應嘅伺服器端處理時間。",
       "sizeDesc": "請求同回應內文嘅大細（位元組），以「請求 / 回應」顯示。",
-      "tenantDesc": "發出請求嘅租戶；管理請求會留空。"
+      "tenantDesc": "發出請求嘅租戶；管理請求會留空。",
+      "node": "節點",
+      "nodeDesc": "處理呢個請求嘅伺服器節點。"
     },
     "transaction": {
       "noId": "交易"
@@ -876,7 +884,8 @@
       "nonTransactions": "非交易",
       "allMethods": "所有方法",
       "transactionIdPlaceholder": "交易 ID…",
-      "pathPlaceholder": "路徑包含…"
+      "pathPlaceholder": "路徑包含…",
+      "nodePlaceholder": "按節點篩選"
     },
     "summary": {
       "visibleRequests": "可見請求：",
@@ -1437,7 +1446,8 @@
       "rest": "REST 伺服器",
       "database": "資料庫",
       "security": "安全",
-      "chat": "傾偈"
+      "chat": "傾偈",
+      "cluster": "叢集"
     },
     "fields": {
       "requestTimeoutSeconds": "請求逾時（秒）",
@@ -1485,7 +1495,25 @@
       "chatMaxToolIterationsCap": "工具迭代上限",
       "chatMaxConcurrentChats": "最多同時傾偈數",
       "chatSseKeepAliveSeconds": "SSE 保持連線（秒）",
-      "chatDefaultTimeoutMs": "預設逾時（毫秒）"
+      "chatDefaultTimeoutMs": "預設逾時（毫秒）",
+      "clusterEnable": "以叢集節點運行",
+      "clusterName": "叢集名稱",
+      "clusterNodeId": "節點識別碼",
+      "trustForwardedHeaders": "信任轉發嘅標頭",
+      "trustedProxies": "受信任嘅代理",
+      "allowInsecureDefaults": "容許唔安全嘅預設值",
+      "endpointResyncIntervalMs": "聊天端點重新同步間隔 (毫秒)",
+      "clutchEndpoint": "Clutch 端點",
+      "clutchAccessKey": "Clutch 存取金鑰",
+      "clutchLeaseMs": "Clutch 租約 (毫秒)",
+      "clutchRequestTimeoutMs": "Clutch 請求逾時 (毫秒)",
+      "clutchStartupConnectTimeoutMs": "啟動時連線 Clutch 嘅逾時 (毫秒)",
+      "redisConnectionString": "Redis 連線字串",
+      "redisPollIntervalMs": "Redis 輪詢間隔 (毫秒)",
+      "redisNodeTimeoutMs": "節點離線判定時間 (毫秒)",
+      "redisNodeRetentionMs": "忘記已停止節點嘅時間 (毫秒)",
+      "restartDrainMs": "滾動重新啟動排空時間 (毫秒)",
+      "restartPeerTimeoutMs": "滾動重新啟動等其他節點嘅時間 (毫秒)"
     },
     "status": {
       "appliedLive": "已即時套用",
@@ -1534,7 +1562,20 @@
         "restartPending": "等待重新啟動"
       },
       "openPage": "打開叢集頁面"
-    }
+    },
+    "hints": {
+      "range": "容許範圍 {min} 至 {max}",
+      "envOverride": "由環境變數設定",
+      "nodeIdEnv": "喺每個節點用環境變數 LITEGRAPH_NODE_ID 設定。",
+      "trustedProxies": "用逗號分隔嘅地址或 CIDR 範圍，例如 10.0.0.0/8。",
+      "clusterName": "細楷字母、數字同連字號。"
+    },
+    "clusterBanner": {
+      "title": "呢啲設定適用於所有節點",
+      "body": "所有節點共用呢個設定檔。需要重新啟動嘅設定會喺叢集重新啟動之後生效，叢集重新啟動會逐一重新啟動各節點。",
+      "link": "打開叢集頁面"
+    },
+    "cachingDisabledInCluster": "喺叢集模式下，唔理呢啲設定點樣，物件快取都會停用，等每個節點讀到最新資料。"
   },
   "ai": {
     "chat": {
@@ -2105,6 +2146,42 @@
       "removed": "已移除節點 {node}。",
       "actionFailed": "請求失敗：{message}"
     },
-    "empty": "冇已登記嘅節點。"
+    "empty": "冇已登記嘅節點。",
+    "jobs": {
+      "title": "背景工作",
+      "description": "每個週期只喺一個節點運行嘅各項工作嘅最近一次運行。",
+      "empty": "呢個叢集仲未運行過任何工作。",
+      "emptySingle": "喺單一節點上所有工作都喺本機運行，所以呢度唔會記錄運行。",
+      "unavailable": "連唔到節點登記 (Redis)，所以顯示唔到工作運行。",
+      "success": "成功",
+      "failed": "失敗",
+      "durationMs": "{ms} 毫秒",
+      "columns": {
+        "job": "工作",
+        "node": "節點",
+        "started": "開始",
+        "completed": "完成",
+        "duration": "耗時",
+        "result": "結果"
+      }
+    },
+    "locks": {
+      "title": "分散式鎖",
+      "description": "呢個叢集而家喺 Clutch 持有嘅鎖。大部分只係持有一陣。",
+      "empty": "而家冇持有任何鎖。",
+      "emptySingle": "單一節點只用程序內嘅鎖，所以冇嘢顯示。",
+      "unavailable": "連唔到 Clutch，所以列唔到持有嘅鎖。",
+      "unknownNode": "未知節點",
+      "columns": {
+        "key": "鍵",
+        "keyClass": "類別",
+        "mode": "模式",
+        "node": "節點",
+        "clutchNode": "Clutch 節點",
+        "fencingToken": "防護令牌",
+        "acquired": "取得時間",
+        "leaseExpires": "租約到期"
+      }
+    }
   }
 }

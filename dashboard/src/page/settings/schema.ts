@@ -7,14 +7,23 @@
  * PUT response's AppliedLive / RestartRequired arrays.
  */
 
-export type SettingFieldType = 'text' | 'number' | 'boolean' | 'password';
+export type SettingFieldType = 'text' | 'number' | 'boolean' | 'password' | 'list';
 
 export interface SettingField {
   /** Dot path into the settings document, e.g. "Logging.MinimumSeverity". */
   path: string;
   /** i18n key suffix under `settings.fields.*` for the label. */
   labelKey: string;
+  /** 'list' edits a string array as comma-separated text. */
   type: SettingFieldType;
+  /** Minimum accepted value for number fields; matches the server's validation. */
+  min?: number;
+  /** Maximum accepted value for number fields; matches the server's validation. */
+  max?: number;
+  /** Shown but not editable (for example values that must come from an environment variable). */
+  readOnly?: boolean;
+  /** i18n key suffix under `settings.hints.*` shown below the field. */
+  hintKey?: string;
 }
 
 export interface SettingsSectionSchema {
@@ -176,6 +185,32 @@ export const SETTINGS_SCHEMA: SettingsSectionSchema[] = [
     ],
   },
   {
+    id: 'cluster',
+    titleKey: 'cluster',
+    applies: 'restart',
+    serverSection: 'Cluster',
+    fields: [
+      { path: 'Cluster.Enable', labelKey: 'clusterEnable', type: 'boolean' },
+      { path: 'Cluster.ClusterName', labelKey: 'clusterName', type: 'text', hintKey: 'clusterName' },
+      { path: 'Cluster.NodeId', labelKey: 'clusterNodeId', type: 'text', readOnly: true, hintKey: 'nodeIdEnv' },
+      { path: 'Cluster.TrustForwardedHeaders', labelKey: 'trustForwardedHeaders', type: 'boolean' },
+      { path: 'Cluster.TrustedProxies', labelKey: 'trustedProxies', type: 'list', hintKey: 'trustedProxies' },
+      { path: 'Cluster.AllowInsecureDefaults', labelKey: 'allowInsecureDefaults', type: 'boolean' },
+      { path: 'Cluster.EndpointResyncIntervalMs', labelKey: 'endpointResyncIntervalMs', type: 'number', min: 5000, max: 600000 },
+      { path: 'Cluster.Clutch.Endpoint', labelKey: 'clutchEndpoint', type: 'text' },
+      { path: 'Cluster.Clutch.AccessKey', labelKey: 'clutchAccessKey', type: 'password' },
+      { path: 'Cluster.Clutch.LeaseMs', labelKey: 'clutchLeaseMs', type: 'number', min: 5000, max: 300000 },
+      { path: 'Cluster.Clutch.RequestTimeoutMs', labelKey: 'clutchRequestTimeoutMs', type: 'number', min: 1000, max: 120000 },
+      { path: 'Cluster.Clutch.StartupConnectTimeoutMs', labelKey: 'clutchStartupConnectTimeoutMs', type: 'number', min: 0, max: 3600000 },
+      { path: 'Cluster.Redis.ConnectionString', labelKey: 'redisConnectionString', type: 'password' },
+      { path: 'Cluster.Redis.PollIntervalMs', labelKey: 'redisPollIntervalMs', type: 'number', min: 500, max: 60000 },
+      { path: 'Cluster.Redis.NodeTimeoutMs', labelKey: 'redisNodeTimeoutMs', type: 'number', min: 2000, max: 600000 },
+      { path: 'Cluster.Redis.NodeRetentionMs', labelKey: 'redisNodeRetentionMs', type: 'number', min: 60000, max: 2592000000 },
+      { path: 'Cluster.RestartDrainMs', labelKey: 'restartDrainMs', type: 'number', min: 0, max: 120000 },
+      { path: 'Cluster.RestartPeerTimeoutMs', labelKey: 'restartPeerTimeoutMs', type: 'number', min: 10000, max: 3600000 },
+    ],
+  },
+  {
     id: 'security',
     titleKey: 'security',
     applies: 'restart',
@@ -187,6 +222,22 @@ export const SETTINGS_SCHEMA: SettingsSectionSchema[] = [
     ],
   },
 ];
+
+/** Clamp a number field's value to its schema range; non-numbers pass through unchanged. */
+export const clampToField = (field: SettingField, value: any): any => {
+  if (typeof value !== 'number' || Number.isNaN(value)) return value;
+  let next = value;
+  if (field.min !== undefined && next < field.min) next = field.min;
+  if (field.max !== undefined && next > field.max) next = field.max;
+  return next;
+};
+
+/** Convert a comma-separated string to a trimmed list without empty entries. */
+export const parseList = (text: string): string[] =>
+  text
+    .split(',')
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
 
 /** Read a dot-path value from a nested object; returns undefined when absent. */
 export const getPath = (obj: any, path: string): any => {

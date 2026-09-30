@@ -25,6 +25,57 @@ namespace Test.Shared
     {
         private const string RedisTestConnectionStringEnvironmentVariable = "LITEGRAPH_TEST_REDIS_CONNECTION_STRING";
 
+        private static Task ExecuteScaleOutClientAddressAsync(CancellationToken token)
+        {
+            ClientAddressResolver off = new ClientAddressResolver(false, new[] { "10.0.0.0/8" });
+            AssertEqual("10.0.0.5", off.Resolve("10.0.0.5", "203.0.113.9"), "Forwarded headers are ignored when trust is off");
+
+            ClientAddressResolver resolver = new ClientAddressResolver(true, new[] { "10.0.0.0/8", "192.168.1.7", "fd00::/8" });
+            AssertEqual("203.0.113.9", resolver.Resolve("10.1.2.3", "203.0.113.9"), "A trusted proxy's forwarded client is used");
+            AssertEqual("198.51.100.4", resolver.Resolve("10.1.2.3", "203.0.113.9, 198.51.100.4, 10.9.9.9"), "The rightmost untrusted hop is the client");
+            AssertEqual("172.20.0.9", resolver.Resolve("172.20.0.9", "203.0.113.9"), "An untrusted peer cannot spoof its address");
+            AssertEqual("203.0.113.9", resolver.Resolve("::ffff:10.1.2.3", "203.0.113.9"), "IPv4-mapped IPv6 peers match IPv4 ranges");
+            AssertEqual("192.168.1.7", resolver.Resolve("192.168.1.7", "not-an-address"), "A malformed header falls back to the peer");
+            AssertEqual("10.2.2.2", resolver.Resolve("10.1.2.3", "10.2.2.2"), "When every hop is trusted the leftmost is used");
+            AssertTrue(resolver.IsTrusted("fd12::1") && !resolver.IsTrusted("192.168.1.8"), "Single addresses and IPv6 ranges are matched exactly");
+            AssertSyncThrows<ArgumentException>(() => new ClientAddressResolver(true, new[] { "10.0.0.0/33" }), "An out-of-range prefix is rejected");
+            AssertSyncThrows<ArgumentException>(() => new ClientAddressResolver(true, new[] { "proxy.local" }), "A host name is rejected");
+            return Task.CompletedTask;
+        }
+
+        private static async Task ExecuteScaleOutRequestHistoryNodeAsync(CancellationToken token)
+        {
+            Directory.CreateDirectory(_ScaleOutArtifactDirectory);
+            string databasePath = Path.Combine(_ScaleOutArtifactDirectory, "request-history-node-" + Guid.NewGuid().ToString("N") + ".db");
+            using (SqliteGraphRepository repo = new SqliteGraphRepository(databasePath, false))
+            {
+                repo.InitializeRepository();
+                foreach (string node in new[] { "litegraph-1", "litegraph-2", "litegraph-2" })
+                {
+                    await repo.RequestHistory.Insert(new RequestHistoryDetail
+                    {
+                        GUID = Guid.NewGuid(),
+                        CreatedUtc = DateTime.UtcNow,
+                        CompletedUtc = DateTime.UtcNow,
+                        Method = "GET",
+                        Path = "/v1.0/tenants",
+                        Url = "http://127.0.0.1/v1.0/tenants",
+                        SourceIp = "127.0.0.1",
+                        NodeId = node,
+                        StatusCode = 200,
+                        Success = true
+                    }, token).ConfigureAwait(false);
+                }
+
+                RequestHistorySearchResult two = await repo.RequestHistory.Search(new RequestHistorySearchRequest { NodeId = "litegraph-2" }, token).ConfigureAwait(false);
+                AssertEqual(2, two.Objects.Count, "The node filter returns only that node's requests");
+                AssertTrue(two.Objects.All(o => o.NodeId == "litegraph-2"), "Each record carries the node that handled it");
+
+                RequestHistoryEntry one = await repo.RequestHistory.ReadByGuid(two.Objects[0].GUID, token).ConfigureAwait(false);
+                AssertEqual("litegraph-2", one.NodeId, "A single read returns the node");
+            }
+        }
+
         private static async Task ExecuteScaleOutSettingsFileAsync(CancellationToken token)
         {
             Directory.CreateDirectory(_ScaleOutArtifactDirectory);

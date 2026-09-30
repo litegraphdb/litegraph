@@ -234,7 +234,58 @@ describe('Cluster, node header, and retry policy', () => {
     });
   });
 
+  describe('locks and jobs', () => {
+    it('reads the cluster locks', async () => {
+      server.use(
+        http.get(`${endpoint}v1.0/cluster/locks`, () =>
+          HttpResponse.json({
+            ClusterEnabled: true,
+            LockServiceAvailable: true,
+            Locks: [{ Key: 'job/chat-retention', KeyClass: 'job', Mode: 'Write', NodeId: 'litegraph-2', FencingToken: 7 }],
+          })
+        )
+      );
+      const locks = await newApi().readClusterLocks();
+      expect(locks.LockServiceAvailable).toBe(true);
+      expect(locks.Locks).toHaveLength(1);
+      expect(locks.Locks[0].NodeId).toBe('litegraph-2');
+    });
+
+    it('reads an empty lock list on a single node', async () => {
+      server.use(http.get(`${endpoint}v1.0/cluster/locks`, () => HttpResponse.json({ ClusterEnabled: false, Locks: [] })));
+      const locks = await newApi().readClusterLocks();
+      expect(locks.ClusterEnabled).toBe(false);
+      expect(locks.Locks).toHaveLength(0);
+    });
+
+    it('reads the cluster job runs', async () => {
+      server.use(
+        http.get(`${endpoint}v1.0/cluster/jobs`, () =>
+          HttpResponse.json({
+            ClusterEnabled: true,
+            RegistryAvailable: true,
+            Jobs: [{ Job: 'request-history-purge', NodeId: 'litegraph-1', DurationMs: 12.5, Success: true }],
+          })
+        )
+      );
+      const jobs = await newApi().readClusterJobs();
+      expect(jobs.Jobs[0].Job).toBe('request-history-purge');
+      expect(jobs.Jobs[0].Success).toBe(true);
+    });
+  });
+
   describe('health', () => {
+    it('reports the storage and vector index providers', async () => {
+      server.use(
+        http.get(`${endpoint}v1.0/health/live`, () =>
+          HttpResponse.json({ Status: 'Healthy', StorageProvider: 'Postgresql', VectorIndexProvider: 'pgvector' })
+        )
+      );
+      const live = await newApi().healthLive();
+      expect(live.StorageProvider).toBe('Postgresql');
+      expect(live.VectorIndexProvider).toBe('pgvector');
+    });
+
     it('reads liveness', async () => {
       server.use(http.get(`${endpoint}v1.0/health/live`, () => HttpResponse.json({ Status: 'Healthy', NodeId: 'litegraph-1' })));
       const live = await newApi().healthLive();

@@ -44,6 +44,15 @@ namespace LiteGraph.Server.Services.Cluster
         /// </summary>
         public event EventHandler<string> LockLost;
 
+        /// <summary>
+        /// Clutch session identifier of the current lock connection, or null while disconnected.  Locks listed by Clutch
+        /// carry this session, which is how a held lock is attributed to this node.
+        /// </summary>
+        public string SessionId
+        {
+            get { return Volatile.Read(ref _Client)?.Welcome?.SessionId; }
+        }
+
         #endregion
 
         #region Private-Members
@@ -167,6 +176,53 @@ namespace LiteGraph.Server.Services.Cluster
             ThrowIfDisposed();
             AcquireOutcome outcome = await TryAcquireCoreAsync(key, mode, false, 0, token).ConfigureAwait(false);
             return outcome.Handle;
+        }
+
+        /// <summary>
+        /// List the locks this cluster currently holds in Clutch (keys under litegraph/&lt;ClusterName&gt;/), using the Clutch
+        /// administration API with the configured access key.
+        /// </summary>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>Held locks with keys relative to the cluster prefix; NodeId is left for the caller to resolve.</returns>
+        /// <exception cref="LockProviderUnavailableException">Clutch could not be reached or refused the request.</exception>
+        public async Task<List<ClusterLock>> ListLocksAsync(CancellationToken token = default)
+        {
+            ThrowIfDisposed();
+            try
+            {
+                using (ClutchAdminClient admin = new ClutchAdminClient(_Settings.Endpoint))
+                using (CancellationTokenSource timeout = CancellationTokenSource.CreateLinkedTokenSource(token))
+                {
+                    timeout.CancelAfter(_Settings.RequestTimeoutMs);
+                    TokenResponse auth = await admin.AuthenticateWithKeyAsync(_Settings.AccessKey, timeout.Token).ConfigureAwait(false);
+                    EnumerationResult<LockHolder> page = await admin.ListLocksAsync(auth.TenantId, null, null, 1000, 0, null, timeout.Token).ConfigureAwait(false);
+                    List<LockHolder> holders = page?.Objects ?? new List<LockHolder>();
+
+                    return holders
+                        .Where(h => h.LockKey != null && h.LockKey.StartsWith(_KeyPrefix, StringComparison.Ordinal))
+                        .Select(h =>
+                        {
+                            string key = h.LockKey.Substring(_KeyPrefix.Length);
+                            return new ClusterLock
+                            {
+                                Key = key,
+                                KeyClass = LockKeys.KeyClass(key),
+                                Mode = h.Mode.ToString(),
+                                ClutchNodeId = h.NodeId,
+                                FencingToken = h.FencingToken,
+                                AcquiredUtc = h.AcquiredUtc,
+                                LeaseExpiresUtc = h.LeaseExpiresUtc,
+                                NodeId = h.SessionId
+                            };
+                        })
+                        .OrderBy(l => l.Key, StringComparer.Ordinal)
+                        .ToList();
+                }
+            }
+            catch (Exception e) when (e is ClutchException || (e is OperationCanceledException && !token.IsCancellationRequested) || e is System.Net.Http.HttpRequestException)
+            {
+                throw new LockProviderUnavailableException(Name, "Unable to list locks in Clutch: " + e.Message, e);
+            }
         }
 
         /// <summary>

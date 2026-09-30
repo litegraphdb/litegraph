@@ -10,6 +10,8 @@ v10.0.0
 - Added a retry policy: `MaxRetries` (default 2), `RetryBaseDelayMs` (default 200, exponential with jitter, capped at 5000 ms), and `RetryPost` (default false); connection failures and 502/503/504 are retried for GET, HEAD, PUT, and DELETE
 - Added `LastNodeId`, from the `x-litegraph-node` response header
 - `SettingsUpdateResult` gains `EnvironmentOverrides` and `SettingsVersion`
+- Added `ReadClusterLocks` and `ReadClusterJobs` with the `ClusterLock`, `ClusterLockList`, `ClusterJobRun`, and `ClusterJobList` models
+- `HealthResponse` gains `StorageProvider` and `VectorIndexProvider`
 
 v7.0.0
 

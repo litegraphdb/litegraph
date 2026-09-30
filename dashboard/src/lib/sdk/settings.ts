@@ -1,4 +1,5 @@
 import { sdk } from './litegraph.service';
+import { recordNodeFromResponse } from './nodeTracker';
 
 /**
  * The full server settings document (litegraph.json). It is deeply nested and
@@ -96,6 +97,7 @@ export const request = async <T>(method: string, url: string, body?: unknown): P
     headers,
     body: body === undefined ? undefined : JSON.stringify(body),
   });
+  recordNodeFromResponse(response);
   if (!response.ok) {
     let message = `HTTP ${response.status} ${response.statusText}`;
     try {

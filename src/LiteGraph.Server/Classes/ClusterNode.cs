@@ -75,6 +75,12 @@ namespace LiteGraph.Server.Classes
         /// </summary>
         public long RestartVersion { get; set; } = 0;
 
+        /// <summary>
+        /// Clutch session of the node's lock connection, used to attribute held locks to nodes.  Null on a single node or
+        /// while the node is disconnected from Clutch.
+        /// </summary>
+        public string ClutchSessionId { get; set; } = null;
+
         #endregion
 
         #region Private-Members

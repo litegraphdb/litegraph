@@ -2271,9 +2271,34 @@ export default class LiteGraphSdk extends SdkBase {
   }
 
   /**
+   * List the distributed locks the cluster currently holds in Clutch. On a single node the list is empty and
+   * ClusterEnabled is false. Requires system administrator privileges.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} Lock list ({ ClusterEnabled, LockServiceAvailable, Locks: [{ Key, KeyClass, Mode, NodeId,
+   *   ClutchNodeId, FencingToken, AcquiredUtc, LeaseExpiresUtc }], Utc }).
+   */
+  async readClusterLocks(cancellationToken) {
+    const url = `${this._endpoint}v1.0/cluster/locks`;
+    return await this.get(url, Object, cancellationToken);
+  }
+
+  /**
+   * List the most recent run of each cluster singleton job. On a single node the list is empty and ClusterEnabled is
+   * false. Requires system administrator privileges.
+   * @param {AbortController} [cancellationToken] - Optional cancellation token.
+   * @returns {Promise<Object>} Job list ({ ClusterEnabled, RegistryAvailable, Jobs: [{ Job, NodeId, StartedUtc, CompletedUtc,
+   *   DurationMs, Success, Message }], Utc }).
+   */
+  async readClusterJobs(cancellationToken) {
+    const url = `${this._endpoint}v1.0/cluster/jobs`;
+    return await this.get(url, Object, cancellationToken);
+  }
+
+  /**
    * Liveness check (GET /v1.0/health/live). Needs no authentication.
    * @param {AbortController} [cancellationToken] - Optional cancellation token.
-   * @returns {Promise<Object|null>} Health body ({ Status, NodeId, ClusterName, Version, StartedUtc, Utc }).
+   * @returns {Promise<Object|null>} Health body ({ Status, StorageProvider, VectorIndexProvider, NodeId, ClusterName, Version, StartedUtc, Utc }).
+   *   StorageProvider is Sqlite or Postgresql; VectorIndexProvider is HnswLite or pgvector.
    */
   async healthLive(cancellationToken) {
     return await this.getAnyStatus(`${this._endpoint}v1.0/health/live`, cancellationToken);
@@ -2283,7 +2308,8 @@ export default class LiteGraphSdk extends SdkBase {
    * Readiness check (GET /v1.0/health/ready). Needs no authentication. Resolves with the body for both 200 and 503,
    * so a node that is not ready reports why; Status is Healthy, Degraded, or Unavailable.
    * @param {AbortController} [cancellationToken] - Optional cancellation token.
-   * @returns {Promise<Object|null>} Health body ({ Status, NodeId, ClusterName, Version, StartedUtc, Checks, Utc }).
+   * @returns {Promise<Object|null>} Health body ({ Status, StorageProvider, VectorIndexProvider, NodeId, ClusterName, Version, StartedUtc,
+   *   Checks: { Database, Clutch, Redis, Draining }, Utc }). Clutch and Redis are null on a single node.
    */
   async healthReady(cancellationToken) {
     return await this.getAnyStatus(`${this._endpoint}v1.0/health/ready`, cancellationToken);

@@ -30,6 +30,16 @@ namespace LiteGraph.Sdk
         public string Version { get; set; } = null;
 
         /// <summary>
+        /// Storage provider: Sqlite or Postgresql.
+        /// </summary>
+        public string StorageProvider { get; set; } = null;
+
+        /// <summary>
+        /// Vector index implementation that goes with the storage provider: HnswLite (SQLite) or pgvector (PostgreSQL).
+        /// </summary>
+        public string VectorIndexProvider { get; set; } = null;
+
+        /// <summary>
         /// UTC timestamp at which the server process started.
         /// </summary>
         public DateTime StartedUtc { get; set; } = DateTime.UtcNow;

@@ -15,6 +15,16 @@ namespace LiteGraph.Server.Classes
         public string Status { get; set; } = "Healthy";
 
         /// <summary>
+        /// Storage provider: Sqlite or Postgresql.
+        /// </summary>
+        public string StorageProvider { get; set; } = null;
+
+        /// <summary>
+        /// Vector index implementation that goes with the storage provider: HnswLite (SQLite) or pgvector (PostgreSQL).
+        /// </summary>
+        public string VectorIndexProvider { get; set; } = null;
+
+        /// <summary>
         /// Node that answered.
         /// </summary>
         public string NodeId { get; set; } = null;

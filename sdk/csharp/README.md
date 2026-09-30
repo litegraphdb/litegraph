@@ -12,7 +12,7 @@ Current release: v10.0.0.
 
 ## New in v10.0.0
 
-- Cluster administration on `sdk.Admin`: `ReadClusterNodes`, `ReadClusterNode(nodeId)`, `RestartCluster` (rolling restart, one node at a time), `RestartClusterNode(nodeId)`, and `DeleteClusterNode(nodeId)` (removes an Offline or Stopped node from the registry). `RestartServer` now returns a `ClusterRestartResult`.
+- Cluster administration on `sdk.Admin`: `ReadClusterNodes`, `ReadClusterNode(nodeId)`, `RestartCluster` (rolling restart, one node at a time), `RestartClusterNode(nodeId)`, `DeleteClusterNode(nodeId)` (removes an Offline or Stopped node from the registry), `ReadClusterLocks` (distributed locks the cluster holds in Clutch, with the node holding each), and `ReadClusterJobs` (most recent run of each cluster singleton job). `RestartServer` now returns a `ClusterRestartResult`.
 - `sdk.HealthLive()` and `sdk.HealthReady()` return the health body; readiness returns it for both 200 and 503, so a node that is not ready reports why.
 - Automatic retries: connection failures and 502, 503, and 504 responses are retried with exponential backoff and jitter (`MaxRetries`, default 2; `RetryBaseDelayMs`, default 200, capped at 5000). GET, HEAD, PUT, and DELETE are retried; POST only when `RetryPost` is true. Streams are never retried once any of the body has been read.
 - `sdk.LastNodeId` names the node that answered the most recent request (the `x-litegraph-node` header).

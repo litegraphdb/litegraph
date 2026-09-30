@@ -60,7 +60,8 @@
     "signOut": "ダッシュボードからサインアウト",
     "logoutAria": "ログアウト",
     "language": "言語",
-    "selectLanguage": "言語を選択"
+    "selectLanguage": "言語を選択",
+    "answeredBy": "最後の応答はノード {node} から"
   },
   "login": {
     "serverUrl": "LiteGraph サーバー URL",
@@ -273,7 +274,12 @@
         "status": "インデックスが現在メモリに読み込まれているかどうか",
         "distanceMetric": "類似度計算に使用される距離メトリック"
       }
-    }
+    },
+    "providerLabel": "ベクトルインデックスのプロバイダー: {provider}",
+    "providerPgvector": "pgvector (PostgreSQL)",
+    "providerHnswLite": "HnswLite (SQLite)",
+    "pgvectorNote": "インデックスは PostgreSQL 内にあります。ベクトル次元数が同じグラフは 1 つのインデックスを共有し、そのパラメーターは最初に有効化したグラフで決まります。4,000 次元を超えるベクトルはインデックスを使わず厳密に検索されます。インデックスファイルは使用しません。",
+    "hnswliteNote": "インデックスはこのサーバープロセスが保持し、下のインデックスファイルに保存されます。"
   },
   "importExport": {
     "exportJsonl": "JSONL にエクスポート",
@@ -844,7 +850,9 @@
       "transactionDesc": "書き込みリクエストのトランザクション診断。識別子、結果、分離レベル、プロバイダーを表示します。",
       "durationDesc": "リクエスト受信からレスポンス完了までのサーバー側処理時間。",
       "sizeDesc": "リクエストとレスポンスの本文サイズ（バイト、リクエスト / レスポンスの順）。",
-      "tenantDesc": "リクエストを発行したテナント。管理リクエストでは空です。"
+      "tenantDesc": "リクエストを発行したテナント。管理リクエストでは空です。",
+      "node": "ノード",
+      "nodeDesc": "リクエストを処理したサーバーノード。"
     },
     "transaction": {
       "noId": "トランザクション"
@@ -876,7 +884,8 @@
       "nonTransactions": "非トランザクション",
       "allMethods": "すべてのメソッド",
       "transactionIdPlaceholder": "トランザクション ID...",
-      "pathPlaceholder": "パスに含まれる..."
+      "pathPlaceholder": "パスに含まれる...",
+      "nodePlaceholder": "ノードで絞り込む"
     },
     "summary": {
       "visibleRequests": "表示中のリクエスト:",
@@ -1437,7 +1446,8 @@
       "rest": "REST サーバー",
       "database": "データベース",
       "security": "セキュリティ",
-      "chat": "チャット"
+      "chat": "チャット",
+      "cluster": "クラスター"
     },
     "fields": {
       "requestTimeoutSeconds": "リクエストタイムアウト (秒)",
@@ -1485,7 +1495,25 @@
       "chatMaxToolIterationsCap": "ツール反復の上限",
       "chatMaxConcurrentChats": "最大同時チャット数",
       "chatSseKeepAliveSeconds": "SSE キープアライブ (秒)",
-      "chatDefaultTimeoutMs": "デフォルトタイムアウト (ミリ秒)"
+      "chatDefaultTimeoutMs": "デフォルトタイムアウト (ミリ秒)",
+      "clusterEnable": "クラスターノードとして実行",
+      "clusterName": "クラスター名",
+      "clusterNodeId": "ノード識別子",
+      "trustForwardedHeaders": "転送ヘッダーを信頼する",
+      "trustedProxies": "信頼するプロキシ",
+      "allowInsecureDefaults": "安全でない既定値を許可する",
+      "endpointResyncIntervalMs": "チャットエンドポイントの再同期間隔 (ms)",
+      "clutchEndpoint": "Clutch エンドポイント",
+      "clutchAccessKey": "Clutch アクセスキー",
+      "clutchLeaseMs": "Clutch リース (ms)",
+      "clutchRequestTimeoutMs": "Clutch リクエストのタイムアウト (ms)",
+      "clutchStartupConnectTimeoutMs": "起動時の Clutch 接続タイムアウト (ms)",
+      "redisConnectionString": "Redis 接続文字列",
+      "redisPollIntervalMs": "Redis ポーリング間隔 (ms)",
+      "redisNodeTimeoutMs": "ノードをオフラインとみなすまで (ms)",
+      "redisNodeRetentionMs": "停止したノードを削除するまで (ms)",
+      "restartDrainMs": "ローリング再起動のドレイン時間 (ms)",
+      "restartPeerTimeoutMs": "ローリング再起動で他ノードを待つ時間 (ms)"
     },
     "status": {
       "appliedLive": "即時適用済み",
@@ -1534,7 +1562,20 @@
         "restartPending": "再起動待ち"
       },
       "openPage": "クラスターページを開く"
-    }
+    },
+    "hints": {
+      "range": "許容範囲 {min} から {max}",
+      "envOverride": "環境変数で設定",
+      "nodeIdEnv": "各ノードで環境変数 LITEGRAPH_NODE_ID により設定します。",
+      "trustedProxies": "カンマ区切りのアドレスまたは CIDR 範囲 (例: 10.0.0.0/8)。",
+      "clusterName": "英小文字、数字、ハイフン。"
+    },
+    "clusterBanner": {
+      "title": "これらの設定はすべてのノードに適用されます",
+      "body": "すべてのノードがこの設定ファイルを共有します。再起動が必要な設定は、ノードを 1 台ずつ再起動するクラスター再起動の後に有効になります。",
+      "link": "クラスターページを開く"
+    },
+    "cachingDisabledInCluster": "クラスターモードでは、これらの設定にかかわらずオブジェクトキャッシュが無効になり、各ノードが最新のデータを読み取ります。"
   },
   "ai": {
     "chat": {
@@ -2105,6 +2146,42 @@
       "removed": "ノード {node} を削除しました。",
       "actionFailed": "リクエストに失敗しました: {message}"
     },
-    "empty": "登録されているノードはありません。"
+    "empty": "登録されているノードはありません。",
+    "jobs": {
+      "title": "バックグラウンドジョブ",
+      "description": "サイクルごとに 1 台のノードで実行される各ジョブの最新の実行です。",
+      "empty": "このクラスターではまだジョブが実行されていません。",
+      "emptySingle": "単一ノードではすべてのジョブがローカルで実行されるため、ここには実行が記録されません。",
+      "unavailable": "ノードレジストリ (Redis) に接続できないため、ジョブの実行を表示できません。",
+      "success": "成功",
+      "failed": "失敗",
+      "durationMs": "{ms} ms",
+      "columns": {
+        "job": "ジョブ",
+        "node": "ノード",
+        "started": "開始",
+        "completed": "終了",
+        "duration": "所要時間",
+        "result": "結果"
+      }
+    },
+    "locks": {
+      "title": "分散ロック",
+      "description": "このクラスターが現在 Clutch で保持しているロックです。ほとんどは一瞬だけ保持されます。",
+      "empty": "現在保持されているロックはありません。",
+      "emptySingle": "単一ノードはプロセス内ロックのみを使うため、表示するものはありません。",
+      "unavailable": "Clutch に接続できないため、保持中のロックを一覧表示できません。",
+      "unknownNode": "不明なノード",
+      "columns": {
+        "key": "キー",
+        "keyClass": "クラス",
+        "mode": "モード",
+        "node": "ノード",
+        "clutchNode": "Clutch ノード",
+        "fencingToken": "フェンシングトークン",
+        "acquired": "取得時刻",
+        "leaseExpires": "リース期限"
+      }
+    }
   }
 }

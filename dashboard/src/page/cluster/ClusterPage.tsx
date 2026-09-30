@@ -23,11 +23,13 @@ import ConfirmationModal from '@/components/confirmation-modal/ConfirmationModal
 import { globalToastId } from '@/constants/config';
 import {
   useDeleteClusterNodeMutation,
+  useGetClusterJobsQuery,
+  useGetClusterLocksQuery,
   useGetClusterNodesQuery,
   useRestartClusterMutation,
   useRestartClusterNodeMutation,
 } from '@/lib/store/slice/slice';
-import { ClusterNode, ClusterStatus } from '@/lib/sdk/cluster';
+import { ClusterJobRun, ClusterLock, ClusterNode, ClusterStatus } from '@/lib/sdk/cluster';
 
 /** Auto-refresh interval for the node list. */
 export const CLUSTER_REFRESH_MS = 5000;
@@ -93,6 +95,12 @@ const ClusterPage = () => {
     refetch,
     fulfilledTimeStamp,
   } = useGetClusterNodesQuery(undefined, {
+    pollingInterval: pendingAction ? 0 : CLUSTER_REFRESH_MS,
+  });
+  const { data: jobs } = useGetClusterJobsQuery(undefined, {
+    pollingInterval: pendingAction ? 0 : CLUSTER_REFRESH_MS,
+  });
+  const { data: locks } = useGetClusterLocksQuery(undefined, {
     pollingInterval: pendingAction ? 0 : CLUSTER_REFRESH_MS,
   });
   const [restartCluster, { isLoading: isRollingLoading }] = useRestartClusterMutation();
@@ -252,6 +260,47 @@ const ClusterPage = () => {
         </LitegraphFlex>
       ),
     },
+  ];
+
+  const jobColumns: ColumnsType<ClusterJobRun> = [
+    { title: t('jobs.columns.job'), dataIndex: 'Job', key: 'Job' },
+    { title: t('jobs.columns.node'), dataIndex: 'NodeId', key: 'NodeId', render: (v?: string | null) => v ?? '' },
+    { title: t('jobs.columns.started'), dataIndex: 'StartedUtc', key: 'StartedUtc', render: (v: string) => formatTime(v) },
+    { title: t('jobs.columns.completed'), dataIndex: 'CompletedUtc', key: 'CompletedUtc', render: (v: string) => formatTime(v) },
+    {
+      title: t('jobs.columns.duration'),
+      dataIndex: 'DurationMs',
+      key: 'DurationMs',
+      render: (v: number) => t('jobs.durationMs', { ms: Math.round(v ?? 0) }),
+    },
+    {
+      title: t('jobs.columns.result'),
+      key: 'Success',
+      render: (_: unknown, run: ClusterJobRun) =>
+        run.Success ? (
+          <Tag color="green">{t('jobs.success')}</Tag>
+        ) : (
+          <LitegraphTooltip title={run.Message ?? ''}>
+            <Tag color="red">{t('jobs.failed')}</Tag>
+          </LitegraphTooltip>
+        ),
+    },
+  ];
+
+  const lockColumns: ColumnsType<ClusterLock> = [
+    { title: t('locks.columns.key'), dataIndex: 'Key', key: 'Key' },
+    { title: t('locks.columns.keyClass'), dataIndex: 'KeyClass', key: 'KeyClass', render: (v: string) => <Tag>{v}</Tag> },
+    { title: t('locks.columns.mode'), dataIndex: 'Mode', key: 'Mode' },
+    {
+      title: t('locks.columns.node'),
+      dataIndex: 'NodeId',
+      key: 'NodeId',
+      render: (v?: string | null) => v ?? t('locks.unknownNode'),
+    },
+    { title: t('locks.columns.clutchNode'), dataIndex: 'ClutchNodeId', key: 'ClutchNodeId', render: (v?: string | null) => v ?? '' },
+    { title: t('locks.columns.fencingToken'), dataIndex: 'FencingToken', key: 'FencingToken' },
+    { title: t('locks.columns.acquired'), dataIndex: 'AcquiredUtc', key: 'AcquiredUtc', render: (v?: string | null) => formatTime(v) },
+    { title: t('locks.columns.leaseExpires'), dataIndex: 'LeaseExpiresUtc', key: 'LeaseExpiresUtc', render: (v?: string | null) => formatTime(v) },
   ];
 
   const headerActions = (
@@ -446,6 +495,45 @@ const ClusterPage = () => {
         locale={{ emptyText: t('empty') }}
         data-testid="cluster-nodes-table"
       />
+
+      <LitegraphFlex gap={16} wrap="wrap" style={{ marginTop: 16 }}>
+        <Card size="small" title={t('jobs.title')} style={{ flex: '1 1 480px', minWidth: 0 }} data-testid="cluster-jobs">
+          <LitegraphText fontSize={12} style={{ display: 'block', marginBottom: 8, color: 'var(--ant-color-text-tertiary)' }}>
+            {t('jobs.description')}
+          </LitegraphText>
+          {isCluster && jobs?.RegistryAvailable === false && (
+            <Alert type="warning" showIcon style={{ marginBottom: 8 }} message={t('jobs.unavailable')} data-testid="cluster-jobs-unavailable" />
+          )}
+          <Table<ClusterJobRun>
+            size="small"
+            rowKey="Job"
+            columns={jobColumns}
+            dataSource={jobs?.Jobs ?? []}
+            pagination={false}
+            scroll={{ x: 'max-content' }}
+            locale={{ emptyText: isCluster ? t('jobs.empty') : t('jobs.emptySingle') }}
+            data-testid="cluster-jobs-table"
+          />
+        </Card>
+        <Card size="small" title={t('locks.title')} style={{ flex: '1 1 480px', minWidth: 0 }} data-testid="cluster-locks">
+          <LitegraphText fontSize={12} style={{ display: 'block', marginBottom: 8, color: 'var(--ant-color-text-tertiary)' }}>
+            {t('locks.description')}
+          </LitegraphText>
+          {isCluster && locks?.LockServiceAvailable === false && (
+            <Alert type="warning" showIcon style={{ marginBottom: 8 }} message={t('locks.unavailable')} data-testid="cluster-locks-unavailable" />
+          )}
+          <Table<ClusterLock>
+            size="small"
+            rowKey={(l) => l.Key + ':' + l.FencingToken}
+            columns={lockColumns}
+            dataSource={locks?.Locks ?? []}
+            pagination={false}
+            scroll={{ x: 'max-content' }}
+            locale={{ emptyText: isCluster ? t('locks.empty') : t('locks.emptySingle') }}
+            data-testid="cluster-locks-table"
+          />
+        </Card>
+      </LitegraphFlex>
 
       <ConfirmationModal
         open={pendingAction !== null}

@@ -77,11 +77,14 @@ import {
 } from '@/lib/sdk/settings';
 import {
   deleteClusterNode,
+  getClusterJobs,
+  getClusterLocks,
   getClusterNode,
+  getServerHealth,
   restartCluster,
   restartClusterNode,
 } from '@/lib/sdk/cluster';
-import type { ClusterNode } from '@/lib/sdk/cluster';
+import type { ClusterJobList, ClusterLockList, ClusterNode, ServerHealth } from '@/lib/sdk/cluster';
 import {
   ChatEndpoint,
   ChatEndpointHealth,
@@ -922,6 +925,23 @@ const graphSlice = enhancedSdk.injectEndpoints({
       }),
       invalidatesTags: [SliceTags.CLUSTER],
     }),
+    getClusterLocks: build.query<ClusterLockList, void>({
+      query: () => ({
+        callback: () => getClusterLocks(),
+      }),
+      providesTags: [SliceTags.CLUSTER],
+    }),
+    getClusterJobs: build.query<ClusterJobList, void>({
+      query: () => ({
+        callback: () => getClusterJobs(),
+      }),
+      providesTags: [SliceTags.CLUSTER],
+    }),
+    getServerHealth: build.query<ServerHealth, void>({
+      query: () => ({
+        callback: () => getServerHealth(),
+      }),
+    }),
     getCredentialEffectivePermissions: build.query<
       AuthorizationEffectivePermissionsResult,
       { tenantGuid: string; credentialGuid: string; graphGuid?: string }
@@ -1187,6 +1207,9 @@ export const {
   useRestartClusterMutation,
   useRestartClusterNodeMutation,
   useDeleteClusterNodeMutation,
+  useGetClusterLocksQuery,
+  useGetClusterJobsQuery,
+  useGetServerHealthQuery,
   useListChatEndpointsQuery,
   useCreateChatEndpointMutation,
   useUpdateChatEndpointMutation,

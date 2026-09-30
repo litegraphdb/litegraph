@@ -1,9 +1,11 @@
 namespace LiteGraph.Server.API.Agnostic
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using LiteGraph.Coordination;
     using LiteGraph.Server.Classes;
     using LiteGraph.Server.Services;
     using LiteGraph.Server.Services.Cluster;
@@ -190,6 +192,81 @@ namespace LiteGraph.Server.API.Agnostic
                 _Logging.Warn(_Header + "unable to remove a node: " + e.Message);
                 return ResponseContext.FromError(req, ApiErrorEnum.Unavailable, null, "Redis is unreachable: " + e.Message);
             }
+        }
+
+        internal async Task<ResponseContext> ClusterLocksRead(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+
+            ClusterLockList result = new ClusterLockList { ClusterEnabled = Cluster != null && Cluster.Enabled };
+            if (!result.ClusterEnabled) return new ResponseContext(req, result);
+
+            ClutchLockProvider clutch = (Cluster.LockProvider as InstrumentedLockProvider)?.Inner as ClutchLockProvider ?? Cluster.LockProvider as ClutchLockProvider;
+            if (clutch == null)
+            {
+                result.LockServiceAvailable = false;
+                return new ResponseContext(req, result);
+            }
+
+            try
+            {
+                result.Locks = await clutch.ListLocksAsync(token).ConfigureAwait(false);
+                result.LockServiceAvailable = true;
+            }
+            catch (LockProviderUnavailableException e)
+            {
+                _Logging.Warn(_Header + "unable to list cluster locks: " + e.Message);
+                result.LockServiceAvailable = false;
+                return new ResponseContext(req, result);
+            }
+
+            // Clutch reports the session holding each lock; map sessions to nodes through the registry.
+            Dictionary<string, string> sessions = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (Registry != null)
+            {
+                try
+                {
+                    ClusterStatus status = await Registry.GetStatusAsync(token).ConfigureAwait(false);
+                    foreach (ClusterNode node in status.Nodes)
+                    {
+                        if (!String.IsNullOrEmpty(node.ClutchSessionId)) sessions[node.ClutchSessionId] = node.NodeId;
+                    }
+                }
+                catch (Exception e) when (!(e is OperationCanceledException && token.IsCancellationRequested))
+                {
+                    _Logging.Debug(_Header + "unable to read the node registry to attribute locks: " + e.Message);
+                }
+            }
+
+            foreach (ClusterLock held in result.Locks)
+            {
+                held.NodeId = held.NodeId != null && sessions.TryGetValue(held.NodeId, out string nodeId) ? nodeId : null;
+            }
+
+            return new ResponseContext(req, result);
+        }
+
+        internal async Task<ResponseContext> ClusterJobsRead(RequestContext req, CancellationToken token = default)
+        {
+            if (req == null) throw new ArgumentNullException(nameof(req));
+            if (!req.Authentication.IsSystemAdmin) return ResponseContext.FromError(req, ApiErrorEnum.AuthorizationFailed);
+
+            ClusterJobList result = new ClusterJobList { ClusterEnabled = Cluster != null && Cluster.Enabled };
+            if (!result.ClusterEnabled || Registry == null) return new ResponseContext(req, result);
+
+            try
+            {
+                result.Jobs = await Registry.GetJobRunsAsync(token).ConfigureAwait(false);
+                result.RegistryAvailable = true;
+            }
+            catch (Exception e) when (!(e is OperationCanceledException && token.IsCancellationRequested))
+            {
+                _Logging.Warn(_Header + "unable to read cluster job runs: " + e.Message);
+                result.RegistryAvailable = false;
+            }
+
+            return new ResponseContext(req, result);
         }
 
         #endregion

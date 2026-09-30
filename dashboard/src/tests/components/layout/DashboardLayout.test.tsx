@@ -10,6 +10,9 @@ import { mockGraphData, mockTenantData, mockUserData } from '@/tests/pages/mockD
 
 // Import the component
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import { setLastNodeId } from '@/lib/sdk/nodeTracker';
+import { localStorageKeys } from '@/constants/constant';
+import { act } from '@testing-library/react';
 import { handlers } from './handler';
 
 // Mock all dependencies
@@ -217,5 +220,26 @@ describe('DashboardLayout', () => {
 
     fireEvent.click(screen.getByText('Retry'));
     expect(mockRefetch).toHaveBeenCalled();
+  });
+
+  it('names the node that answered the most recent request in the server tooltip', async () => {
+    const { useGetAllGraphsQuery, useGetAllTenantsQuery } = require('@/lib/store/slice/slice');
+    useGetAllGraphsQuery.mockReturnValue({ data: envelope([]), isLoading: false, error: null, refetch: jest.fn() });
+    useGetAllTenantsQuery.mockReturnValue({ data: envelope([]), isLoading: false, isError: false, refetch: jest.fn() });
+    localStorage.setItem(localStorageKeys.serverUrl, 'http://127.0.0.1:8701');
+
+    const initialState = createMockInitialState();
+    initialState.liteGraph.user = mockUserData[0] as any;
+    renderWithRedux(<DashboardLayout {...defaultProps} />, initialState);
+
+    act(() => setLastNodeId('litegraph-2'));
+    const tag = await screen.findByTestId('header-server-tag');
+    expect(tag).toHaveAttribute('data-node', 'litegraph-2');
+
+    fireEvent.mouseEnter(tag);
+    expect(await screen.findByTestId('header-node-tooltip')).toHaveTextContent('Last response from node litegraph-2');
+
+    act(() => setLastNodeId(null));
+    localStorage.removeItem(localStorageKeys.serverUrl);
   });
 });

@@ -60,7 +60,8 @@
     "signOut": "Se déconnecter du tableau de bord",
     "logoutAria": "Déconnexion",
     "language": "Langue",
-    "selectLanguage": "Sélectionner la langue"
+    "selectLanguage": "Sélectionner la langue",
+    "answeredBy": "Dernière réponse du nœud {node}"
   },
   "login": {
     "serverUrl": "URL du serveur LiteGraph",
@@ -273,7 +274,12 @@
         "status": "Indique si l'index est actuellement chargé en mémoire",
         "distanceMetric": "Métrique de distance utilisée pour les calculs de similarité"
       }
-    }
+    },
+    "providerLabel": "Fournisseur de l'index vectoriel : {provider}",
+    "providerPgvector": "pgvector (PostgreSQL)",
+    "providerHnswLite": "HnswLite (SQLite)",
+    "pgvectorNote": "L'index réside dans PostgreSQL. Les graphes de même dimension vectorielle partagent un index, dont les paramètres sont fixés par le premier graphe qui l'active. Les vecteurs de plus de 4 000 dimensions sont recherchés de façon exacte plutôt que par un index. Aucun fichier d'index n'est utilisé.",
+    "hnswliteNote": "L'index est tenu par ce processus serveur et enregistré dans le fichier d'index ci-dessous."
   },
   "importExport": {
     "exportJsonl": "Exporter au format JSONL",
@@ -844,7 +850,9 @@
       "transactionDesc": "Diagnostic de transaction pour les requêtes d'écriture : identifiant, résultat, niveau d'isolement et fournisseur.",
       "durationDesc": "Temps de traitement côté serveur, de la réception de la requête à la fin de la réponse.",
       "sizeDesc": "Tailles des corps de requête et de réponse en octets, au format requête / réponse.",
-      "tenantDesc": "Locataire à l'origine de la requête ; vide pour les requêtes administratives."
+      "tenantDesc": "Locataire à l'origine de la requête ; vide pour les requêtes administratives.",
+      "node": "Nœud",
+      "nodeDesc": "Nœud serveur qui a traité la requête."
     },
     "transaction": {
       "noId": "transaction"
@@ -876,7 +884,8 @@
       "nonTransactions": "Hors transactions",
       "allMethods": "Toutes les méthodes",
       "transactionIdPlaceholder": "ID de transaction...",
-      "pathPlaceholder": "Le chemin contient..."
+      "pathPlaceholder": "Le chemin contient...",
+      "nodePlaceholder": "Filtrer par nœud"
     },
     "summary": {
       "visibleRequests": "Requêtes visibles :",
@@ -1437,7 +1446,8 @@
       "rest": "Serveur REST",
       "database": "Base de données",
       "security": "Sécurité",
-      "chat": "Chat"
+      "chat": "Chat",
+      "cluster": "Cluster"
     },
     "fields": {
       "requestTimeoutSeconds": "Délai d'expiration des requêtes (secondes)",
@@ -1485,7 +1495,25 @@
       "chatMaxToolIterationsCap": "Plafond d'itérations d'outils",
       "chatMaxConcurrentChats": "Chats simultanés max",
       "chatSseKeepAliveSeconds": "Keep-alive SSE (secondes)",
-      "chatDefaultTimeoutMs": "Délai d'attente par défaut (ms)"
+      "chatDefaultTimeoutMs": "Délai d'attente par défaut (ms)",
+      "clusterEnable": "Exécuter comme nœud de cluster",
+      "clusterName": "Nom du cluster",
+      "clusterNodeId": "Identifiant du nœud",
+      "trustForwardedHeaders": "Faire confiance aux en-têtes transférés",
+      "trustedProxies": "Proxys de confiance",
+      "allowInsecureDefaults": "Autoriser les valeurs par défaut non sécurisées",
+      "endpointResyncIntervalMs": "Intervalle de resynchronisation des points de terminaison de chat (ms)",
+      "clutchEndpoint": "Point de terminaison Clutch",
+      "clutchAccessKey": "Clé d'accès Clutch",
+      "clutchLeaseMs": "Bail Clutch (ms)",
+      "clutchRequestTimeoutMs": "Délai des requêtes Clutch (ms)",
+      "clutchStartupConnectTimeoutMs": "Délai de connexion Clutch au démarrage (ms)",
+      "redisConnectionString": "Chaîne de connexion Redis",
+      "redisPollIntervalMs": "Intervalle d'interrogation Redis (ms)",
+      "redisNodeTimeoutMs": "Nœud hors ligne après (ms)",
+      "redisNodeRetentionMs": "Oublier les nœuds arrêtés après (ms)",
+      "restartDrainMs": "Vidage lors du redémarrage progressif (ms)",
+      "restartPeerTimeoutMs": "Attente des autres nœuds lors du redémarrage progressif (ms)"
     },
     "status": {
       "appliedLive": "Appliqué en direct",
@@ -1534,7 +1562,20 @@
         "restartPending": "Redémarrage en attente"
       },
       "openPage": "Ouvrir la page Cluster"
-    }
+    },
+    "hints": {
+      "range": "Plage autorisée de {min} à {max}",
+      "envOverride": "Défini par une variable d'environnement",
+      "nodeIdEnv": "Défini sur chaque nœud par la variable d'environnement LITEGRAPH_NODE_ID.",
+      "trustedProxies": "Adresses ou plages CIDR séparées par des virgules, par exemple 10.0.0.0/8.",
+      "clusterName": "Lettres minuscules, chiffres et traits d’union."
+    },
+    "clusterBanner": {
+      "title": "Ces paramètres s'appliquent à tous les nœuds",
+      "body": "Tous les nœuds partagent ce fichier de paramètres. Les paramètres qui nécessitent un redémarrage prennent effet après un redémarrage du cluster, qui redémarre les nœuds l'un après l'autre.",
+      "link": "Ouvrir la page Cluster"
+    },
+    "cachingDisabledInCluster": "La mise en cache des objets est désactivée en mode cluster, quels que soient ces paramètres, afin que chaque nœud lise des données à jour."
   },
   "ai": {
     "chat": {
@@ -2105,6 +2146,42 @@
       "removed": "Nœud {node} retiré.",
       "actionFailed": "Échec de la requête : {message}"
     },
-    "empty": "Aucun nœud n'est enregistré."
+    "empty": "Aucun nœud n'est enregistré.",
+    "jobs": {
+      "title": "Tâches de fond",
+      "description": "La dernière exécution de chaque tâche qui s'exécute sur un seul nœud par cycle.",
+      "empty": "Aucune tâche ne s'est encore exécutée dans ce cluster.",
+      "emptySingle": "Sur un nœud unique, toutes les tâches s'exécutent localement ; aucune exécution n'est donc enregistrée ici.",
+      "unavailable": "Le registre des nœuds (Redis) est injoignable ; les exécutions ne peuvent pas être affichées.",
+      "success": "Réussie",
+      "failed": "Échouée",
+      "durationMs": "{ms} ms",
+      "columns": {
+        "job": "Tâche",
+        "node": "Nœud",
+        "started": "Début",
+        "completed": "Fin",
+        "duration": "Durée",
+        "result": "Résultat"
+      }
+    },
+    "locks": {
+      "title": "Verrous distribués",
+      "description": "Verrous que ce cluster détient actuellement dans Clutch. La plupart ne sont détenus qu'un instant.",
+      "empty": "Aucun verrou n'est détenu pour le moment.",
+      "emptySingle": "Un nœud unique n'utilise que des verrous internes au processus ; il n'y a rien à afficher.",
+      "unavailable": "Clutch est injoignable ; les verrous détenus ne peuvent pas être listés.",
+      "unknownNode": "Nœud inconnu",
+      "columns": {
+        "key": "Clé",
+        "keyClass": "Classe",
+        "mode": "Mode",
+        "node": "Nœud",
+        "clutchNode": "Nœud Clutch",
+        "fencingToken": "Jeton de fencing",
+        "acquired": "Acquis",
+        "leaseExpires": "Expiration du bail"
+      }
+    }
   }
 }
