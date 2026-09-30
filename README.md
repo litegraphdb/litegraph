@@ -71,8 +71,12 @@ v10.0 lets LiteGraph run as several identical nodes behind a load balancer. It i
 
 - Nodes keep no state of their own. On PostgreSQL, vectors live in a pgvector column and vector search runs in the database against a shared HNSW index, so every node returns the same results. Filtered and unindexed searches also run in SQL now instead of loading every candidate vector into the server.
 - Cluster mode (`LITEGRAPH_CLUSTER_ENABLE=true`) turns off the object and authorization caches, so a delete or a revoked permission applies on every node immediately, and coordinates schema migrations, background jobs, vector index builds, settings writes, and rolling restarts through [Clutch](https://github.com/jchristn/clutch) distributed locks. Reads, writes, and searches take no distributed lock.
-- Cluster nodes register in Redis every two seconds. `GET /v1.0/cluster/nodes` and the dashboard's Settings page list every node with its state, a settings change reaches every node within seconds, and `POST /v1.0/cluster/restart` restarts the nodes one at a time while the cluster keeps serving.
-- `GET /v1.0/health/live` and `GET /v1.0/health/ready`, and an `x-litegraph-node` header on every response.
+- Cluster nodes register in Redis every two seconds. `GET /v1.0/cluster/nodes` lists every node with its state and health, a settings change reaches every node within seconds, `POST /v1.0/cluster/restart` restarts the nodes one at a time while the cluster keeps serving, and single nodes can be restarted or removed. `GET /v1.0/cluster/locks` and `GET /v1.0/cluster/jobs` show the locks held in Clutch and the latest run of each background job.
+- `GET /v1.0/health/live` and `GET /v1.0/health/ready`, and an `x-litegraph-node` header on every response. Losing Clutch or Redis leaves every node serving (readiness reports `Degraded`); only coordinated work waits.
+- A reorganized dashboard: six sidebar entries (Home, Graphs, Chat, Access, System, Developer) with tabs, each tab at its own URL, one graph selector shared by every graph tab, and a Cluster page for nodes, rolling restarts, jobs, and locks.
+- Per-node metrics and a LiteGraph Cluster Grafana dashboard; every dashboard gains a node filter. Request history records the node that handled each request and, behind a trusted load balancer, the real client address. Chat streams send keepalives so load balancer idle timeouts do not cut long answers.
+- Faster vector search: results' nodes, vectors, labels, and tags load in one query each, about 40% faster on a single connection and more than twice as fast under load on a cluster.
+- SDKs record the node that answered, retry idempotent requests on connection failures and 502, 503, and 504 with backoff, and gain cluster, health, and request history methods. The MCP server gains read-only `cluster/status`, `cluster/nodes`, and `cluster/node` tools.
 - Three Docker deployments under [`docker/`](docker/): single node on SQLite, single node on PostgreSQL with pgvector, and a three-node cluster with Nginx (Switchboard optional), two Clutch nodes, Redis, smoke tests, and a failover test.
 - Fixes: server security tokens now expire; a SQLite HnswLite index is rebuilt from the database after a restart instead of returning no results; Euclidean and dot-product searches on an indexed PostgreSQL graph return real Euclidean and dot-product values; turning caching off no longer throws.
 
@@ -234,7 +238,7 @@ The Compose deployments use these images, selected by `LITEGRAPH_IMAGE_TAG` (def
 - `jchristn77/litegraph-mcp:v10.0.0`
 - `jchristn77/litegraph-ui:v10.0.0`
 
-To run a build of your own, build and tag it with `build-all.bat <tag>` and start a deployment with `LITEGRAPH_IMAGE_TAG=<tag>`. PostgreSQL deployments use `pgvector/pgvector:0.8.6-pg17-trixie`; the cluster adds `jchristn77/clutch-server:v0.2.0` (wrapped to add `curl` for health checks), `nginx:1.27-alpine`, and optionally `jchristn77/switchboard:v5.2.2`.
+Building a release tag (a plain `vMAJOR.MINOR.PATCH`) also moves `:latest`; any other tag leaves `:latest` alone. To run a build of your own, build and tag it with `build-all.bat <tag>` and start a deployment with `LITEGRAPH_IMAGE_TAG=<tag>`. PostgreSQL deployments use `pgvector/pgvector:0.8.6-pg17-trixie`; the cluster adds `jchristn77/clutch-server:v0.2.0`, `redis:7.4.9-alpine`, `nginx:1.27-alpine`, and optionally `jchristn77/switchboard:v5.2.2`.
 
 ## Factory Reset
 
