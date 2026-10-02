@@ -139,6 +139,8 @@ function Invoke-NativeExpectFailure([string[]] $dockerArgs) {
     try {
         $output = & docker @dockerArgs 2>&1 | ForEach-Object { "$_" }
         $code = $LASTEXITCODE
+        # The expected failure must not leak: a GitHub Actions pwsh step exits with $LASTEXITCODE.
+        $global:LASTEXITCODE = 0
     }
     finally {
         $ErrorActionPreference = $previous
