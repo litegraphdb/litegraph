@@ -382,6 +382,9 @@ docker/*/backups/
 docker/*/data/
 docker/*/temp/
 docker/*/.env
+# Deployment settings files ship with the repository (the root rule ignores litegraph.json everywhere else)
+!docker/*/litegraph.json
+!docker/*/factory/litegraph.json
 docker/**/*.db-shm
 docker/**/*.db-wal
 docker/**/*.db-journal
