@@ -174,8 +174,8 @@ export const sseStreamBody =
   sseFrame({ event: 'started', threadGuid: mockThreadGuid, turnGuid: mockTurnGuid }) +
   sseFrame({ event: 'delta', content: 'There are ' }) +
   sseFrame({ event: 'delta', content: '3 nodes.' }) +
-  sseFrame({ event: 'tool_call', name: 'node/search', arguments: '{"GraphGUID":"g"}', iteration: 1 }) +
-  sseFrame({ event: 'tool_result', name: 'node/search', success: true, error: null, runtimeMs: 12.3 }) +
+  sseFrame({ event: 'tool_call', name: 'node_search', arguments: '{"GraphGUID":"g"}', iteration: 1 }) +
+  sseFrame({ event: 'tool_result', name: 'node_search', success: true, error: null, runtimeMs: 12.3 }) +
   sseFrame({ event: 'usage', usage: chatCompletionResultData }) +
   'data: [DONE]\n\n';
 

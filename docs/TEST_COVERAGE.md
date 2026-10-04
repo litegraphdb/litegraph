@@ -33,32 +33,32 @@ Suite/case references use these prefixes. Case IDs are exact strings from the su
 | `SDK-C#` | `sdk/csharp/src/Test.Automated` (live REST via `LiteGraphSdk`) |
 | `SDK-Py` / `SDK-JS` | `sdk/python/tests` (mocked client) / `sdk/js/test` (Jest + MSW mock server) — these validate the SDK clients, not the server routes |
 
-Two blanket cases carry a large share of the negative coverage and are cited repeatedly. `Imp:Credentials.AuthorizationMcpBoundary` drives nearly the full MCP tool surface twice — once with an allowed credential and once with a denied one — so it supplies a route-level authorization-denial negative for every tool family it touches (nodes, edges, labels, tags, vectors, batch, tenant/user/credential CRUD, graph query/transaction/JSONL import-export, authorization tools, `admin/flush`). `Auth:Authorization.UnauthenticatedDenied` and `Obs:Observability.RestErrorCounter` cover the unauthenticated-rejection path. Cited as "denial" below.
+Two blanket cases carry a large share of the negative coverage and are cited repeatedly. `Imp:Credentials.AuthorizationMcpBoundary` drives nearly the full MCP tool surface twice — once with an allowed credential and once with a denied one — so it supplies a route-level authorization-denial negative for every tool family it touches (nodes, edges, labels, tags, vectors, batch, tenant/user/credential CRUD, graph query/transaction/JSONL import-export, authorization tools, `admin_flush`). `Auth:Authorization.UnauthenticatedDenied` and `Obs:Observability.RestErrorCounter` cover the unauthenticated-rejection path. Cited as "denial" below.
 
 ## Tenants
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| TenantCreate (`PUT /v1.0/tenants`; `tenant/create`) | MCP:MCP.Tenant.Create; Auth:SystemAdminFullAccess; Core:Tenant.Create | Auth:TenantAdminScope (401); Core:Negative.Tenant.CreateNull (SDK) | |
-| TenantRead (`GET .../tenants/{g}`; `tenant/get`) | MCP:MCP.Tenant.Get; Core:Tenant.ReadByGuid | Core:Negative.Tenant.ReadNonExistent (SDK null); denial | |
-| TenantReadAll (`GET /v1.0/tenants`; `tenant/all`) | MCP:MCP.Tenant.All; SDK-C# | Obs:RestErrorCounter (unauthenticated 4xx); denial | |
-| TenantEnumerate (`GET/POST /v2.0/tenants`; `tenant/enumerate`) | MCP:MCP.Tenant.Enumerate; Core:Tenant.Enumerate, Enumeration.Tenants.* | denial | |
-| TenantExists (`HEAD .../tenants/{g}`; `tenant/exists`) | MCP:MCP.Tenant.Exists; Core:Tenant.ExistsByGuid | Core + MCP assert false for missing/deleted GUIDs | |
-| TenantUpdate (`PUT .../tenants/{g}`; `tenant/update`) | MCP:MCP.Tenant.Update; Core:Tenant.Update | Core:Negative.Tenant.UpdateNull (SDK); denial | |
-| TenantDelete (`DELETE .../tenants/{g}`; `tenant/delete`) | MCP:MCP.Tenant.Delete; ChatS:TenantCascade (force-delete cascade) | Core:Negative.Tenant.DeleteWithDependents (SDK); denial | |
-| TenantStatistics (`GET .../tenants/stats`, `.../{g}/stats`; `tenant/statistics`, `tenant/statisticsall`) | MCP:MCP.Tenant.Statistics; Imp:McpBoundary (`statisticsall`); Core:Tenant.GetStatistics | denial | |
+| TenantCreate (`PUT /v1.0/tenants`; `tenant_create`) | MCP:MCP.Tenant.Create; Auth:SystemAdminFullAccess; Core:Tenant.Create | Auth:TenantAdminScope (401); Core:Negative.Tenant.CreateNull (SDK) | |
+| TenantRead (`GET .../tenants/{g}`; `tenant_get`) | MCP:MCP.Tenant.Get; Core:Tenant.ReadByGuid | Core:Negative.Tenant.ReadNonExistent (SDK null); denial | |
+| TenantReadAll (`GET /v1.0/tenants`; `tenant_all`) | MCP:MCP.Tenant.All; SDK-C# | Obs:RestErrorCounter (unauthenticated 4xx); denial | |
+| TenantEnumerate (`GET/POST /v2.0/tenants`; `tenant_enumerate`) | MCP:MCP.Tenant.Enumerate; Core:Tenant.Enumerate, Enumeration.Tenants.* | denial | |
+| TenantExists (`HEAD .../tenants/{g}`; `tenant_exists`) | MCP:MCP.Tenant.Exists; Core:Tenant.ExistsByGuid | Core + MCP assert false for missing/deleted GUIDs | |
+| TenantUpdate (`PUT .../tenants/{g}`; `tenant_update`) | MCP:MCP.Tenant.Update; Core:Tenant.Update | Core:Negative.Tenant.UpdateNull (SDK); denial | |
+| TenantDelete (`DELETE .../tenants/{g}`; `tenant_delete`) | MCP:MCP.Tenant.Delete; ChatS:TenantCascade (force-delete cascade) | Core:Negative.Tenant.DeleteWithDependents (SDK); denial | |
+| TenantStatistics (`GET .../tenants/stats`, `.../{g}/stats`; `tenant_statistics`, `tenant_statisticsall`) | MCP:MCP.Tenant.Statistics; Imp:McpBoundary (`statisticsall`); Core:Tenant.GetStatistics | denial | |
 
 ## Users
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| UserCreate (`PUT .../users`; `user/create`) | MCP:MCP.User.Create; Auth (provisioning); Acct:FlagsDefaultFalse; Core:User.Create | denial | |
-| UserRead (`GET .../users/{g}`; `user/get`) | MCP:MCP.User.Get; Auth:RegularUserSelfService (200 own) | Auth:RegularUserSelfService (401 reading another user) | |
-| UserReadAll (`GET .../users`; `user/all`) | MCP:MCP.User.All; Auth:SystemAdminFullAccess | Auth:RegularUserSelfService, UnauthenticatedDenied (401) | |
-| UserEnumerate (`GET/POST /v2.0/.../users`; `user/enumerate`) | MCP:MCP.User.Enumerate; Core:User.Enumerate | denial | |
-| UserExists (`HEAD .../users/{g}`; `user/exists`) | MCP:MCP.User.Exists; Core:User.ExistsByGuid/ExistsByEmail | Core asserts false for missing | |
-| UserUpdate (`PUT .../users/{g}`; `user/update`) | MCP:MCP.User.Update; Auth:RegularUserSelfService (own); Acct:UpdateFlags | Auth:TenantAdminScope (cross-tenant 401) | |
-| UserDelete (`DELETE .../users/{g}`; `user/delete`) | MCP:MCP.User.Delete | denial | |
+| UserCreate (`PUT .../users`; `user_create`) | MCP:MCP.User.Create; Auth (provisioning); Acct:FlagsDefaultFalse; Core:User.Create | denial | |
+| UserRead (`GET .../users/{g}`; `user_get`) | MCP:MCP.User.Get; Auth:RegularUserSelfService (200 own) | Auth:RegularUserSelfService (401 reading another user) | |
+| UserReadAll (`GET .../users`; `user_all`) | MCP:MCP.User.All; Auth:SystemAdminFullAccess | Auth:RegularUserSelfService, UnauthenticatedDenied (401) | |
+| UserEnumerate (`GET/POST /v2.0/.../users`; `user_enumerate`) | MCP:MCP.User.Enumerate; Core:User.Enumerate | denial | |
+| UserExists (`HEAD .../users/{g}`; `user_exists`) | MCP:MCP.User.Exists; Core:User.ExistsByGuid/ExistsByEmail | Core asserts false for missing | |
+| UserUpdate (`PUT .../users/{g}`; `user_update`) | MCP:MCP.User.Update; Auth:RegularUserSelfService (own); Acct:UpdateFlags | Auth:TenantAdminScope (cross-tenant 401) | |
+| UserDelete (`DELETE .../users/{g}`; `user_delete`) | MCP:MCP.User.Delete | denial | |
 | UserReadTenants (enum value) | — | — | Orphan enum value: no route resolves to it. The related surface is `GET /v1.0/token/tenants` (below). Finding, not a test gap. |
 
 ## Tokens and authentication
@@ -67,24 +67,24 @@ Routes with no `RequestTypeEnum` value; the MCP twins are the three `userauthent
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| `GET /v1.0/token/tenants` (pre-auth; `userauthentication/gettenantsforemail`) | SDK-C# (get-tenants-for-email); RouteAuth asserts it is deliberately public | — | No negative case (unknown email); MCP tool untested. Needs a case. |
-| `GET /v1.0/token` (`userauthentication/generatetoken`) | SDK-C# (generate-token) | — | No negative case (bad credentials); MCP tool untested. Needs a case. |
-| `GET /v1.0/token/details` (`userauthentication/gettokendetails`) | SDK-C# (get-token-details) | — | No negative case (expired/garbage token); MCP tool untested. Needs a case. |
+| `GET /v1.0/token/tenants` (pre-auth; `userauthentication_gettenantsforemail`) | SDK-C# (get-tenants-for-email); RouteAuth asserts it is deliberately public | — | No negative case (unknown email); MCP tool untested. Needs a case. |
+| `GET /v1.0/token` (`userauthentication_generatetoken`) | SDK-C# (generate-token) | — | No negative case (bad credentials); MCP tool untested. Needs a case. |
+| `GET /v1.0/token/details` (`userauthentication_gettokendetails`) | SDK-C# (get-token-details) | — | No negative case (expired/garbage token); MCP tool untested. Needs a case. |
 
 ## Credentials
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| CredentialCreate (`PUT .../credentials`; `credential/create`) | MCP:MCP.Credential.Create; Auth (provisioning); Imp:Credentials.Scoped.Persistence | denial | |
-| CredentialRead (`GET .../credentials/{g}`; `credential/get`) | MCP:MCP.Credential.Get; Core:Credential.ReadByGuid | denial | |
-| CredentialReadAll (`GET .../credentials`; `credential/all`) | MCP:MCP.Credential.All | denial | |
-| CredentialEnumerate (`GET/POST /v2.0/...`; `credential/enumerate`) | MCP:MCP.Credential.Enumerate; Core:Credential.Enumerate | denial | |
-| CredentialExists (`HEAD .../credentials/{g}`; `credential/exists`) | MCP:MCP.Credential.Exists | MCP asserts false after delete | |
-| CredentialUpdate (`PUT .../credentials/{g}`; `credential/update`) | MCP:MCP.Credential.Update; Imp:Scoped.Persistence | denial | |
-| CredentialDelete (`DELETE .../credentials/{g}`; `credential/delete`) | MCP:MCP.Credential.Delete | denial | |
-| CredentialReadByBearerToken (`GET /v1.0/credentials/bearer/{t}`; `credential/getbybearertoken`) | MCP:MCP.Credential.GetByBearerToken; Imp:AuthorizationMigrationCompatibility | denial | |
-| CredentialDeleteAllInTenant (`DELETE .../credentials`; `credential/deleteallintenant`) | MCP:MCP.Credential.DeleteAllInTenant (exists-flip asserted) | denial | |
-| CredentialDeleteByUser (`DELETE .../users/{u}/credentials`; `credential/deletebyuser`) | MCP:MCP.Credential.DeleteByUser (exists-flip asserted) | denial | |
+| CredentialCreate (`PUT .../credentials`; `credential_create`) | MCP:MCP.Credential.Create; Auth (provisioning); Imp:Credentials.Scoped.Persistence | denial | |
+| CredentialRead (`GET .../credentials/{g}`; `credential_get`) | MCP:MCP.Credential.Get; Core:Credential.ReadByGuid | denial | |
+| CredentialReadAll (`GET .../credentials`; `credential_all`) | MCP:MCP.Credential.All | denial | |
+| CredentialEnumerate (`GET/POST /v2.0/...`; `credential_enumerate`) | MCP:MCP.Credential.Enumerate; Core:Credential.Enumerate | denial | |
+| CredentialExists (`HEAD .../credentials/{g}`; `credential_exists`) | MCP:MCP.Credential.Exists | MCP asserts false after delete | |
+| CredentialUpdate (`PUT .../credentials/{g}`; `credential_update`) | MCP:MCP.Credential.Update; Imp:Scoped.Persistence | denial | |
+| CredentialDelete (`DELETE .../credentials/{g}`; `credential_delete`) | MCP:MCP.Credential.Delete | denial | |
+| CredentialReadByBearerToken (`GET /v1.0/credentials/bearer/{t}`; `credential_getbybearertoken`) | MCP:MCP.Credential.GetByBearerToken; Imp:AuthorizationMigrationCompatibility | denial | |
+| CredentialDeleteAllInTenant (`DELETE .../credentials`; `credential_deleteallintenant`) | MCP:MCP.Credential.DeleteAllInTenant (exists-flip asserted) | denial | |
+| CredentialDeleteByUser (`DELETE .../users/{u}/credentials`; `credential_deletebyuser`) | MCP:MCP.Credential.DeleteByUser (exists-flip asserted) | denial | |
 
 ## Authorization
 
@@ -95,28 +95,28 @@ All seventeen routes and all seventeen `authorization/*` MCP tools are driven �
 | AuthorizationRoleCreate/Read/ReadAll/Update/Delete (5 routes; `authorization/role/*`) | Imp:RestManagement; Imp:AuthorizationRoleStorage (SDK) | Imp:RestManagement (409 built-in, 401, 404) | |
 | UserRoleAssignmentCreate/Read/ReadAll/Update/Delete (5 routes; `authorization/userrole/*`) | Imp:RestManagement; Imp:AuthorizationRoleStorage | Imp:RestManagement | |
 | CredentialScopeAssignmentCreate/Read/ReadAll/Update/Delete (5 routes; `authorization/credentialscope/*`) | Imp:RestManagement; Imp:AuthorizationRoleEffectiveAccess | Imp:RestManagement | |
-| UserEffectivePermissionsRead (`GET .../users/{u}/permissions`; `authorization/user/permissions`) | Imp:RestManagement | Imp:RestManagement | |
-| CredentialEffectivePermissionsRead (`GET .../credentials/{c}/permissions`; `authorization/credential/permissions`) | Imp:RestManagement | Imp:RestManagement | |
+| UserEffectivePermissionsRead (`GET .../users/{u}/permissions`; `authorization_user_permissions`) | Imp:RestManagement | Imp:RestManagement | |
+| CredentialEffectivePermissionsRead (`GET .../credentials/{c}/permissions`; `authorization_credential_permissions`) | Imp:RestManagement | Imp:RestManagement | |
 
 ## Graphs
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| GraphCreate (`PUT .../graphs`; `graph/create`) | MCP:MCP.Graph.Create; Core:Graph.Create | denial | |
-| GraphRead (`GET .../graphs/{g}`; `graph/get`) | MCP:MCP.Graph.Get; Core:Graph.ReadByGuid | Core:Negative.Graph.ReadNonExistent (SDK); denial | |
-| GraphReadAll (`GET .../graphs`; `graph/all`) | MCP:MCP.Graph.All; Core:Graph.ReadMany | — | No explicit negative. |
-| GraphReadAllInTenant (`GET .../graphs/all`; `graph/readallintenant`) | MCP:MCP.Graph.ReadAllInTenant; Core:Graph.ReadAllInTenant | — | No explicit negative. |
-| GraphEnumerate (`GET/POST /v2.0/.../graphs`; `graph/enumerate`) | MCP:MCP.Graph.Enumerate; Core:Enumeration.Graphs.Paginated | — | No explicit negative. |
-| GraphReadFirst (`POST .../graphs/first`; `graph/readfirst`) | MCP:MCP.Graph.ReadFirst; Core:Graph.ReadFirst | — | No explicit negative. |
-| GraphSearch (`POST .../graphs/search`; `graph/search`) | MCP:MCP.Graph.Search | — | No explicit negative. |
-| GraphExists (`HEAD .../graphs/{g}`; `graph/exists`) | MCP:MCP.Graph.Exists; Core:Graph.ExistsByGuid | Core asserts false for missing | |
-| GraphUpdate (`PUT .../graphs/{g}`; `graph/update`) | MCP:MCP.Graph.Update; Core:Graph.Update | denial | |
-| GraphDelete (`DELETE .../graphs/{g}`; `graph/delete`) | MCP:MCP.Graph.Delete | denial | |
-| GraphDeleteAllInTenant (`DELETE .../graphs/all`; `graph/deleteallintenant`) | MCP:MCP.Graph.DeleteAllInTenant | — | No explicit negative. |
-| GraphStatistics (`GET .../graphs/stats`, `.../{g}/stats`; `graph/statistics`) | MCP:MCP.Graph.Statistics; Core:Graph.GetStatistics | — | No explicit negative. |
-| GraphSubgraph (`GET .../nodes/{n}/subgraph`; `graph/getsubgraph`) | SDK-C# (live route); IE:Extract.* (SDK depth: depth, direction, filters, cost, cap) | IE:Extract.NoStartNodeThrows / MissingStartNodeThrows / NegativeDepthThrows (SDK) | Route-level negative absent; MCP `graph/getsubgraph` untested. |
-| GraphSubgraphStatistics (`GET .../subgraph/stats`; `graph/getsubgraphstatistics`) | SDK-C# (live route) | — | No negative; MCP tool untested. |
-| GraphQuery (`POST .../graphs/{g}/query`; `graph/query`) | MCP:MCP.Graph.Query; Imp:Observability.RestQueryProfile (live REST); Imp:Query.* (SDK depth) | Imp:Credentials.AuthorizationAudit.RestDeniedQuery (401 + audit record); Imp:Query.Lexer/Parser/ParameterErrors | |
+| GraphCreate (`PUT .../graphs`; `graph_create`) | MCP:MCP.Graph.Create; Core:Graph.Create | denial | |
+| GraphRead (`GET .../graphs/{g}`; `graph_get`) | MCP:MCP.Graph.Get; Core:Graph.ReadByGuid | Core:Negative.Graph.ReadNonExistent (SDK); denial | |
+| GraphReadAll (`GET .../graphs`; `graph_all`) | MCP:MCP.Graph.All; Core:Graph.ReadMany | — | No explicit negative. |
+| GraphReadAllInTenant (`GET .../graphs/all`; `graph_readallintenant`) | MCP:MCP.Graph.ReadAllInTenant; Core:Graph.ReadAllInTenant | — | No explicit negative. |
+| GraphEnumerate (`GET/POST /v2.0/.../graphs`; `graph_enumerate`) | MCP:MCP.Graph.Enumerate; Core:Enumeration.Graphs.Paginated | — | No explicit negative. |
+| GraphReadFirst (`POST .../graphs/first`; `graph_readfirst`) | MCP:MCP.Graph.ReadFirst; Core:Graph.ReadFirst | — | No explicit negative. |
+| GraphSearch (`POST .../graphs/search`; `graph_search`) | MCP:MCP.Graph.Search | — | No explicit negative. |
+| GraphExists (`HEAD .../graphs/{g}`; `graph_exists`) | MCP:MCP.Graph.Exists; Core:Graph.ExistsByGuid | Core asserts false for missing | |
+| GraphUpdate (`PUT .../graphs/{g}`; `graph_update`) | MCP:MCP.Graph.Update; Core:Graph.Update | denial | |
+| GraphDelete (`DELETE .../graphs/{g}`; `graph_delete`) | MCP:MCP.Graph.Delete | denial | |
+| GraphDeleteAllInTenant (`DELETE .../graphs/all`; `graph_deleteallintenant`) | MCP:MCP.Graph.DeleteAllInTenant | — | No explicit negative. |
+| GraphStatistics (`GET .../graphs/stats`, `.../{g}/stats`; `graph_statistics`) | MCP:MCP.Graph.Statistics; Core:Graph.GetStatistics | — | No explicit negative. |
+| GraphSubgraph (`GET .../nodes/{n}/subgraph`; `graph_getsubgraph`) | SDK-C# (live route); IE:Extract.* (SDK depth: depth, direction, filters, cost, cap) | IE:Extract.NoStartNodeThrows / MissingStartNodeThrows / NegativeDepthThrows (SDK) | Route-level negative absent; MCP `graph_getsubgraph` untested. |
+| GraphSubgraphStatistics (`GET .../subgraph/stats`; `graph_getsubgraphstatistics`) | SDK-C# (live route) | — | No negative; MCP tool untested. |
+| GraphQuery (`POST .../graphs/{g}/query`; `graph_query`) | MCP:MCP.Graph.Query; Imp:Observability.RestQueryProfile (live REST); Imp:Query.* (SDK depth) | Imp:Credentials.AuthorizationAudit.RestDeniedQuery (401 + audit record); Imp:Query.Lexer/Parser/ParameterErrors | |
 
 ## Nodes
 
@@ -124,52 +124,52 @@ Every node surface is exercised end to end by the `Mcp.Server` suite (each tool 
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| NodeCreate (`node/create`) | MCP:MCP.Node.Create; Core:Node.Create | Core:Negative.Node.CreateNull / CreateInvalidGraph (SDK); denial | |
-| NodeCreateMany (`node/createmany`) | MCP:MCP.Node.CreateMany; Core:Node.CreateMany (full + Minimal return modes) | denial | |
-| NodeRead (`node/get`) | MCP:MCP.Node.Get; Core:Node.ReadByGuid | Core:Negative.Node.ReadNonExistent (SDK null); denial | |
-| NodeReadAll (`node/all`) | MCP:MCP.Node.All; Core:Node.ReadMany; Imp:Transactions.Server.* (live REST) | denial | |
-| NodeReadAllInGraph / NodeReadAllInTenant (`node/readallingraph`, `node/readallintenant`) | MCP:MCP.Node.ReadAllInGraph / ReadAllInTenant; Core | denial | |
-| NodeEnumerate (`node/enumerate`) | MCP:MCP.Node.Enumerate; Core:Enumeration.Nodes.Paginated | denial | |
-| NodeReadFirst (`node/readfirst`) | MCP:MCP.Node.ReadFirst; Core:Node.ReadFirst | denial | |
-| NodeSearch (`node/search`) | MCP:MCP.Node.Search | denial | |
-| NodeUpdate (`node/update`) | MCP:MCP.Node.Update; Core:Node.Update | denial | |
-| NodeExists (`node/exists`) | MCP:MCP.Node.Exists; Core:Node.ExistsByGuid | asserted false after deletes | |
-| NodeDelete (`node/delete`) | MCP:MCP.Node.Delete | denial | |
-| NodeDeleteAll (`node/deleteall`) | MCP:MCP.Graph.Delete (teardown) | denial | |
-| NodeDeleteMany (`node/deletemany`) | Imp:McpBoundary (allowed leg) | denial | |
-| NodeDeleteAllInTenant (`node/deleteallintenant`) | MCP:MCP.Node.DeleteAllInTenant (exists-flip) | denial | |
-| NodeReadMostConnected / NodeReadLeastConnected (`node/readmostconnected`, `node/readleastconnected`) | MCP:MCP.Node.ReadMostConnected / ReadLeastConnected; Core | denial | |
+| NodeCreate (`node_create`) | MCP:MCP.Node.Create; Core:Node.Create | Core:Negative.Node.CreateNull / CreateInvalidGraph (SDK); denial | |
+| NodeCreateMany (`node_createmany`) | MCP:MCP.Node.CreateMany; Core:Node.CreateMany (full + Minimal return modes) | denial | |
+| NodeRead (`node_get`) | MCP:MCP.Node.Get; Core:Node.ReadByGuid | Core:Negative.Node.ReadNonExistent (SDK null); denial | |
+| NodeReadAll (`node_all`) | MCP:MCP.Node.All; Core:Node.ReadMany; Imp:Transactions.Server.* (live REST) | denial | |
+| NodeReadAllInGraph / NodeReadAllInTenant (`node_readallingraph`, `node_readallintenant`) | MCP:MCP.Node.ReadAllInGraph / ReadAllInTenant; Core | denial | |
+| NodeEnumerate (`node_enumerate`) | MCP:MCP.Node.Enumerate; Core:Enumeration.Nodes.Paginated | denial | |
+| NodeReadFirst (`node_readfirst`) | MCP:MCP.Node.ReadFirst; Core:Node.ReadFirst | denial | |
+| NodeSearch (`node_search`) | MCP:MCP.Node.Search | denial | |
+| NodeUpdate (`node_update`) | MCP:MCP.Node.Update; Core:Node.Update | denial | |
+| NodeExists (`node_exists`) | MCP:MCP.Node.Exists; Core:Node.ExistsByGuid | asserted false after deletes | |
+| NodeDelete (`node_delete`) | MCP:MCP.Node.Delete | denial | |
+| NodeDeleteAll (`node_deleteall`) | MCP:MCP.Graph.Delete (teardown) | denial | |
+| NodeDeleteMany (`node_deletemany`) | Imp:McpBoundary (allowed leg) | denial | |
+| NodeDeleteAllInTenant (`node_deleteallintenant`) | MCP:MCP.Node.DeleteAllInTenant (exists-flip) | denial | |
+| NodeReadMostConnected / NodeReadLeastConnected (`node_readmostconnected`, `node_readleastconnected`) | MCP:MCP.Node.ReadMostConnected / ReadLeastConnected; Core | denial | |
 
 ## Edges
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| EdgeCreate (`edge/create`) | MCP:MCP.Edge.Create; Core:Edge.Create | Core:Negative.Edge.CreateNull / CreateInvalidGraph (SDK); denial | |
-| EdgeCreateMany (`edge/createmany`) | MCP:MCP.Edge.CreateMany; Core:Edge.CreateMany | denial | |
-| EdgeRead (`edge/get`) | MCP:MCP.Edge.Get; Core:Edge.ReadByGuid | Core:Negative.Edge.ReadNonExistent (SDK null); denial | |
-| EdgeReadAll / EdgeReadMany (`edge/all`, `edge/getmany`) | MCP:MCP.Edge.All / GetMany; Core:Edge.ReadMany | denial | |
-| EdgeReadAllInGraph / EdgeReadAllInTenant (`edge/readallingraph`, `edge/readallintenant`) | MCP:MCP.Edge.ReadAllInGraph / ReadAllInTenant; Core | denial | |
-| EdgeEnumerate (`edge/enumerate`) | MCP:MCP.Edge.Enumerate; Core:Edge.Enumerate | denial | |
-| EdgeSearch (`edge/search`) | MCP:MCP.Edge.Search | denial | |
-| EdgeBetween (`GET .../edges/between`; `edge/betweennodes`) | MCP:MCP.Edge.BetweenNodes; Core:Edge.ReadEdgesBetweenNodes | denial | |
-| `POST .../edges/first` (`edge/readfirst`) | MCP:MCP.Edge.ReadFirst; Core:Edge.ReadFirst | denial | Enum quirk: resolves to `EdgeReadAll`; there is no `EdgeReadFirst` enum member (see Findings). |
-| EdgeUpdate (`edge/update`) | MCP:MCP.Edge.Update; Core:Edge.Update | denial | |
-| EdgeExists (`edge/exists`) | MCP:MCP.Edge.Exists; Core:Edge.ExistsByGuid | asserted false after deletes | |
-| EdgeDelete (`edge/delete`) | Imp:McpBoundary (allowed leg) | denial | |
-| EdgeDeleteAll (`edge/deleteallingraph`) | MCP:MCP.Edge.DeleteAllInGraph (exists-flip) | denial | |
-| EdgeDeleteMany (`edge/deletemany`) | Imp:McpBoundary (allowed leg) | denial | |
-| EdgeDeleteAllInTenant (`edge/deleteallintenant`) | MCP:MCP.Edge.DeleteAllInTenant (exists-flip) | denial | |
-| EdgeDeleteNodeEdges (`DELETE .../nodes/{n}/edges`; `edge/deletenodeedges`) | — | — | No test found on either channel. Needs a case. |
-| EdgeDeleteNodeEdgesMany (`DELETE .../nodes/edges/bulk`; `edge/deletenodeedgesmany`) | MCP:MCP.Edge.DeleteNodeEdgesMany (exists-flip) | denial | |
+| EdgeCreate (`edge_create`) | MCP:MCP.Edge.Create; Core:Edge.Create | Core:Negative.Edge.CreateNull / CreateInvalidGraph (SDK); denial | |
+| EdgeCreateMany (`edge_createmany`) | MCP:MCP.Edge.CreateMany; Core:Edge.CreateMany | denial | |
+| EdgeRead (`edge_get`) | MCP:MCP.Edge.Get; Core:Edge.ReadByGuid | Core:Negative.Edge.ReadNonExistent (SDK null); denial | |
+| EdgeReadAll / EdgeReadMany (`edge_all`, `edge_getmany`) | MCP:MCP.Edge.All / GetMany; Core:Edge.ReadMany | denial | |
+| EdgeReadAllInGraph / EdgeReadAllInTenant (`edge_readallingraph`, `edge_readallintenant`) | MCP:MCP.Edge.ReadAllInGraph / ReadAllInTenant; Core | denial | |
+| EdgeEnumerate (`edge_enumerate`) | MCP:MCP.Edge.Enumerate; Core:Edge.Enumerate | denial | |
+| EdgeSearch (`edge_search`) | MCP:MCP.Edge.Search | denial | |
+| EdgeBetween (`GET .../edges/between`; `edge_betweennodes`) | MCP:MCP.Edge.BetweenNodes; Core:Edge.ReadEdgesBetweenNodes | denial | |
+| `POST .../edges/first` (`edge_readfirst`) | MCP:MCP.Edge.ReadFirst; Core:Edge.ReadFirst | denial | Enum quirk: resolves to `EdgeReadAll`; there is no `EdgeReadFirst` enum member (see Findings). |
+| EdgeUpdate (`edge_update`) | MCP:MCP.Edge.Update; Core:Edge.Update | denial | |
+| EdgeExists (`edge_exists`) | MCP:MCP.Edge.Exists; Core:Edge.ExistsByGuid | asserted false after deletes | |
+| EdgeDelete (`edge_delete`) | Imp:McpBoundary (allowed leg) | denial | |
+| EdgeDeleteAll (`edge_deleteallingraph`) | MCP:MCP.Edge.DeleteAllInGraph (exists-flip) | denial | |
+| EdgeDeleteMany (`edge_deletemany`) | Imp:McpBoundary (allowed leg) | denial | |
+| EdgeDeleteAllInTenant (`edge_deleteallintenant`) | MCP:MCP.Edge.DeleteAllInTenant (exists-flip) | denial | |
+| EdgeDeleteNodeEdges (`DELETE .../nodes/{n}/edges`; `edge_deletenodeedges`) | — | — | No test found on either channel. Needs a case. |
+| EdgeDeleteNodeEdgesMany (`DELETE .../nodes/edges/bulk`; `edge_deletenodeedgesmany`) | MCP:MCP.Edge.DeleteNodeEdgesMany (exists-flip) | denial | |
 
 ## Topology and traversal
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| EdgesFromNode / EdgesToNode (`edge/fromnode`, `edge/tonode`) | MCP:MCP.Edge.FromNode / ToNode; Core:Edge.ReadEdgesFromNode / ToNode | denial | |
-| AllEdgesToNode (`GET/POST .../nodes/{n}/edges`; `edge/nodeedges`) | MCP:MCP.Edge.NodeEdges; Core:Edge.ReadNodeEdges | denial | |
-| NodeParents / NodeChildren / NodeNeighbors (`node/parents`, `node/children`, `node/neighbors`) | MCP:MCP.Node.Parents / Children / Neighbors; Core:Node.ReadParents / ReadChildren / ReadNeighbors | denial | |
-| GetRoutes (`POST .../graphs/{g}/routes`; `node/traverse`) | Imp:McpBoundary (allowed leg); SDK-C# (routes) | denial | |
+| EdgesFromNode / EdgesToNode (`edge_fromnode`, `edge_tonode`) | MCP:MCP.Edge.FromNode / ToNode; Core:Edge.ReadEdgesFromNode / ToNode | denial | |
+| AllEdgesToNode (`GET/POST .../nodes/{n}/edges`; `edge_nodeedges`) | MCP:MCP.Edge.NodeEdges; Core:Edge.ReadNodeEdges | denial | |
+| NodeParents / NodeChildren / NodeNeighbors (`node_parents`, `node_children`, `node_neighbors`) | MCP:MCP.Node.Parents / Children / Neighbors; Core:Node.ReadParents / ReadChildren / ReadNeighbors | denial | |
+| GetRoutes (`POST .../graphs/{g}/routes`; `node_traverse`) | Imp:McpBoundary (allowed leg); SDK-C# (routes) | denial | |
 
 ## Labels
 
@@ -177,13 +177,13 @@ The `Mcp.Server` suite runs the complete label lifecycle over live routes — cr
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| LabelCreate / LabelCreateMany (`label/create`, `label/createmany`) | MCP:MCP.Label.Create / CreateMany; Core | denial | |
-| LabelRead / LabelReadAll / LabelReadAllInTenant / LabelReadAllInGraph (`label/get`, `label/all`, `label/readallintenant`, `label/readallingraph`) | MCP + Core equivalents | denial | |
+| LabelCreate / LabelCreateMany (`label_create`, `label_createmany`) | MCP:MCP.Label.Create / CreateMany; Core | denial | |
+| LabelRead / LabelReadAll / LabelReadAllInTenant / LabelReadAllInGraph (`label_get`, `label_all`, `label_readallintenant`, `label_readallingraph`) | MCP + Core equivalents | denial | |
 | LabelReadManyGraph / ManyNode / ManyEdge (`label/readmanygraph|node|edge`) | MCP:MCP.Label.ReadManyGraph / Node / Edge; Core | denial | |
-| LabelEnumerate (`label/enumerate`) | MCP:MCP.Label.Enumerate; Core | denial | |
-| LabelExists (`label/exists`) | MCP:MCP.Label.Exists; Core | asserted false after deletes | |
-| LabelUpdate (`label/update`) | MCP:MCP.Label.Update; Core | denial | |
-| LabelDelete / DeleteMany (`label/delete`, `label/deletemany`) | MCP:MCP.Label.Delete / DeleteMany | denial | |
+| LabelEnumerate (`label_enumerate`) | MCP:MCP.Label.Enumerate; Core | denial | |
+| LabelExists (`label_exists`) | MCP:MCP.Label.Exists; Core | asserted false after deletes | |
+| LabelUpdate (`label_update`) | MCP:MCP.Label.Update; Core | denial | |
+| LabelDelete / DeleteMany (`label_delete`, `label_deletemany`) | MCP:MCP.Label.Delete / DeleteMany | denial | |
 | LabelDeleteAllInTenant / AllInGraph / GraphLabels / NodeLabels / EdgeLabels (5 delete-scope routes) | MCP:MCP.Label.DeleteAllInTenant / DeleteAllInGraph / DeleteGraphLabels / DeleteNodeLabels / DeleteEdgeLabels | denial | |
 
 ## Tags
@@ -192,27 +192,27 @@ Identical shape to Labels; the `Mcp.Server` suite runs the full tag lifecycle an
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| TagCreate / TagCreateMany (`tag/create`, `tag/createmany`) | MCP:MCP.Tag.Create / CreateMany; Core | denial | |
-| TagRead / TagReadAll / TagReadAllInTenant / TagReadAllInGraph (`tag/get`, `tag/readmany`, `tag/readallintenant`, `tag/readallingraph`) | MCP + Core equivalents | denial | |
+| TagCreate / TagCreateMany (`tag_create`, `tag_createmany`) | MCP:MCP.Tag.Create / CreateMany; Core | denial | |
+| TagRead / TagReadAll / TagReadAllInTenant / TagReadAllInGraph (`tag_get`, `tag_readmany`, `tag_readallintenant`, `tag_readallingraph`) | MCP + Core equivalents | denial | |
 | TagReadManyGraph / ManyNode / ManyEdge (`tag/readmanygraph|node|edge`) | MCP:MCP.Tag.ReadManyGraph / Node / Edge; Core | denial | |
-| TagEnumerate (`tag/enumerate`) | MCP:MCP.Tag.Enumerate; Core | denial | |
-| TagExists (`tag/exists`) | MCP:MCP.Tag.Exists; Core | asserted false after deletes | |
-| TagUpdate (`tag/update`) | MCP:MCP.Tag.Update; Core | denial | |
-| TagDelete / DeleteMany (`tag/delete`, `tag/deletemany`) | MCP:MCP.Tag.Delete / DeleteMany | denial | |
-| TagDeleteAllInTenant / AllInGraph / GraphTags / NodeTags / EdgeTags (5 delete-scope routes) | MCP:MCP.Tag.DeleteAllInTenant / DeleteAllInGraph / DeleteGraphTags / DeleteNodeTags / DeleteEdgeTags | denial | MCP tool names for graph/node tag-scope deletes are registered as `tag/deletegraphlabels` and `tag/deletenodelabels` (see Findings). |
+| TagEnumerate (`tag_enumerate`) | MCP:MCP.Tag.Enumerate; Core | denial | |
+| TagExists (`tag_exists`) | MCP:MCP.Tag.Exists; Core | asserted false after deletes | |
+| TagUpdate (`tag_update`) | MCP:MCP.Tag.Update; Core | denial | |
+| TagDelete / DeleteMany (`tag_delete`, `tag_deletemany`) | MCP:MCP.Tag.Delete / DeleteMany | denial | |
+| TagDeleteAllInTenant / AllInGraph / GraphTags / NodeTags / EdgeTags (5 delete-scope routes) | MCP:MCP.Tag.DeleteAllInTenant / DeleteAllInGraph / DeleteGraphTags / DeleteNodeTags / DeleteEdgeTags | denial | MCP tool names for graph/node tag-scope deletes are registered as `tag_deletegraphlabels` and `tag_deletenodelabels` (see Findings). |
 
 ## Vectors
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| VectorCreate / VectorCreateMany (`vector/create`, `vector/createmany`) | MCP:MCP.Vector.Create / CreateMany; Core | Vec:DirtyRepair (dimensionality-mismatch failure path, SDK); denial | |
-| VectorRead / ReadAll / ReadAllInTenant / ReadAllInGraph (`vector/get`, `vector/all`, `vector/readallintenant`, `vector/readallingraph`) | MCP + Core equivalents | denial | |
+| VectorCreate / VectorCreateMany (`vector_create`, `vector_createmany`) | MCP:MCP.Vector.Create / CreateMany; Core | Vec:DirtyRepair (dimensionality-mismatch failure path, SDK); denial | |
+| VectorRead / ReadAll / ReadAllInTenant / ReadAllInGraph (`vector_get`, `vector_all`, `vector_readallintenant`, `vector_readallingraph`) | MCP + Core equivalents | denial | |
 | VectorReadManyGraph / ManyNode / ManyEdge (`vector/readmanygraph|node|edge`) | MCP:MCP.Vector.ReadManyGraph / Node / Edge; Core | denial | |
-| VectorEnumerate (`vector/enumerate`) | MCP:MCP.Vector.Enumerate; Core | denial | |
-| VectorExists (`vector/exists`) | MCP:MCP.Vector.Exists; Core | asserted false after deletes | |
-| VectorUpdate (`vector/update`) | MCP:MCP.Vector.Update; Core; Vec:DirtyRepair | denial | |
-| VectorSearch (`POST .../vectors`, `.../vectors/search`; `vector/search`) | MCP:MCP.Vector.Search; Vec:CosineSimilarity, Lifecycle, RamVsSqlite (deterministic results, three distance metrics, RAM/SQLite parity); Core:Vector.Search | Vec:LegacySqliteArtifact / DirtyRepair (index-unavailable fallback, SDK); denial | |
-| VectorDelete / DeleteMany (`vector/delete`, `vector/deletemany`) | MCP:MCP.Vector.Delete / DeleteMany | denial | |
+| VectorEnumerate (`vector_enumerate`) | MCP:MCP.Vector.Enumerate; Core | denial | |
+| VectorExists (`vector_exists`) | MCP:MCP.Vector.Exists; Core | asserted false after deletes | |
+| VectorUpdate (`vector_update`) | MCP:MCP.Vector.Update; Core; Vec:DirtyRepair | denial | |
+| VectorSearch (`POST .../vectors`, `.../vectors/search`; `vector_search`) | MCP:MCP.Vector.Search; Vec:CosineSimilarity, Lifecycle, RamVsSqlite (deterministic results, three distance metrics, RAM/SQLite parity); Core:Vector.Search | Vec:LegacySqliteArtifact / DirtyRepair (index-unavailable fallback, SDK); denial | |
+| VectorDelete / DeleteMany (`vector_delete`, `vector_deletemany`) | MCP:MCP.Vector.Delete / DeleteMany | denial | |
 | VectorDeleteAllInTenant / AllInGraph / GraphVectors / NodeVectors / EdgeVectors (5 delete-scope routes) | MCP:MCP.Vector.DeleteAllInTenant / DeleteAllInGraph / DeleteGraphVectors / DeleteNodeVectors / DeleteEdgeVectors | denial | |
 
 ### Vector index management
@@ -221,17 +221,17 @@ The five `vectorindex` route pairs (registered at both v1.0 and v2.0) have no li
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| GraphVectorIndexEnable (`PUT .../vectorindex/enable`; `graph/enablevectorindexing`) | Vec:Lifecycle, LegacySqliteArtifact, DirtyRepair; Imp:*VectorSearchMutation (all SDK layer) | Vec:LegacySqliteArtifact (legacy artifact marked dirty, SDK) | Route and MCP tool never driven over HTTP. |
-| GraphVectorIndexStats (`GET .../vectorindex/stats`; `graph/getvectorindexstatistics`) | Vec:Lifecycle, DirtyRepair, RamVsSqlite (SDK layer) | Vec:DirtyRepair (dirty stats asserted) | Route and MCP tool never driven over HTTP. |
-| GraphVectorIndexRebuild (`POST .../vectorindex/rebuild`; `graph/rebuildvectorindex`) | Vec:DirtyRepair (rebuild clears dirty, SDK layer) | — | Route and MCP tool never driven over HTTP. |
-| GraphVectorIndexConfig (`GET .../vectorindex/config`; `graph/getvectorindexconfig`) | — | — | No test found. Vec:Configuration round-trips the `VectorIndexConfiguration` model but never reads config through client, route, or tool. Needs a case. |
-| GraphVectorIndexDisable (`DELETE .../vectorindex`; `graph/deletevectorindex`) | — | — | No test found on any layer. Needs a case. |
+| GraphVectorIndexEnable (`PUT .../vectorindex/enable`; `graph_enablevectorindexing`) | Vec:Lifecycle, LegacySqliteArtifact, DirtyRepair; Imp:*VectorSearchMutation (all SDK layer) | Vec:LegacySqliteArtifact (legacy artifact marked dirty, SDK) | Route and MCP tool never driven over HTTP. |
+| GraphVectorIndexStats (`GET .../vectorindex/stats`; `graph_getvectorindexstatistics`) | Vec:Lifecycle, DirtyRepair, RamVsSqlite (SDK layer) | Vec:DirtyRepair (dirty stats asserted) | Route and MCP tool never driven over HTTP. |
+| GraphVectorIndexRebuild (`POST .../vectorindex/rebuild`; `graph_rebuildvectorindex`) | Vec:DirtyRepair (rebuild clears dirty, SDK layer) | — | Route and MCP tool never driven over HTTP. |
+| GraphVectorIndexConfig (`GET .../vectorindex/config`; `graph_getvectorindexconfig`) | — | — | No test found. Vec:Configuration round-trips the `VectorIndexConfiguration` model but never reads config through client, route, or tool. Needs a case. |
+| GraphVectorIndexDisable (`DELETE .../vectorindex`; `graph_deletevectorindex`) | — | — | No test found on any layer. Needs a case. |
 
 ## Batch
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| GraphExistence (`POST .../graphs/{g}/existence`; `batch/existence`) | Imp:McpBoundary (allowed leg, live); Core:Batch.Existence.EmptySiblingFilters / LargePayload (SDK: 600-item payloads, existing/missing bucketing) | Core cases assert missing GUIDs land in Missing buckets; denial | |
+| GraphExistence (`POST .../graphs/{g}/existence`; `batch_existence`) | Imp:McpBoundary (allowed leg, live); Core:Batch.Existence.EmptySiblingFilters / LargePayload (SDK: 600-item payloads, existing/missing bucketing) | Core cases assert missing GUIDs land in Missing buckets; denial | |
 
 ## Transactions
 
@@ -239,28 +239,28 @@ The transaction surface is the most heavily tested in the codebase: the `Transac
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| GraphTransaction (`POST .../graphs/{g}/transaction`; `graph/transaction`) | Imp:Transactions.Server.SqliteRestConcurrency / PostgresqlRestConcurrency (live REST, 200 committed); MCP:MCP.Graph.Transaction (typed + serialized payloads); Imp:Transactions.Client.* and Correctness.* (SDK depth); Vec:TransactionRollbackStaging / ConcurrentTransactionStaging | Imp REST cases (409 duplicate rollback); MCP case (ValidationFailure on targetless delete); Imp:Client.Cancellation / Timeout / MixedRollbackAndLimits; denial | |
+| GraphTransaction (`POST .../graphs/{g}/transaction`; `graph_transaction`) | Imp:Transactions.Server.SqliteRestConcurrency / PostgresqlRestConcurrency (live REST, 200 committed); MCP:MCP.Graph.Transaction (typed + serialized payloads); Imp:Transactions.Client.* and Correctness.* (SDK depth); Vec:TransactionRollbackStaging / ConcurrentTransactionStaging | Imp REST cases (409 duplicate rollback); MCP case (ValidationFailure on targetless delete); Imp:Client.Cancellation / Timeout / MixedRollbackAndLimits; denial | |
 
 ## Import/Export
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| GraphExport — GEXF (`GET .../export/gexf`; `graph/exportgexf`) | SDK-C# (live route); SDK-Py/JS (client side) | SDK-Py mixin gexf error (client side only) | No server-side negative; MCP `graph/exportgexf` untested. |
-| GraphExportJsonl (`GET .../export/jsonl`; `graph/exportjsonl`) | Imp:McpBoundary (allowed leg, live); IE:Jsonl.RoundTripWholeGraph (SDK) | denial | |
-| GraphExportSubgraphJsonl (`POST .../export/jsonl`; `graph/exportsubgraphjsonl`) | Imp:McpBoundary (allowed leg, live); SDK-Py (client side) | denial | |
-| GraphImportJsonl (`POST .../{g}/import/jsonl`; `graph/importjsonl`) | Imp:McpBoundary (allowed leg, live); IE:Import.Merge* (SDK: skip/overwrite/regenerate merge modes) | IE:Import.PreserveCollisionThrows / MalformedAbortThrows / MergeMissingTargetThrows / DanglingEdgeDropped (SDK); denial | |
+| GraphExport — GEXF (`GET .../export/gexf`; `graph_exportgexf`) | SDK-C# (live route); SDK-Py/JS (client side) | SDK-Py mixin gexf error (client side only) | No server-side negative; MCP `graph_exportgexf` untested. |
+| GraphExportJsonl (`GET .../export/jsonl`; `graph_exportjsonl`) | Imp:McpBoundary (allowed leg, live); IE:Jsonl.RoundTripWholeGraph (SDK) | denial | |
+| GraphExportSubgraphJsonl (`POST .../export/jsonl`; `graph_exportsubgraphjsonl`) | Imp:McpBoundary (allowed leg, live); SDK-Py (client side) | denial | |
+| GraphImportJsonl (`POST .../{g}/import/jsonl`; `graph_importjsonl`) | Imp:McpBoundary (allowed leg, live); IE:Import.Merge* (SDK: skip/overwrite/regenerate merge modes) | IE:Import.PreserveCollisionThrows / MalformedAbortThrows / MergeMissingTargetThrows / DanglingEdgeDropped (SDK); denial | |
 | GraphImportJsonlNew (`POST .../graphs/import/jsonl`) | IE:Jsonl.RoundTripWholeGraph, Import.CreateNewPreservesNodeGuids (SDK create-new semantics); SDK-JS (mock client) | IE:Import.MalformedAbortThrows, EmptyBodyCreatesEmptyGraph boundary (SDK) | The create-new route itself is never driven over HTTP; coverage is SDK-layer. |
 
 ## Backups and flush
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| Backup (`POST /v1.0/backups`; `admin/backup`) | MCP:MCP.Admin.Backup; SDK-C# | SDK-C# TestAdminBackupUnsupported (unsupported provider) | Enum-resolution mismatch on this route (see Findings). No invalid-request negative. |
-| BackupReadAll (`GET /v1.0/backups`; `admin/backups`) | MCP:MCP.Admin.Backups; SDK-C# | SDK-C# unsupported-provider case | |
-| BackupRead (`GET /v1.0/backups/{f}`; `admin/backupread`) | MCP:MCP.Admin.BackupRead; SDK-C# | — | No missing-filename negative. |
-| BackupExists (`HEAD /v1.0/backups/{f}`; `admin/backupexists`) | MCP:MCP.Admin.BackupExists; SDK-C# | — | No missing-filename negative. |
-| BackupDelete (`DELETE /v1.0/backups/{f}`; `admin/backupdelete`) | MCP:MCP.Admin.BackupDelete; SDK-C# | — | No missing-filename negative. |
-| FlushDatabase (`POST /v1.0/flush`; `admin/flush`) | MCP:MCP.Admin.Flush; SDK-C# | denial (Imp:McpBoundary) | |
+| Backup (`POST /v1.0/backups`; `admin_backup`) | MCP:MCP.Admin.Backup; SDK-C# | SDK-C# TestAdminBackupUnsupported (unsupported provider) | Enum-resolution mismatch on this route (see Findings). No invalid-request negative. |
+| BackupReadAll (`GET /v1.0/backups`; `admin_backups`) | MCP:MCP.Admin.Backups; SDK-C# | SDK-C# unsupported-provider case | |
+| BackupRead (`GET /v1.0/backups/{f}`; `admin_backupread`) | MCP:MCP.Admin.BackupRead; SDK-C# | — | No missing-filename negative. |
+| BackupExists (`HEAD /v1.0/backups/{f}`; `admin_backupexists`) | MCP:MCP.Admin.BackupExists; SDK-C# | — | No missing-filename negative. |
+| BackupDelete (`DELETE /v1.0/backups/{f}`; `admin_backupdelete`) | MCP:MCP.Admin.BackupDelete; SDK-C# | — | No missing-filename negative. |
+| FlushDatabase (`POST /v1.0/flush`; `admin_flush`) | MCP:MCP.Admin.Flush; SDK-C# | denial (Imp:McpBoundary) | |
 
 ## Settings
 
@@ -316,15 +316,15 @@ The bulk of the 205 MCP tools are covered inside the domain tables above: the `M
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| `tenant/getmany`, `user/getmany`, `credential/getmany`, `graph/getmany`, `node/getmany`, `edge/getmany`, `label/getmany`, `tag/getmany`, `vector/getmany` | MCP:MCP.*.GetMany cases | denial (families in Imp:McpBoundary) | |
-| `tenant/statisticsall` | Imp:McpBoundary (allowed leg) | denial | |
-| `userauthentication/gettenantsforemail`, `generatetoken`, `gettokendetails` (3 tools) | — | — | No test found (REST twins are covered by SDK-C#). Needs a case. |
+| `tenant_getmany`, `user_getmany`, `credential_getmany`, `graph_getmany`, `node_getmany`, `edge_getmany`, `label_getmany`, `tag_getmany`, `vector_getmany` | MCP:MCP.*.GetMany cases | denial (families in Imp:McpBoundary) | |
+| `tenant_statisticsall` | Imp:McpBoundary (allowed leg) | denial | |
+| `userauthentication_gettenantsforemail`, `generatetoken`, `gettokendetails` (3 tools) | — | — | No test found (REST twins are covered by SDK-C#). Needs a case. |
 | `chat/*` (18 tools: endpoint CRUD/test/health, completions, threads, feedback, settings) | ChatR:McpChatTools smokes chat/settings/get, chat/endpoint/create|all|delete, chat/thread/all | — | Remaining 13 chat tools (get/update/test/health, completions, thread get/delete/turns, feedback tools, settings update) are thin proxies onto REST routes Chat.Rest covers; their argument marshalling is untested. |
-| `graph/getsubgraph`, `graph/getsubgraphstatistics` | — | — | No test found (REST twins covered by SDK-C#). Needs a case. |
-| `graph/exportgexf` | — | — | No test found (REST twin covered by SDK-C#). Needs a case. |
-| `graph/enablevectorindexing`, `graph/rebuildvectorindex`, `graph/getvectorindexstatistics` | — | — | No test found; SDK-layer twins covered by Vec suites. |
-| `graph/deletevectorindex`, `graph/getvectorindexconfig` | — | — | No test found on any layer (matches the route gap). Needs a case. |
-| `edge/deletenodeedges` | — | — | No test found (matches the route gap). Needs a case. |
+| `graph_getsubgraph`, `graph_getsubgraphstatistics` | — | — | No test found (REST twins covered by SDK-C#). Needs a case. |
+| `graph_exportgexf` | — | — | No test found (REST twin covered by SDK-C#). Needs a case. |
+| `graph_enablevectorindexing`, `graph_rebuildvectorindex`, `graph_getvectorindexstatistics` | — | — | No test found; SDK-layer twins covered by Vec suites. |
+| `graph_deletevectorindex`, `graph_getvectorindexconfig` | — | — | No test found on any layer (matches the route gap). Needs a case. |
+| `edge_deletenodeedges` | — | — | No test found (matches the route gap). Needs a case. |
 | Unknown-tool error path | — | Obs:McpErrorCounter (unregistered tool → error counter) | |
 
 ## General and infrastructure
@@ -346,11 +346,11 @@ Every surface lacking positive or negative coverage, with a justification or a "
 
 **No test on any layer — needs a case:**
 
-- `GraphVectorIndexDisable` (`DELETE .../vectorindex`, v1+v2, and MCP `graph/deletevectorindex`) — the only vector-index lifecycle operation with zero coverage.
-- `GraphVectorIndexConfig` (`GET .../vectorindex/config`, v1+v2, and MCP `graph/getvectorindexconfig`) — the model round-trips in `Vec:Configuration`, but no test reads config through client, route, or tool.
-- `EdgeDeleteNodeEdges` (`DELETE .../nodes/{n}/edges` and MCP `edge/deletenodeedges`) — the bulk variant is tested; the singular is not.
+- `GraphVectorIndexDisable` (`DELETE .../vectorindex`, v1+v2, and MCP `graph_deletevectorindex`) — the only vector-index lifecycle operation with zero coverage.
+- `GraphVectorIndexConfig` (`GET .../vectorindex/config`, v1+v2, and MCP `graph_getvectorindexconfig`) — the model round-trips in `Vec:Configuration`, but no test reads config through client, route, or tool.
+- `EdgeDeleteNodeEdges` (`DELETE .../nodes/{n}/edges` and MCP `edge_deletenodeedges`) — the bulk variant is tested; the singular is not.
 - `GET /v1.0/requesthistory/summary`, `DELETE /v1.0/requesthistory/{g}`, `DELETE /v1.0/requesthistory/bulk` — summary aggregation and both delete paths are untested at every layer.
-- MCP `userauthentication/*` (3 tools), 13 of the `chat/*` tools, `graph/getsubgraph`, `graph/getsubgraphstatistics`, `graph/exportgexf` — proxies whose REST twins are tested, but the tools' own argument handling is not (five chat tools now have a smoke pass via ChatR:McpChatTools).
+- MCP `userauthentication/*` (3 tools), 13 of the `chat/*` tools, `graph_getsubgraph`, `graph_getsubgraphstatistics`, `graph_exportgexf` — proxies whose REST twins are tested, but the tools' own argument handling is not (five chat tools now have a smoke pass via ChatR:McpChatTools).
 
 **Covered below the route only — route-level case would close the gap:**
 
@@ -379,7 +379,7 @@ These are inventory-level defects, not test gaps, but they belong in the record 
 1. `POST /v1.0/backups` is the registered route, but `UrlContext` maps only the singular `POST /v1.0/backup` to `RequestTypeEnum.Backup` — so backup creation resolves to `Unknown` at the enum layer (observability route labels and authorization classification see `Unknown`, not `Backup`).
 2. `RequestTypeEnum.UserReadTenants` is an orphan: no route resolves to it. The related public route `GET /v1.0/token/tenants` resolves to `Unknown`.
 3. `RequestTypeEnum.EdgeReadMany` carries `[EnumMember(Value = "EdgeReadFirst")]` — a copy-paste artifact; there is no distinct `EdgeReadFirst` member, and `POST .../edges/first` resolves to `EdgeReadAll`.
-4. The MCP tag scope-delete tools for graph and node are registered as `tag/deletegraphlabels` and `tag/deletenodelabels` (the "labels" suffix), while the edge variant is `tag/deleteedgetags`. Tests call them verbatim, so they are covered — under the misleading names.
+4. The MCP tag scope-delete tools for graph and node are registered as `tag_deletegraphlabels` and `tag_deletenodelabels` (the "labels" suffix), while the edge variant is `tag_deleteedgetags`. Tests call them verbatim, so they are covered — under the misleading names.
 5. The six request-history routes and three token routes have no `RequestTypeEnum` values, which keeps them outside the authorization permission matrix that `Imp:Credentials.AuthorizationPermissionMatrix` verifies.
 
 ## Totals

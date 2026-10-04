@@ -558,8 +558,8 @@ class TestChatCompletion:
             "",
             'data: {"event":"delta","content":"The answer"}',
             'data: {"event":"delta","content":" is 42."}',
-            'data: {"event":"tool_call","name":"node/search","arguments":"{}","iteration":1}',
-            'data: {"event":"tool_result","name":"node/search","success":true,"error":null,"runtimeMs":12.3}',
+            'data: {"event":"tool_call","name":"node_search","arguments":"{}","iteration":1}',
+            'data: {"event":"tool_result","name":"node_search","success":true,"error":null,"runtimeMs":12.3}',
             'data: {"event":"usage","usage":{"ThreadGUID":"' + THREAD_GUID + '","TurnGUID":"' + TURN_GUID + '","Message":"The answer is 42.","Provider":"OpenAI","TotalDurationMs":812.5}}',
             "data: [DONE]",
             'data: {"event":"delta","content":"never seen"}',
@@ -580,7 +580,7 @@ class TestChatCompletion:
         ]
         assert events[0]["threadGuid"] == THREAD_GUID
         assert events[1]["content"] == "The answer"
-        assert events[3]["name"] == "node/search"
+        assert events[3]["name"] == "node_search"
         assert events[4]["success"] is True
         assert events[5]["usage"]["Message"] == "The answer is 42."
 

@@ -58,6 +58,7 @@ namespace Test.Shared
                     ChatCase("Chat.Rest", "Chat.Rest.Metrics", "Chat metrics appear on the metrics endpoint", TestChatRestMetrics),
                     ChatCase("Chat.Rest", "Chat.Rest.ToolCatalogParity", "Every chat-advertised tool exists in the MCP catalog", TestChatToolCatalogParity),
                     ChatCase("Chat.Rest", "Chat.Rest.EndpointReadUpdateTest", "Endpoint read, exists, update, and connectivity test over HTTP", TestChatRestEndpointReadUpdateTest),
+                    ChatCase("Chat.Rest", "Chat.Rest.EmbeddingEndpointClients", "Embedding endpoints test connectivity, list models, and generate node embeddings through the PolyPrompt embedding client", TestChatRestEmbeddingEndpointClients),
                     ChatCase("Chat.Rest", "Chat.Rest.EndpointPreload", "Model preload warms Ollama endpoints, no-ops for cloud providers, and enforces validation", TestChatRestEndpointPreload),
                     ChatCase("Chat.Rest", "Chat.Rest.EndpointHealthRoutes", "Endpoint health routes report monitored state and reject unknown endpoints", TestChatRestEndpointHealthRoutes),
                     ChatCase("Chat.Rest", "Chat.Rest.FeedbackReadAndNegatives", "Single feedback read, unknown-GUID deletes, and cross-user turn denial", TestChatRestFeedbackReadAndNegatives),
@@ -742,7 +743,7 @@ namespace Test.Shared
                     string userBearer = await ProvisionUserAsync(endpoint, _DefaultTenantGuid, "chatuser-tools@chat.test", false, false, cancellationToken).ConfigureAwait(false);
                     string endpointGuid = await ChatProvisionFakeEndpoint(endpoint, fake, cancellationToken).ConfigureAwait(false);
 
-                    fake.EnqueueToolCall("graph/all", "{}");
+                    fake.EnqueueToolCall("graph_all", "{}");
                     fake.EnqueueText("There are no graphs yet.", 30, 6);
 
                     HttpOutcome completion = await AuthRestAsync(HttpMethod.Post,
@@ -1222,15 +1223,15 @@ namespace Test.Shared
 
         private static readonly string[] _ChatAdvertisedToolNames = new string[]
         {
-            "graph/all", "graph/get", "graph/search", "graph/statistics",
-            "node/readallingraph", "node/get", "node/search", "node/neighbors", "node/children", "node/parents",
-            "edge/readallingraph", "edge/get", "edge/search", "edge/betweennodes", "edge/fromnode", "edge/tonode",
-            "vector/search",
-            "label/readallingraph", "label/readmanynode", "label/readmanyedge",
-            "tag/readallingraph", "tag/readmanynode", "tag/readmanyedge",
-            "graph/create", "graph/update", "graph/delete",
-            "node/create", "node/update", "node/delete",
-            "edge/create", "edge/update", "edge/delete"
+            "graph_all", "graph_get", "graph_search", "graph_statistics",
+            "node_readallingraph", "node_get", "node_search", "node_neighbors", "node_children", "node_parents",
+            "edge_readallingraph", "edge_get", "edge_search", "edge_betweennodes", "edge_fromnode", "edge_tonode",
+            "vector_search",
+            "label_readallingraph", "label_readmanynode", "label_readmanyedge",
+            "tag_readallingraph", "tag_readmanynode", "tag_readmanyedge",
+            "graph_create", "graph_update", "graph_delete",
+            "node_create", "node_update", "node_delete",
+            "edge_create", "edge_update", "edge_delete"
         };
 
         private static async Task TestChatToolCatalogParity(CancellationToken cancellationToken)
@@ -1240,48 +1241,7 @@ namespace Test.Shared
             try
             {
                 if (_McpEnvironment == null) throw new InvalidOperationException("MCP environment is not running.");
-                string rpcUrl = _McpEnvironment.McpHttpEndpoint + "/rpc";
-
-                HashSet<string> catalog = new HashSet<string>(StringComparer.Ordinal);
-                string? cursor = null;
-                int pages = 0;
-
-                using (HttpClient client = new HttpClient())
-                {
-                    client.Timeout = TimeSpan.FromSeconds(30);
-
-                    do
-                    {
-                        string paramsJson = cursor == null ? "{}" : "{\"cursor\":" + JsonSerializer.Serialize(cursor) + "}";
-
-                        using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, rpcUrl))
-                        {
-                            request.Content = new StringContent("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"tools/list\",\"params\":" + paramsJson + "}", Encoding.UTF8, "application/json");
-
-                            using (HttpResponseMessage response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false))
-                            {
-                                string body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-                                AssertEqual(200, (int)response.StatusCode, "tools/list responds (body " + Truncate(body, 200) + ")");
-                                pages++;
-
-                                using (JsonDocument document = JsonDocument.Parse(body))
-                                {
-                                    JsonElement result = document.RootElement.GetProperty("result");
-                                    foreach (JsonElement tool in result.GetProperty("tools").EnumerateArray())
-                                    {
-                                        if (tool.TryGetProperty("name", out JsonElement name) && name.ValueKind == JsonValueKind.String)
-                                            catalog.Add(name.GetString()!);
-                                    }
-
-                                    cursor = result.TryGetProperty("nextCursor", out JsonElement next) && next.ValueKind == JsonValueKind.String
-                                        ? next.GetString()
-                                        : null;
-                                }
-                            }
-                        }
-                    }
-                    while (!String.IsNullOrEmpty(cursor) && pages < 50);
-                }
+                HashSet<string> catalog = await ListMcpToolNamesAsync(cancellationToken).ConfigureAwait(false);
 
                 foreach (string toolName in _ChatAdvertisedToolNames)
                 {
@@ -1326,6 +1286,52 @@ namespace Test.Shared
                     AssertEqual(200, tested.Status, "Endpoint connectivity test succeeds (body " + tested.Body + ")");
                     AssertTrue(tested.Body.Contains("\"Reachable\":true") || tested.Body.Contains("\"Reachable\": true"), "The fake endpoint is reachable");
                     AssertTrue(tested.Body.Contains("fake-model"), "The model list contains the fake model");
+                }
+                finally
+                {
+                    await CleanupMcpServer().ConfigureAwait(false);
+                }
+            }
+        }
+
+        private static async Task TestChatRestEmbeddingEndpointClients(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+
+            using (FakeLlmServer fake = new FakeLlmServer())
+            {
+                try
+                {
+                    string endpoint = RequireEndpoint();
+                    string baseUrl = endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/chat/endpoints";
+
+                    HttpOutcome created = await AuthRestAsync(HttpMethod.Put, baseUrl, _AdminBearerToken,
+                        "{\"Name\":\"fake-openai-embed\",\"EndpointType\":\"Embedding\",\"Provider\":\"OpenAI\",\"Endpoint\":\"" + fake.Endpoint + "\",\"Model\":\"fake-model\",\"HealthCheckEnabled\":false}",
+                        cancellationToken).ConfigureAwait(false);
+                    AssertTrue(IsSuccess(created.Status), "Embedding endpoint created (status " + created.Status + " body " + created.Body + ")");
+                    string embeddingGuid = ExtractGuid(created.Body);
+
+                    HttpOutcome tested = await AuthRestAsync(HttpMethod.Post, baseUrl + "/" + embeddingGuid + "/test", _AdminBearerToken, null, cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, tested.Status, "Embedding endpoint connectivity test succeeds (body " + tested.Body + ")");
+                    AssertTrue(tested.Body.Contains("\"Reachable\":true") || tested.Body.Contains("\"Reachable\": true"), "The fake embedding endpoint is reachable (body " + tested.Body + ")");
+                    AssertTrue(tested.Body.Contains("\"ModelExists\":true") || tested.Body.Contains("\"ModelExists\": true"), "The model client lists the embedding model (body " + tested.Body + ")");
+
+                    HttpOutcome graphCreated = await AuthRestAsync(HttpMethod.Put,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs",
+                        _AdminBearerToken, "{\"Name\":\"embedding-client-graph\"}", cancellationToken).ConfigureAwait(false);
+                    AssertTrue(IsSuccess(graphCreated.Status), "Embedding graph created (status " + graphCreated.Status + ")");
+                    string graphGuid = ExtractGuid(graphCreated.Body);
+
+                    HttpOutcome nodeCreated = await AuthRestAsync(HttpMethod.Put,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs/" + graphGuid + "/nodes",
+                        _AdminBearerToken, "{\"Name\":\"embedded node\",\"Data\":{\"text\":\"hello\"}}", cancellationToken).ConfigureAwait(false);
+                    AssertTrue(IsSuccess(nodeCreated.Status), "Embedding node created (status " + nodeCreated.Status + " body " + nodeCreated.Body + ")");
+
+                    HttpOutcome generated = await AuthRestAsync(HttpMethod.Post,
+                        endpoint + "/v1.0/tenants/" + _DefaultTenantGuid + "/graphs/" + graphGuid + "/algorithms/embeddings",
+                        _AdminBearerToken, "{}", cancellationToken).ConfigureAwait(false);
+                    AssertEqual(200, generated.Status, "Node embedding generation succeeds (body " + generated.Body + ")");
+                    AssertTrue(generated.Body.Contains("\"NodesEmbedded\":1") || generated.Body.Contains("\"NodesEmbedded\": 1"), "One node is embedded (body " + generated.Body + ")");
                 }
                 finally
                 {
@@ -1535,11 +1541,11 @@ namespace Test.Shared
             {
                 if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
 
-                string settingsJson = await CallMcpToolAsync<string>("chat/settings/get", new { tenantGuid = _DefaultTenantGuid }).ConfigureAwait(false);
+                string settingsJson = await CallMcpToolAsync<string>("chat_settings_get", new { tenantGuid = _DefaultTenantGuid }).ConfigureAwait(false);
                 AssertNotNull(settingsJson, "chat/settings/get returns settings");
                 AssertTrue(settingsJson!.Contains("EnableChat"), "The settings payload carries EnableChat");
 
-                string createdJson = await CallMcpToolAsync<string>("chat/endpoint/create", new
+                string createdJson = await CallMcpToolAsync<string>("chat_endpoint_create", new
                 {
                     tenantGuid = _DefaultTenantGuid,
                     endpoint = "{\"Name\":\"mcp-created\",\"EndpointType\":\"Completion\",\"Provider\":\"Ollama\",\"Endpoint\":\"http://127.0.0.1:11434\",\"Model\":\"gemma3:4b\",\"HealthCheckEnabled\":false}"
@@ -1547,16 +1553,16 @@ namespace Test.Shared
                 AssertNotNull(createdJson, "chat/endpoint/create returns the endpoint");
                 string endpointGuid = ExtractGuid(createdJson!);
 
-                string listJson = await CallMcpToolAsync<string>("chat/endpoint/all", new { tenantGuid = _DefaultTenantGuid }).ConfigureAwait(false);
+                string listJson = await CallMcpToolAsync<string>("chat_endpoint_all", new { tenantGuid = _DefaultTenantGuid }).ConfigureAwait(false);
                 AssertTrue(listJson != null && listJson.Contains("mcp-created"), "chat/endpoint/all lists the created endpoint");
 
-                string threadsJson = await CallMcpToolAsync<string>("chat/thread/all", new { tenantGuid = _DefaultTenantGuid }).ConfigureAwait(false);
+                string threadsJson = await CallMcpToolAsync<string>("chat_thread_all", new { tenantGuid = _DefaultTenantGuid }).ConfigureAwait(false);
                 AssertNotNull(threadsJson, "chat/thread/all responds");
 
-                bool deleted = await CallMcpToolAsync<bool>("chat/endpoint/delete", new { tenantGuid = _DefaultTenantGuid, endpointGuid = endpointGuid }).ConfigureAwait(false);
+                bool deleted = await CallMcpToolAsync<bool>("chat_endpoint_delete", new { tenantGuid = _DefaultTenantGuid, endpointGuid = endpointGuid }).ConfigureAwait(false);
                 AssertTrue(deleted, "chat/endpoint/delete reports success");
 
-                string listAfterDelete = await CallMcpToolAsync<string>("chat/endpoint/all", new { tenantGuid = _DefaultTenantGuid }).ConfigureAwait(false);
+                string listAfterDelete = await CallMcpToolAsync<string>("chat_endpoint_all", new { tenantGuid = _DefaultTenantGuid }).ConfigureAwait(false);
                 AssertFalse(listAfterDelete != null && listAfterDelete.Contains("mcp-created"), "chat/endpoint/delete removes the endpoint");
             }
             finally

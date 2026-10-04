@@ -783,7 +783,7 @@ namespace LiteGraph.Indexing.Vector
                         HnswIndexState data = new HnswIndexState
                         {
                             FormatVersion = HnswIndexState.CurrentFormatVersion,
-                            HnswLiteVersion = "2.0.1",
+                            HnswLiteVersion = "2.1.0",
                             EntryPoint = _Storage.GetEntryPointAsync().Result,
                             NodeCount = _Storage.GetCountAsync().Result,
                             LastSaved = DateTime.UtcNow,
@@ -888,7 +888,7 @@ namespace LiteGraph.Indexing.Vector
                     || formatVersion != HnswIndexState.CurrentFormatVersion)
                 {
                     compatibilityIssue = "HNSW SQLite index artifact '" + _FilePath + "' is not LiteGraph HNSW format "
-                        + HnswIndexState.CurrentFormatVersion + " for HnswLite 2.0.1. Rebuild the vector index before using indexed search.";
+                        + HnswIndexState.CurrentFormatVersion + " for HnswLite 2.1.0. Rebuild the vector index before using indexed search.";
                     return false;
                 }
 

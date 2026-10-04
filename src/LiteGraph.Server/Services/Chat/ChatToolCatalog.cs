@@ -34,7 +34,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "graph/all",
+                Name = "graph_all",
                 Description = "Lists graphs in the tenant as a paginated enumeration result (Objects, TotalRecords, RecordsRemaining)",
                 RequestType = RequestTypeEnum.GraphReadAllInTenant,
                 Schema = SchemaOf(PaginationProperties()),
@@ -44,7 +44,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "graph/get",
+                Name = "graph_get",
                 Description = "Reads a graph by GUID",
                 RequestType = RequestTypeEnum.GraphRead,
                 Schema = SchemaOf(new
@@ -64,7 +64,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "graph/search",
+                Name = "graph_search",
                 Description = "Searches graphs by name and labels",
                 RequestType = RequestTypeEnum.GraphSearch,
                 Schema = SchemaOf(new
@@ -79,7 +79,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "graph/statistics",
+                Name = "graph_statistics",
                 Description = "Gets node, edge, label, tag, and vector counts for a graph",
                 RequestType = RequestTypeEnum.GraphStatistics,
                 Schema = SchemaOf(new
@@ -96,7 +96,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "node/readallingraph",
+                Name = "node_readallingraph",
                 Description = "Lists nodes in a graph as a paginated enumeration result (Objects, TotalRecords, RecordsRemaining)",
                 RequestType = RequestTypeEnum.NodeReadAllInGraph,
                 Schema = GraphScopedPagedSchema(),
@@ -106,7 +106,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "node/get",
+                Name = "node_get",
                 Description = "Reads a node by GUID",
                 RequestType = RequestTypeEnum.NodeRead,
                 Schema = SchemaOf(new
@@ -128,7 +128,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "node/search",
+                Name = "node_search",
                 Description = "Searches nodes in a graph by name and labels",
                 RequestType = RequestTypeEnum.NodeSearch,
                 Schema = SchemaOf(new
@@ -148,7 +148,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "node/neighbors",
+                Name = "node_neighbors",
                 Description = "Lists the neighbors of a node as a paginated enumeration result",
                 RequestType = RequestTypeEnum.NodeNeighbors,
                 Schema = NodeTargetPagedSchema(),
@@ -158,7 +158,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "node/children",
+                Name = "node_children",
                 Description = "Lists the child nodes of a node as a paginated enumeration result",
                 RequestType = RequestTypeEnum.NodeChildren,
                 Schema = NodeTargetPagedSchema(),
@@ -168,7 +168,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "node/parents",
+                Name = "node_parents",
                 Description = "Lists the parent nodes of a node as a paginated enumeration result",
                 RequestType = RequestTypeEnum.NodeParents,
                 Schema = NodeTargetPagedSchema(),
@@ -182,7 +182,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "edge/readallingraph",
+                Name = "edge_readallingraph",
                 Description = "Lists edges in a graph as a paginated enumeration result (Objects, TotalRecords, RecordsRemaining)",
                 RequestType = RequestTypeEnum.EdgeReadAllInGraph,
                 Schema = GraphScopedPagedSchema(),
@@ -192,7 +192,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "edge/get",
+                Name = "edge_get",
                 Description = "Reads an edge by GUID",
                 RequestType = RequestTypeEnum.EdgeRead,
                 Schema = SchemaOf(new
@@ -210,7 +210,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "edge/search",
+                Name = "edge_search",
                 Description = "Searches edges in a graph by name and labels",
                 RequestType = RequestTypeEnum.EdgeSearch,
                 Schema = SchemaOf(new
@@ -230,7 +230,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "edge/betweennodes",
+                Name = "edge_betweennodes",
                 Description = "Lists edges between two nodes as a paginated enumeration result",
                 RequestType = RequestTypeEnum.EdgeBetween,
                 Schema = SchemaOf(new
@@ -253,7 +253,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "edge/fromnode",
+                Name = "edge_fromnode",
                 Description = "Lists edges originating from a node as a paginated enumeration result",
                 RequestType = RequestTypeEnum.EdgesFromNode,
                 Schema = NodeTargetPagedSchema(),
@@ -263,7 +263,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "edge/tonode",
+                Name = "edge_tonode",
                 Description = "Lists edges terminating at a node as a paginated enumeration result",
                 RequestType = RequestTypeEnum.EdgesToNode,
                 Schema = NodeTargetPagedSchema(),
@@ -277,7 +277,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "vector/search",
+                Name = "vector_search",
                 Description = "Semantic similarity search over graph vectors.  Provide natural-language text; the server embeds it and returns the most similar nodes with scores as a paginated enumeration result.",
                 RequestType = RequestTypeEnum.VectorSearch,
                 RequiresEmbedding = true,
@@ -311,7 +311,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "label/readallingraph",
+                Name = "label_readallingraph",
                 Description = "Lists labels in a graph as a paginated enumeration result",
                 RequestType = RequestTypeEnum.LabelReadAllInGraph,
                 Schema = GraphScopedPagedSchema(),
@@ -321,7 +321,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "label/readmanynode",
+                Name = "label_readmanynode",
                 Description = "Lists the labels attached to a node as a paginated enumeration result",
                 RequestType = RequestTypeEnum.LabelReadManyNode,
                 Schema = NodeTargetPagedSchema(),
@@ -331,7 +331,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "label/readmanyedge",
+                Name = "label_readmanyedge",
                 Description = "Lists the labels attached to an edge as a paginated enumeration result",
                 RequestType = RequestTypeEnum.LabelReadManyEdge,
                 Schema = EdgeTargetPagedSchema(),
@@ -341,7 +341,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "tag/readallingraph",
+                Name = "tag_readallingraph",
                 Description = "Lists tags in a graph as a paginated enumeration result",
                 RequestType = RequestTypeEnum.TagReadAllInGraph,
                 Schema = GraphScopedPagedSchema(),
@@ -351,7 +351,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "tag/readmanynode",
+                Name = "tag_readmanynode",
                 Description = "Lists the tags attached to a node as a paginated enumeration result",
                 RequestType = RequestTypeEnum.TagReadManyNode,
                 Schema = NodeTargetPagedSchema(),
@@ -361,7 +361,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "tag/readmanyedge",
+                Name = "tag_readmanyedge",
                 Description = "Lists the tags attached to an edge as a paginated enumeration result",
                 RequestType = RequestTypeEnum.TagReadManyEdge,
                 Schema = EdgeTargetPagedSchema(),
@@ -375,7 +375,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "graph/create",
+                Name = "graph_create",
                 Description = "Creates a new graph in LiteGraph",
                 RequestType = RequestTypeEnum.GraphCreate,
                 Mutation = true,
@@ -389,7 +389,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "graph/update",
+                Name = "graph_update",
                 Description = "Updates a graph.  Supply the full graph object; omitted fields are cleared.",
                 RequestType = RequestTypeEnum.GraphUpdate,
                 Mutation = true,
@@ -409,7 +409,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "graph/delete",
+                Name = "graph_delete",
                 Description = "Deletes a graph",
                 RequestType = RequestTypeEnum.GraphDelete,
                 Mutation = true,
@@ -428,7 +428,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "node/create",
+                Name = "node_create",
                 Description = "Creates a node in a graph",
                 RequestType = RequestTypeEnum.NodeCreate,
                 Mutation = true,
@@ -447,7 +447,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "node/update",
+                Name = "node_update",
                 Description = "Updates a node.  Supply the full node object; omitted fields are cleared.",
                 RequestType = RequestTypeEnum.NodeUpdate,
                 Mutation = true,
@@ -469,7 +469,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "node/delete",
+                Name = "node_delete",
                 Description = "Deletes a node",
                 RequestType = RequestTypeEnum.NodeDelete,
                 Mutation = true,
@@ -480,7 +480,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "edge/create",
+                Name = "edge_create",
                 Description = "Creates an edge between two nodes",
                 RequestType = RequestTypeEnum.EdgeCreate,
                 Mutation = true,
@@ -499,7 +499,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "edge/update",
+                Name = "edge_update",
                 Description = "Updates an edge.  Supply the full edge object; omitted fields are cleared.",
                 RequestType = RequestTypeEnum.EdgeUpdate,
                 Mutation = true,
@@ -521,7 +521,7 @@ namespace LiteGraph.Server.Services.Chat
 
             tools.Add(new ChatToolDefinition
             {
-                Name = "edge/delete",
+                Name = "edge_delete",
                 Description = "Deletes an edge",
                 RequestType = RequestTypeEnum.EdgeDelete,
                 Mutation = true,

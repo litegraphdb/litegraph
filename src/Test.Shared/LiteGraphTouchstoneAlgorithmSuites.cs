@@ -149,7 +149,7 @@ namespace Test.Shared
             if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
             if (_McpTestGraphGuid == Guid.Empty) throw new InvalidOperationException("MCP test graph not initialized");
 
-            string json = await CallMcpToolAsync<string>("algorithm/run", new
+            string json = await CallMcpToolAsync<string>("algorithm_run", new
             {
                 tenantGuid = _McpTestTenantGuid,
                 graphGuid = _McpTestGraphGuid,
@@ -165,7 +165,7 @@ namespace Test.Shared
             if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
             if (_McpTestGraphGuid == Guid.Empty) throw new InvalidOperationException("MCP test graph not initialized");
 
-            string text = await CallMcpToolAsync<string>("algorithm/export", new
+            string text = await CallMcpToolAsync<string>("algorithm_export", new
             {
                 tenantGuid = _McpTestTenantGuid,
                 graphGuid = _McpTestGraphGuid,
@@ -186,7 +186,7 @@ namespace Test.Shared
                 [_McpTestNode1Guid.ToString()] = new Dictionary<string, double> { ["mcp_import"] = 0.5d }
             };
 
-            string json = await CallMcpToolAsync<string>("algorithm/import", new
+            string json = await CallMcpToolAsync<string>("algorithm_import", new
             {
                 tenantGuid = _McpTestTenantGuid,
                 graphGuid = _McpTestGraphGuid,

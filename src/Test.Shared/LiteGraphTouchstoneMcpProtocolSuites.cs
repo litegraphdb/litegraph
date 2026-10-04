@@ -49,7 +49,7 @@ namespace Test.Shared
                     McpProtocolCase("Mcp.Protocol.ToolsListExcludesDiagnosticTools", "tools/list publishes only LiteGraph tools, with no Voltaic demo or diagnostic tools", TestMcpToolsListExcludesDiagnosticTools),
                     McpProtocolCase("Mcp.Protocol.DiagnosticToolsNotCallable", "tools/call for removed Voltaic demo tools (ping, echo, getTime, getSessions, getClients) is rejected", TestMcpDiagnosticToolsNotCallable),
                     McpProtocolCase("Mcp.Protocol.PingReturnsEmptyObject", "Protocol ping returns an empty object instead of \"pong\"", TestMcpPingReturnsEmptyObject),
-                    McpProtocolCase("Mcp.Protocol.StatelessPing", "Stateless ping returns resultType complete", TestMcpStatelessPing),
+                    McpProtocolCase("Mcp.Protocol.StatelessPing", "Stateless ping is method-not-found and server/discover returns resultType complete", TestMcpStatelessPing),
                     McpProtocolCase("Mcp.Protocol.TcpTransport", "TCP transport answers ping, lists no demo tools, and serves LiteGraph methods", TestMcpTcpTransport),
                     McpProtocolCase("Mcp.Protocol.WebSocketTransport", "WebSocket transport answers ping and serves LiteGraph methods", TestMcpWebSocketTransport),
                     McpProtocolCase("Mcp.Protocol.DeletedGraphReadReportsCause", "Reading a deleted graph returns a specific error naming the graph, not a generic internal error", TestMcpDeletedGraphReadReportsCause),
@@ -160,7 +160,7 @@ namespace Test.Shared
 
                 AssertTrue(String.IsNullOrEmpty(cursor), "tools/list pagination terminates");
                 AssertTrue(names.Count > 100, "tools/list pages return the full LiteGraph catalog (" + names.Count + " tools across " + pages + " pages)");
-                foreach (string expected in new[] { "tenant/get", "graph/create", "node/search", "edge/create", "vector/search", "authorization/role/create" })
+                foreach (string expected in new[] { "tenant_get", "graph_create", "node_search", "edge_create", "vector_search", "authorization_role_create" })
                 {
                     AssertTrue(names.Contains(expected), "tools/list includes '" + expected + "'");
                 }
@@ -172,7 +172,7 @@ namespace Test.Shared
             using (McpHttpClient client = await ConnectStatelessMcpClientAsync(cancellationToken).ConfigureAwait(false))
             {
                 JsonRpcResponse response = await client.CallToolStatelessAsync(
-                    "tenant/get",
+                    "tenant_get",
                     new { tenantGuid = _DefaultTenantGuid },
                     token: cancellationToken).ConfigureAwait(false);
 
@@ -198,7 +198,7 @@ namespace Test.Shared
                 string graphName = "mcp-stateless-" + Guid.NewGuid().ToString("N");
 
                 JsonRpcResponse created = await client.CallToolStatelessAsync(
-                    "graph/create",
+                    "graph_create",
                     new { tenantGuid = _DefaultTenantGuid, name = graphName },
                     token: cancellationToken).ConfigureAwait(false);
                 AssertTrue(created.Error == null, "tools/call graph/create succeeds (" + DescribeRpcError(created) + ")");
@@ -214,7 +214,7 @@ namespace Test.Shared
                 AssertEqual(graphName, graph!.Name, "graph/create stores the name");
 
                 JsonRpcResponse read = await client.CallToolStatelessAsync(
-                    "graph/get",
+                    "graph_get",
                     new { tenantGuid = _DefaultTenantGuid, graphGuid = graph.GUID.ToString() },
                     token: cancellationToken).ConfigureAwait(false);
                 AssertTrue(read.Error == null, "tools/call graph/get succeeds (" + DescribeRpcError(read) + ")");
@@ -227,7 +227,7 @@ namespace Test.Shared
                 }
 
                 JsonRpcResponse deleted = await client.CallToolStatelessAsync(
-                    "graph/delete",
+                    "graph_delete",
                     new { tenantGuid = _DefaultTenantGuid, graphGuid = graph.GUID.ToString(), force = true },
                     token: cancellationToken).ConfigureAwait(false);
                 AssertTrue(deleted.Error == null, "tools/call graph/delete succeeds (" + DescribeRpcError(deleted) + ")");
@@ -244,7 +244,7 @@ namespace Test.Shared
             using (McpHttpClient client = await ConnectStatelessMcpClientAsync(cancellationToken).ConfigureAwait(false))
             {
                 JsonRpcResponse response = await client.CallToolStatelessAsync(
-                    "tenant/get",
+                    "tenant_get",
                     new { },
                     token: cancellationToken).ConfigureAwait(false);
 
@@ -287,7 +287,7 @@ namespace Test.Shared
 
             JsonRpcResponse response = await _McpClient.CallAsync(
                 "tools/call",
-                new { name = "tenant/get", arguments = new { tenantGuid = _DefaultTenantGuid } },
+                new { name = "tenant_get", arguments = new { tenantGuid = _DefaultTenantGuid } },
                 token: cancellationToken).ConfigureAwait(false);
 
             AssertTrue(response.Error == null, "Handshake tools/call succeeds (" + DescribeRpcError(response) + ")");
@@ -306,15 +306,14 @@ namespace Test.Shared
             await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
             if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
 
-            JsonRpcResponse response = await _McpClient.CallAsync("tools/call", new { name = "tenant/get" }, token: cancellationToken).ConfigureAwait(false);
-            AssertTrue(response.Error != null, "tools/call tenant/get without arguments returns a JSON-RPC error");
+            JsonRpcResponse response = await _McpClient.CallAsync("tools/call", new { name = "tenant_get" }, token: cancellationToken).ConfigureAwait(false);
+            AssertToolInputRejected(response, "tools/call tenant_get without arguments", null);
 
             JsonRpcResponse missingName = await _McpClient.CallAsync(
                 "tools/call",
-                new { name = "graph/create", arguments = new { tenantGuid = _DefaultTenantGuid } },
+                new { name = "graph_create", arguments = new { tenantGuid = _DefaultTenantGuid } },
                 token: cancellationToken).ConfigureAwait(false);
-            AssertTrue(missingName.Error != null, "tools/call graph/create without a name returns a JSON-RPC error");
-            AssertEqual(-32602, missingName.Error!.Code, "Missing required argument is reported as invalid params");
+            AssertToolInputRejected(missingName, "tools/call graph_create without a name", null);
 
             JsonRpcResponse noName = await _McpClient.CallAsync("tools/call", new { arguments = new { tenantGuid = _DefaultTenantGuid } }, token: cancellationToken).ConfigureAwait(false);
             AssertTrue(noName.Error != null, "tools/call without a tool name returns a JSON-RPC error");
@@ -327,18 +326,15 @@ namespace Test.Shared
 
             JsonRpcResponse stringRequest = await _McpClient.CallAsync(
                 "tools/call",
-                new { name = "graph/query", arguments = new { tenantGuid = _DefaultTenantGuid, graphGuid = Guid.NewGuid().ToString(), request = "{\"Query\":\"MATCH (n) RETURN n\"}" } },
+                new { name = "graph_query", arguments = new { tenantGuid = _DefaultTenantGuid, graphGuid = Guid.NewGuid().ToString(), request = "{\"Query\":\"MATCH (n) RETURN n\"}" } },
                 token: cancellationToken).ConfigureAwait(false);
-            AssertTrue(stringRequest.Error != null, "graph/query with a string 'request' is rejected");
-            AssertEqual(-32602, stringRequest.Error!.Code, "Schema type mismatch is reported as invalid params");
-            AssertTrue((stringRequest.Error.Message ?? "").Contains("request"), "The rejection names the argument (" + stringRequest.Error.Message + ")");
+            AssertToolInputRejected(stringRequest, "graph_query with a string 'request'", "request");
 
             JsonRpcResponse numericGuid = await _McpClient.CallAsync(
                 "tools/call",
-                new { name = "tenant/get", arguments = new { tenantGuid = 42 } },
+                new { name = "tenant_get", arguments = new { tenantGuid = 42 } },
                 token: cancellationToken).ConfigureAwait(false);
-            AssertTrue(numericGuid.Error != null, "tenant/get with a numeric tenantGuid is rejected");
-            AssertEqual(-32602, numericGuid.Error!.Code, "Numeric tenantGuid is reported as invalid params");
+            AssertToolInputRejected(numericGuid, "tenant_get with a numeric tenantGuid", "tenantGuid");
         }
 
         private static async Task TestMcpBareToolMethodRejected(CancellationToken cancellationToken)
@@ -346,11 +342,11 @@ namespace Test.Shared
             await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
             if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
 
-            JsonRpcResponse bare = await _McpClient.CallAsync("tenant/get", new { tenantGuid = _DefaultTenantGuid }, token: cancellationToken).ConfigureAwait(false);
+            JsonRpcResponse bare = await _McpClient.CallAsync("tenant_get", new { tenantGuid = _DefaultTenantGuid }, token: cancellationToken).ConfigureAwait(false);
             AssertTrue(bare.Error != null, "Bare tenant/get call returns a JSON-RPC error");
             AssertEqual(-32601, bare.Error!.Code, "Bare tool call returns method-not-found (" + DescribeRpcError(bare) + ")");
 
-            string text = await CallMcpToolAsync<string>("tenant/get", new { tenantGuid = _DefaultTenantGuid }, token: cancellationToken).ConfigureAwait(false);
+            string text = await CallMcpToolAsync<string>("tenant_get", new { tenantGuid = _DefaultTenantGuid }, token: cancellationToken).ConfigureAwait(false);
             TenantMetadata? tenant = _McpSerializer.DeserializeJson<TenantMetadata>(text);
             AssertNotNull(tenant, "tools/call tenant/get returns a tenant");
             AssertEqual(Guid.Parse(_DefaultTenantGuid), tenant!.GUID, "tools/call tenant/get returns the default tenant");
@@ -371,7 +367,7 @@ namespace Test.Shared
 
             foreach (string name in names)
             {
-                AssertTrue(name.Contains('/'), "tools/list entry '" + name + "' is a LiteGraph resource/action tool");
+                AssertTrue(name.Contains('_') && !name.Contains('/'), "tools/list entry '" + name + "' is a LiteGraph resource_action tool");
             }
         }
 
@@ -415,13 +411,17 @@ namespace Test.Shared
         {
             using (McpHttpClient client = await ConnectStatelessMcpClientAsync(cancellationToken).ConfigureAwait(false))
             {
-                JsonRpcResponse response = await client.SendStatelessAsync("ping", null, null, cancellationToken).ConfigureAwait(false);
-                AssertTrue(response.Error == null, "Stateless ping succeeds (" + DescribeRpcError(response) + ")");
+                JsonRpcResponse ping = await client.SendStatelessAsync("ping", null, null, cancellationToken).ConfigureAwait(false);
+                AssertTrue(ping.Error != null, "Stateless ping is not served, since 2026-07-28 removed it (" + DescribeRpcError(ping) + ")");
+                AssertEqual(-32601, ping.Error!.Code, "Stateless ping returns method-not-found");
+
+                JsonRpcResponse response = await client.SendStatelessAsync("server/discover", null, null, cancellationToken).ConfigureAwait(false);
+                AssertTrue(response.Error == null, "Stateless server/discover succeeds (" + DescribeRpcError(response) + ")");
 
                 using (JsonDocument result = ParseRpcResult(response))
                 {
-                    AssertEqual(JsonValueKind.Object, result.RootElement.ValueKind, "Stateless ping result is a JSON object");
-                    AssertEqual(McpResult.ResultTypeComplete, GetStringProperty(result.RootElement, "resultType"), "Stateless ping carries resultType complete");
+                    AssertEqual(JsonValueKind.Object, result.RootElement.ValueKind, "Stateless server/discover result is a JSON object");
+                    AssertEqual(McpResult.ResultTypeComplete, GetStringProperty(result.RootElement, "resultType"), "Stateless server/discover carries resultType complete");
                 }
             }
         }
@@ -447,8 +447,10 @@ namespace Test.Shared
                     AssertFalse(name != null && _VoltaicDemoToolNames.Contains(name), "TCP tools/list does not include Voltaic demo tool '" + name + "'");
                 }
 
-                string text = await client.CallAsync<string>("tenant/get", new { tenantGuid = _DefaultTenantGuid }, 30000, cancellationToken).ConfigureAwait(false);
-                TenantMetadata? tenant = _McpSerializer.DeserializeJson<TenantMetadata>(text);
+                JsonElement tenantResult = await client.CallAsync<JsonElement>("tenant_get", new { tenantGuid = _DefaultTenantGuid }, 30000, cancellationToken).ConfigureAwait(false);
+                AssertEqual(JsonValueKind.Object, tenantResult.ValueKind, "TCP tenant_get returns a JSON object result");
+                AssertFalse(IsToolError(tenantResult), "TCP tenant_get result is not an error");
+                TenantMetadata? tenant = _McpSerializer.DeserializeJson<TenantMetadata>(GetToolText(tenantResult));
                 AssertNotNull(tenant, "TCP tenant/get returns a tenant");
                 AssertEqual(Guid.Parse(_DefaultTenantGuid), tenant!.GUID, "TCP tenant/get returns the default tenant");
 
@@ -479,8 +481,10 @@ namespace Test.Shared
 
                 await client.PingAsync(30000, cancellationToken).ConfigureAwait(false);
 
-                string text = await client.CallAsync<string>("tenant/get", new { tenantGuid = _DefaultTenantGuid }, 30000, cancellationToken).ConfigureAwait(false);
-                TenantMetadata? tenant = _McpSerializer.DeserializeJson<TenantMetadata>(text);
+                JsonElement tenantResult = await client.CallAsync<JsonElement>("tenant_get", new { tenantGuid = _DefaultTenantGuid }, 30000, cancellationToken).ConfigureAwait(false);
+                AssertEqual(JsonValueKind.Object, tenantResult.ValueKind, "WebSocket tenant_get returns a JSON object result");
+                AssertFalse(IsToolError(tenantResult), "WebSocket tenant_get result is not an error");
+                TenantMetadata? tenant = _McpSerializer.DeserializeJson<TenantMetadata>(GetToolText(tenantResult));
                 AssertNotNull(tenant, "WebSocket tenant/get returns a tenant");
                 AssertEqual(Guid.Parse(_DefaultTenantGuid), tenant!.GUID, "WebSocket tenant/get returns the default tenant");
 
@@ -501,14 +505,14 @@ namespace Test.Shared
         private static async Task<Guid> CreateAndDeleteMcpGraphAsync(CancellationToken cancellationToken)
         {
             string created = await CallMcpToolAsync<string>(
-                "graph/create",
+                "graph_create",
                 new { tenantGuid = _DefaultTenantGuid, name = "mcp-deleted-" + Guid.NewGuid().ToString("N") },
                 token: cancellationToken).ConfigureAwait(false);
             Graph? graph = _McpSerializer.DeserializeJson<Graph>(created);
             AssertNotNull(graph, "graph/create returns a graph");
 
             await CallMcpToolAsync<object>(
-                "graph/delete",
+                "graph_delete",
                 new { tenantGuid = _DefaultTenantGuid, graphGuid = graph!.GUID.ToString(), force = true },
                 token: cancellationToken).ConfigureAwait(false);
 
@@ -524,7 +528,7 @@ namespace Test.Shared
 
             JsonRpcResponse response = await _McpClient.CallAsync(
                 "tools/call",
-                new { name = "graph/get", arguments = new { tenantGuid = _DefaultTenantGuid, graphGuid = graphGuid.ToString() } },
+                new { name = "graph_get", arguments = new { tenantGuid = _DefaultTenantGuid, graphGuid = graphGuid.ToString() } },
                 token: cancellationToken).ConfigureAwait(false);
 
             AssertTrue(response.Error != null, "graph/get of a deleted graph returns a JSON-RPC error");
@@ -552,7 +556,7 @@ namespace Test.Shared
 
             JsonRpcResponse response = await _McpClient.CallAsync(
                 "tools/call",
-                new { name = "tenant/get", arguments = new { tenantGuid = "not-a-guid" } },
+                new { name = "tenant_get", arguments = new { tenantGuid = "not-a-guid" } },
                 token: cancellationToken).ConfigureAwait(false);
 
             AssertTrue(response.Error != null, "tenant/get with a malformed GUID returns a JSON-RPC error");
@@ -567,7 +571,7 @@ namespace Test.Shared
             await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
 
             string created = await CallMcpToolAsync<string>(
-                "graph/create",
+                "graph_create",
                 new { tenantGuid = _DefaultTenantGuid, name = "mcp-live-" + Guid.NewGuid().ToString("N") },
                 token: cancellationToken).ConfigureAwait(false);
             Graph? graph = _McpSerializer.DeserializeJson<Graph>(created);
@@ -576,7 +580,7 @@ namespace Test.Shared
             try
             {
                 string read = await CallMcpToolAsync<string>(
-                    "graph/get",
+                    "graph_get",
                     new { tenantGuid = _DefaultTenantGuid, graphGuid = graph!.GUID.ToString() },
                     token: cancellationToken).ConfigureAwait(false);
                 Graph? readGraph = _McpSerializer.DeserializeJson<Graph>(read);
@@ -586,7 +590,7 @@ namespace Test.Shared
             finally
             {
                 await CallMcpToolAsync<object>(
-                    "graph/delete",
+                    "graph_delete",
                     new { tenantGuid = _DefaultTenantGuid, graphGuid = graph!.GUID.ToString(), force = true },
                     token: cancellationToken).ConfigureAwait(false);
             }
@@ -606,7 +610,7 @@ namespace Test.Shared
                 AssertTrue(await tcp.ConnectAsync("127.0.0.1", _McpEnvironment.McpTcpPort, cancellationToken).ConfigureAwait(false), "TCP client connects");
                 try
                 {
-                    await tcp.CallAsync<object?>("graph/get", arguments, 30000, cancellationToken).ConfigureAwait(false);
+                    await tcp.CallAsync<object?>("graph_get", arguments, 30000, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -624,7 +628,7 @@ namespace Test.Shared
                 AssertTrue(await ws.ConnectAsync("ws://127.0.0.1:" + _McpEnvironment.McpWebSocketPort + "/mcp", cancellationToken).ConfigureAwait(false), "WebSocket client connects");
                 try
                 {
-                    await ws.CallAsync<object?>("graph/get", arguments, 30000, cancellationToken).ConfigureAwait(false);
+                    await ws.CallAsync<object?>("graph_get", arguments, 30000, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -747,6 +751,29 @@ namespace Test.Shared
             if (element.ValueKind != JsonValueKind.Object) return null;
             if (!element.TryGetProperty(propertyName, out JsonElement value)) return null;
             return value.ValueKind == JsonValueKind.String ? value.GetString() : null;
+        }
+
+        private static void AssertToolInputRejected(JsonRpcResponse response, string label, string? argumentName)
+        {
+            // Voltaic 2.2 follows MCP 2025-11-25: arguments that fail the input schema produce a tool result with
+            // isError set, so the model can correct them.  A JSON-RPC invalid-params error is also accepted.
+            if (response.Error != null)
+            {
+                AssertEqual(-32602, response.Error.Code, label + " is reported as invalid params");
+                if (argumentName != null)
+                    AssertTrue((response.Error.Message ?? "").Contains(argumentName), label + ": the rejection names the argument (" + response.Error.Message + ")");
+                return;
+            }
+
+            using (JsonDocument result = ParseRpcResult(response))
+            {
+                AssertTrue(IsToolError(result.RootElement), label + " returns an isError tool result");
+                if (argumentName != null)
+                {
+                    string text = GetToolText(result.RootElement);
+                    AssertTrue(text.Contains(argumentName), label + ": the rejection names the argument (" + text + ")");
+                }
+            }
         }
 
         private static bool IsToolError(JsonElement result)

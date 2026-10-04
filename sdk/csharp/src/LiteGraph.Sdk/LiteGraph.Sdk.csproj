@@ -2,9 +2,9 @@
 
 	<PropertyGroup>
 		<TargetFrameworks>net8.0</TargetFrameworks>
-		<Version>10.0.0</Version>
+		<Version>10.1.0</Version>
 		<Description>SDK for LiteGraph, a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
-		<PackageReleaseNotes>v10.0.0: cluster, health, and request history methods, the answering node on every response (LastNodeId), and retries with backoff for idempotent requests.</PackageReleaseNotes>
+		<PackageReleaseNotes>v10.1.0: RestWrapper 3.3.1.</PackageReleaseNotes>
 		<ApplicationIcon>Assets\favicon.ico</ApplicationIcon>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Title>LiteGraph.Sdk</Title>
@@ -30,7 +30,7 @@
 	<ItemGroup>
 		<PackageReference Include="ExpressionTree" Version="1.1.2" />
 		<PackageReference Include="PrettyId" Version="2.0.1" />
-		<PackageReference Include="RestWrapper" Version="3.3.0" />
+		<PackageReference Include="RestWrapper" Version="3.3.1" />
 	</ItemGroup>
 
 	<ItemGroup>

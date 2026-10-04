@@ -4,7 +4,7 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/LiteGraph.svg?style=flat)](https://www.nuget.org/packages/LiteGraph/) [![NuGet](https://img.shields.io/nuget/dt/LiteGraph.svg)](https://www.nuget.org/packages/LiteGraph) [![Documentation](https://img.shields.io/badge/docs-litegraph.readme.io-blue)](https://litegraph.readme.io/)
 
-Current release: `v10.0.0`.
+Current release: `v10.1.0`.
 
 LiteGraph is a property graph database for applications that need graph relationships, tags, labels, JSON data, and vector search in one persistence layer. It can be embedded in a .NET process with `LiteGraphClient`, run as a standalone REST server, used through official SDKs, managed through the dashboard, or controlled by AI agents through the Model Context Protocol (MCP).
 
@@ -18,7 +18,7 @@ The `v7.0.0` transaction-scaling work is now merged into `main`. Historical plan
 - Native LiteGraph graph query language for reads, traversals, vector search, and graph mutations
 - Graph algorithms (centrality, PageRank, connected components, community detection) with write-back and a rustworkx/NetworkX export-compute-import path
 - Graph-scoped transactions for nodes, edges, labels, tags, and vectors
-- Vector search: pgvector HNSW in the database on PostgreSQL, `HnswLite` `2.0.1` in process on SQLite
+- Vector search: pgvector HNSW in the database on PostgreSQL, `HnswLite` `2.1.0` in process on SQLite
 - REST server with bearer-token authentication, request history, RBAC, and OpenAPI/Postman assets
 - LLM chat over graph data with five provider types, SSE streaming, an in-process graph tool loop, and vector retrieval
 - MCP server with HTTP, TCP, and WebSocket transports
@@ -65,6 +65,14 @@ Authorization — built-in and custom roles (including the delegable Chat Admin)
 
 </details>
 
+## New In v10.1
+
+v10.1 updates dependencies. **MCP clients must update tool names**: the MCP server's tools now use underscores instead of slashes (`graph_get` instead of `graph/get`, `chat_endpoint_all` instead of `chat/endpoint/all`), because the MCP specification allows only letters, digits, `_`, `-`, and `.` in tool names. Replace each `/` with `_`; arguments and results are unchanged. The chat assistant's tool names change the same way. Storage is unchanged, so SQLite and PostgreSQL deployments upgrade in place.
+
+- MCP over TCP and WebSocket returns tool result objects instead of bare strings, schema validation failures come back as `isError` tool results, and a new `ToolCallsPerSecond` setting in `litegraph-mcp.json` enables Voltaic's per-client rate limit (off by default).
+- Chat and RAG use PolyPrompt 3.1, with a completion, embedding, or model client per endpoint capability.
+- Updated packages: PolyPrompt 3.1.0, Voltaic 2.2.1, HnswLite 2.1.0, Caching 5.1.2, Padlock 1.2.0, RestWrapper 3.3.1, SyslogLogging 2.3.1, Timestamps 1.0.13, Watson 7.2.2; tests use Touchstone 0.2.0, NUnit 5.0.0, and coverlet.collector 10.1.0.
+
 ## New In v10.0
 
 v10.0 lets LiteGraph run as several identical nodes behind a load balancer. It is a major release: PostgreSQL deployments now require the pgvector extension, and stored vectors are converted to pgvector on first start, with no way back to 9.x afterward. Read the [upgrade guide](docs/UPGRADE.md) and back up before upgrading.
@@ -76,7 +84,7 @@ v10.0 lets LiteGraph run as several identical nodes behind a load balancer. It i
 - A reorganized dashboard: six sidebar entries (Home, Graphs, Chat, Access, System, Developer) with tabs, each tab at its own URL, one graph selector shared by every graph tab, and a Cluster page for nodes, rolling restarts, jobs, and locks.
 - Per-node metrics and a LiteGraph Cluster Grafana dashboard; every dashboard gains a node filter. Request history records the node that handled each request and, behind a trusted load balancer, the real client address. Chat streams send keepalives so load balancer idle timeouts do not cut long answers.
 - Faster vector search: results' nodes, vectors, labels, and tags load in one query each, about 40% faster on a single connection and more than twice as fast under load on a cluster.
-- SDKs record the node that answered, retry idempotent requests on connection failures and 502, 503, and 504 with backoff, and gain cluster, health, and request history methods. The MCP server gains read-only `cluster/status`, `cluster/nodes`, and `cluster/node` tools.
+- SDKs record the node that answered, retry idempotent requests on connection failures and 502, 503, and 504 with backoff, and gain cluster, health, and request history methods. The MCP server gains read-only `cluster_status`, `cluster_nodes`, and `cluster_node` tools.
 - Three Docker deployments under [`docker/`](docker/): single node on SQLite, single node on PostgreSQL with pgvector, and a three-node cluster with Nginx (Switchboard optional), two Clutch nodes, Redis, smoke tests, and a failover test.
 - Fixes: server security tokens now expire; a SQLite HnswLite index is rebuilt from the database after a restart instead of returning no results; Euclidean and dot-product searches on an indexed PostgreSQL graph return real Euclidean and dot-product values; turning caching off no longer throws.
 

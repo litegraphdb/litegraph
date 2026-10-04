@@ -32,7 +32,7 @@ namespace LiteGraph.McpServer.Registrations
         public static void RegisterHttpTools(McpHttpServer server, LiteGraphSdk sdk)
         {
             server.RegisterLiteGraphTool(
-                "graph/transaction",
+                "graph_transaction",
                 "Executes an atomic graph-scoped transaction against a single tenant and graph",
                 new
                 {
@@ -64,7 +64,7 @@ namespace LiteGraph.McpServer.Registrations
         /// <param name="sdk">LiteGraph SDK instance.</param>
         public static void RegisterTcpMethods(McpTcpServer server, LiteGraphSdk sdk)
         {
-            server.RegisterLiteGraphMethod("graph/transaction", (args) => ExecuteTransaction(LiteGraphMcpServerHelpers.ToJsonElement(args), sdk));
+            server.RegisterLiteGraphMethod("graph_transaction", (args) => ExecuteTransaction(LiteGraphMcpServerHelpers.ToJsonElement(args), sdk));
         }
 
         #endregion
@@ -78,7 +78,7 @@ namespace LiteGraph.McpServer.Registrations
         /// <param name="sdk">LiteGraph SDK instance.</param>
         public static void RegisterWebSocketMethods(McpWebsocketsServer server, LiteGraphSdk sdk)
         {
-            server.RegisterLiteGraphMethod("graph/transaction", (args) => ExecuteTransaction(LiteGraphMcpServerHelpers.ToJsonElement(args), sdk));
+            server.RegisterLiteGraphMethod("graph_transaction", (args) => ExecuteTransaction(LiteGraphMcpServerHelpers.ToJsonElement(args), sdk));
         }
 
         #endregion

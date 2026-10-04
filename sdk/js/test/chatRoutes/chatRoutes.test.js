@@ -335,7 +335,7 @@ describe('chatRoute Tests', () => {
       expect(message).toBe('There are 3 nodes.');
 
       const toolCall = events.find((e) => e.event === 'tool_call');
-      expect(toolCall.name).toBe('node/search');
+      expect(toolCall.name).toBe('node_search');
       expect(toolCall.iteration).toBe(1);
 
       const toolResult = events.find((e) => e.event === 'tool_result');

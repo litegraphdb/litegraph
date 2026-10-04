@@ -65,13 +65,13 @@ describe('chatStreamReducer', () => {
 
   it('tool_call opens a live entry and tool_result completes it', () => {
     let state = send();
-    state = sse(state, { event: 'tool_call', name: 'node/search', arguments: '{}', iteration: 1 });
+    state = sse(state, { event: 'tool_call', name: 'node_search', arguments: '{}', iteration: 1 });
     expect(state.live?.tools).toEqual([
-      { name: 'node/search', arguments: '{}', iteration: 1, completed: false },
+      { name: 'node_search', arguments: '{}', iteration: 1, completed: false },
     ]);
     state = sse(state, {
       event: 'tool_result',
-      name: 'node/search',
+      name: 'node_search',
       success: true,
       error: null,
       runtimeMs: 12.3,
@@ -85,11 +85,11 @@ describe('chatStreamReducer', () => {
 
   it('matches tool_result to the earliest uncompleted call of the same name', () => {
     let state = send();
-    state = sse(state, { event: 'tool_call', name: 'node/search', arguments: '{"a":1}', iteration: 1 });
-    state = sse(state, { event: 'tool_call', name: 'node/search', arguments: '{"a":2}', iteration: 1 });
+    state = sse(state, { event: 'tool_call', name: 'node_search', arguments: '{"a":1}', iteration: 1 });
+    state = sse(state, { event: 'tool_call', name: 'node_search', arguments: '{"a":2}', iteration: 1 });
     state = sse(state, {
       event: 'tool_result',
-      name: 'node/search',
+      name: 'node_search',
       success: false,
       error: 'nope',
       runtimeMs: 1,
@@ -102,13 +102,13 @@ describe('chatStreamReducer', () => {
     let state = send();
     state = sse(state, {
       event: 'tool_result',
-      name: 'graph/get',
+      name: 'graph_get',
       success: true,
       error: null,
       runtimeMs: 3,
     });
     expect(state.live?.tools).toHaveLength(1);
-    expect(state.live?.tools[0]).toMatchObject({ name: 'graph/get', completed: true });
+    expect(state.live?.tools[0]).toMatchObject({ name: 'graph_get', completed: true });
   });
 
   it('usage stores the final metrics', () => {
@@ -183,7 +183,7 @@ describe('parseToolTranscript', () => {
     const json = JSON.stringify([
       {
         iteration: 1,
-        name: 'node/search',
+        name: 'node_search',
         arguments: '{"q":"x"}',
         success: true,
         error: null,
@@ -192,7 +192,7 @@ describe('parseToolTranscript', () => {
     ]);
     expect(parseToolTranscript(json)).toEqual([
       {
-        name: 'node/search',
+        name: 'node_search',
         arguments: '{"q":"x"}',
         iteration: 1,
         completed: true,

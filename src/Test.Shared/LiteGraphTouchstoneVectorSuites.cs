@@ -429,7 +429,7 @@ namespace Test.Shared
 
                 HnswIndexState state = JsonSerializer.Deserialize<HnswIndexState>(File.ReadAllText(sqliteIndexPath))!;
                 AssertEqual(HnswIndexState.CurrentFormatVersion, state.FormatVersion, "SQLite HNSW persisted format version");
-                AssertEqual("2.0.1", state.HnswLiteVersion, "SQLite HNSW persisted HnswLite version");
+                AssertEqual("2.1.0", state.HnswLiteVersion, "SQLite HNSW persisted HnswLite version");
                 AssertTrue(
                     state.Node.Sum(nodeState => nodeState.Connections?.Values.Sum(neighbors => neighbors?.Count ?? 0) ?? 0) > 0,
                     "SQLite HNSW state should persist neighbor connections");
@@ -526,8 +526,8 @@ namespace Test.Shared
                 AssertTrue(dirtyGraph.VectorIndexDirty, "Legacy HNSW artifact should mark graph dirty");
                 AssertTrue(
                     dirtyGraph.VectorIndexDirtyReason != null
-                    && dirtyGraph.VectorIndexDirtyReason.Contains("HnswLite 2.0.1", StringComparison.Ordinal),
-                    "Legacy HNSW dirty reason should name HnswLite 2.0.1");
+                    && dirtyGraph.VectorIndexDirtyReason.Contains("HnswLite 2.1.0", StringComparison.Ordinal),
+                    "Legacy HNSW dirty reason should name HnswLite 2.1.0");
 
                 VectorIndexStatistics? dirtyStats = await reader.Graph.GetVectorIndexStatistics(
                     tenant.GUID,

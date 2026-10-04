@@ -124,41 +124,54 @@ namespace LiteGraph.Server.Services.Chat
             ChatEndpointTestResult result = new ChatEndpointTestResult();
             Stopwatch sw = Stopwatch.StartNew();
 
-            using (CompletionClientBase client = CreateClient(endpoint))
+            ClientBase client = null;
+            ModelClientBase modelClient = null;
+
+            try
             {
-                try
+                client = CreateClient(endpoint);
+                result.Reachable = await client.ValidateConnectivityAsync(token).ConfigureAwait(false);
+
+                modelClient = CreateModelClient(endpoint);
+                if (result.Reachable && modelClient != null)
                 {
-                    result.Reachable = await client.ValidateConnectivityAsync(token).ConfigureAwait(false);
-
-                    if (result.Reachable && endpoint.Provider != ChatProviderTypeEnum.VoyageAI)
+                    List<string> models = new List<string>();
+                    await foreach (ModelInformation model in modelClient.ListModelsAsync(token).ConfigureAwait(false))
                     {
-                        List<string> models = new List<string>();
-                        await foreach (ModelInformation model in client.ListModelsAsync(token).ConfigureAwait(false))
-                        {
-                            if (!String.IsNullOrEmpty(model.Name)) models.Add(model.Name);
-                        }
-
-                        result.Models = models;
-                        result.ModelExists = models.Any(m =>
-                            String.Equals(m, endpoint.Model, StringComparison.OrdinalIgnoreCase)
-                            || m.StartsWith(endpoint.Model + ":", StringComparison.OrdinalIgnoreCase));
+                        if (!String.IsNullOrEmpty(model.Name)) models.Add(model.Name);
                     }
 
-                    if (!result.Reachable) result.Error = "The endpoint did not respond to the connectivity probe.";
+                    result.Models = models;
+                    result.ModelExists = models.Any(m =>
+                        String.Equals(m, endpoint.Model, StringComparison.OrdinalIgnoreCase)
+                        || m.StartsWith(endpoint.Model + ":", StringComparison.OrdinalIgnoreCase));
                 }
-                catch (OperationCanceledException)
-                {
-                    throw;
-                }
-                catch (NotSupportedException)
-                {
-                    // Model listing unsupported for this provider; connectivity verdict stands.
-                }
-                catch (Exception e)
-                {
-                    result.Reachable = false;
-                    result.Error = e.Message;
-                }
+
+                if (!result.Reachable) result.Error = "The endpoint did not respond to the connectivity probe.";
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (NotSupportedException e) when (client == null)
+            {
+                // The provider does not offer this endpoint type (for example VoyageAI completions).
+                result.Reachable = false;
+                result.Error = e.Message;
+            }
+            catch (NotSupportedException)
+            {
+                // Model listing unsupported for this provider; connectivity verdict stands.
+            }
+            catch (Exception e)
+            {
+                result.Reachable = false;
+                result.Error = e.Message;
+            }
+            finally
+            {
+                modelClient?.Dispose();
+                client?.Dispose();
             }
 
             sw.Stop();
@@ -725,8 +738,11 @@ namespace LiteGraph.Server.Services.Chat
                     Messages = messages,
                     Tools = (finalIteration ? new List<ToolDefinition>() : tools),
                     ToolChoice = (finalIteration || tools.Count < 1 ? "none" : "auto"),
-                    Temperature = (request.Temperature != null ? request.Temperature : completionEndpoint.Temperature),
-                    MaxTokens = (request.MaxOutputTokens != null ? request.MaxOutputTokens : completionEndpoint.MaxOutputTokens)
+                    Options = new CompletionOptions
+                    {
+                        Temperature = (request.Temperature != null ? request.Temperature : completionEndpoint.Temperature),
+                        MaxTokens = (request.MaxOutputTokens != null ? request.MaxOutputTokens : completionEndpoint.MaxOutputTokens)
+                    }
                 };
 
                 ToolChatStreamingResponse response = await CallProviderWithRetry(entry, toolRequest, turn, token).ConfigureAwait(false);
@@ -850,7 +866,7 @@ namespace LiteGraph.Server.Services.Chat
                         activity?.SetTag("litegraph.chat.provider", turn.Provider.ToString());
                         activity?.SetTag("litegraph.chat.model", turn.Model);
                         activity?.SetTag("litegraph.chat.attempt", attempt + 1);
-                        response = await entry.Client.ToolChatStreamingAsync(toolRequest, token).ConfigureAwait(false);
+                        response = await entry.Completion.ToolChatStreamingAsync(toolRequest, token).ConfigureAwait(false);
                     }
 
                     if (response != null && response.Success)
@@ -899,7 +915,7 @@ namespace LiteGraph.Server.Services.Chat
                     activity?.SetTag("litegraph.chat.provider", embeddingEndpoint.Provider.ToString());
                     activity?.SetTag("litegraph.chat.model", embeddingEndpoint.Model);
 
-                    EmbeddingResponse response = await entry.Client.EmbedAsync(text, null, token).ConfigureAwait(false);
+                    EmbeddingResponse response = await entry.Embedding.EmbedAsync(text, null, token).ConfigureAwait(false);
                     if (!response.Success || response.Embeddings == null || response.Embeddings.Count < 1)
                     {
                         throw new ChatUpstreamException(
@@ -1028,31 +1044,88 @@ namespace LiteGraph.Server.Services.Chat
             return entry;
         }
 
-        private CompletionClientBase CreateClient(ChatEndpoint endpoint)
+        private ClientBase CreateClient(ChatEndpoint endpoint)
         {
-            CompletionClientBase client;
+            ClientBase client;
+
+            if (endpoint.EndpointType == ChatEndpointTypeEnum.Embedding)
+            {
+                EmbeddingClientBase embedding;
+
+                switch (endpoint.Provider)
+                {
+                    case ChatProviderTypeEnum.Ollama:
+                        embedding = new OllamaEmbeddingClient(endpoint.Endpoint, endpoint.ApiKey, _Logging);
+                        break;
+                    case ChatProviderTypeEnum.Gemini:
+                        embedding = new GeminiEmbeddingClient(endpoint.Endpoint, endpoint.ApiKey, _Logging);
+                        break;
+                    case ChatProviderTypeEnum.VoyageAI:
+                        embedding = new VoyageAiEmbeddingClient(endpoint.Endpoint, endpoint.ApiKey, _Logging);
+                        break;
+                    case ChatProviderTypeEnum.Anthropic:
+                        throw new NotSupportedException("The Anthropic provider does not support embedding endpoints.");
+                    default:
+                        embedding = new OpenAiEmbeddingClient(endpoint.Endpoint, endpoint.ApiKey, _Logging);
+                        break;
+                }
+
+                embedding.Model = endpoint.Model;
+                client = embedding;
+            }
+            else
+            {
+                CompletionClientBase completion;
+
+                switch (endpoint.Provider)
+                {
+                    case ChatProviderTypeEnum.Ollama:
+                        completion = new OllamaCompletionClient(endpoint.Endpoint, endpoint.ApiKey, _Logging);
+                        break;
+                    case ChatProviderTypeEnum.Gemini:
+                        completion = new GeminiCompletionClient(endpoint.Endpoint, endpoint.ApiKey, _Logging);
+                        break;
+                    case ChatProviderTypeEnum.Anthropic:
+                        completion = new AnthropicCompletionClient(endpoint.Endpoint, endpoint.ApiKey, _Logging);
+                        break;
+                    case ChatProviderTypeEnum.VoyageAI:
+                        throw new NotSupportedException("The VoyageAI provider does not support completion endpoints.");
+                    default:
+                        completion = new OpenAiCompletionClient(endpoint.Endpoint, endpoint.ApiKey, _Logging);
+                        break;
+                }
+
+                completion.Model = endpoint.Model;
+                completion.Defaults.MaxTokens = endpoint.MaxOutputTokens;
+                client = completion;
+            }
+
+            client.TimeoutMs = (endpoint.TimeoutMs > 0 ? endpoint.TimeoutMs : _Settings.Chat.DefaultTimeoutMs);
+            return client;
+        }
+
+        private ModelClientBase CreateModelClient(ChatEndpoint endpoint)
+        {
+            ModelClientBase client;
 
             switch (endpoint.Provider)
             {
                 case ChatProviderTypeEnum.Ollama:
-                    client = new OllamaClient(endpoint.Endpoint, endpoint.ApiKey, _Logging);
+                    client = new OllamaModelClient(endpoint.Endpoint, endpoint.ApiKey, _Logging);
                     break;
                 case ChatProviderTypeEnum.Gemini:
-                    client = new GeminiClient(endpoint.Endpoint, endpoint.ApiKey, _Logging);
+                    client = new GeminiModelClient(endpoint.Endpoint, endpoint.ApiKey, _Logging);
                     break;
                 case ChatProviderTypeEnum.Anthropic:
-                    client = new AnthropicClient(endpoint.Endpoint, endpoint.ApiKey, _Logging);
+                    client = new AnthropicModelClient(endpoint.Endpoint, endpoint.ApiKey, _Logging);
                     break;
                 case ChatProviderTypeEnum.VoyageAI:
-                    client = new VoyageAiClient(endpoint.Endpoint, endpoint.ApiKey, _Logging);
-                    break;
+                    return null;
                 default:
-                    client = new OpenAiClient(endpoint.Endpoint, endpoint.ApiKey, _Logging);
+                    client = new OpenAiModelClient(endpoint.Endpoint, endpoint.ApiKey, _Logging);
                     break;
             }
 
-            client.Model = endpoint.Model;
-            client.MaxTokens = endpoint.MaxOutputTokens;
             client.TimeoutMs = (endpoint.TimeoutMs > 0 ? endpoint.TimeoutMs : _Settings.Chat.DefaultTimeoutMs);
             return client;
         }
@@ -1177,7 +1250,7 @@ namespace LiteGraph.Server.Services.Chat
             try
             {
                 ClientCacheEntry entry = GetClient(completionEndpoint);
-                ChatResponse response = await entry.Client.ChatAsync(
+                ChatResponse response = await entry.Completion.ChatAsync(
                     "Produce a title of at most six words for a conversation that began with this message; respond with the title only:\n\n" + Truncate(userMessage, 2000),
                     null,
                     token).ConfigureAwait(false);
@@ -1289,11 +1362,29 @@ namespace LiteGraph.Server.Services.Chat
 
         private sealed class ClientCacheEntry : IDisposable
         {
-            internal readonly CompletionClientBase Client;
+            internal readonly ClientBase Client;
             internal readonly SemaphoreSlim Limiter;
             internal readonly DateTime LastUpdateUtc;
 
-            internal ClientCacheEntry(CompletionClientBase client, ChatEndpoint endpoint)
+            internal CompletionClientBase Completion
+            {
+                get
+                {
+                    if (Client is CompletionClientBase completion) return completion;
+                    throw new InvalidOperationException("The endpoint is not a completion endpoint.");
+                }
+            }
+
+            internal EmbeddingClientBase Embedding
+            {
+                get
+                {
+                    if (Client is EmbeddingClientBase embedding) return embedding;
+                    throw new InvalidOperationException("The endpoint is not an embedding endpoint.");
+                }
+            }
+
+            internal ClientCacheEntry(ClientBase client, ChatEndpoint endpoint)
             {
                 Client = client;
                 Limiter = new SemaphoreSlim(endpoint.MaxConcurrentRequests, endpoint.MaxConcurrentRequests);

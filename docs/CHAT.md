@@ -24,7 +24,7 @@ The list surfaces over these entities — endpoint listing, endpoint health (all
 
 ## Providers
 
-Chat speaks to model providers through [PolyPrompt](https://www.nuget.org/packages/PolyPrompt) `2.4.1`, which gives every provider the same streaming tool-chat and embedding interface. Five provider types are supported:
+Chat speaks to model providers through [PolyPrompt](https://www.nuget.org/packages/PolyPrompt) `3.1.0`, which gives every provider the same streaming tool-chat and embedding interface. Each endpoint gets the PolyPrompt client for its capability: a completion client for a completion endpoint, an embedding client for an embedding endpoint, and a model client for the model inventory in connectivity tests. Five provider types are supported:
 
 | Provider | Completions | Embeddings | Notes |
 |---|---|---|---|
@@ -80,14 +80,14 @@ Tool names mirror the MCP catalog (a parity test asserts alignment), so a graph 
 
 | Group | Tools |
 |---|---|
-| Graph (read) | `graph/all`, `graph/get`, `graph/search`, `graph/statistics` |
-| Node (read) | `node/readallingraph`, `node/get`, `node/search`, `node/neighbors`, `node/children`, `node/parents` |
-| Edge (read) | `edge/readallingraph`, `edge/get`, `edge/search`, `edge/betweennodes`, `edge/fromnode`, `edge/tonode` |
-| Vector | `vector/search` |
-| Labels and tags | `label/readallingraph`, `label/readmanynode`, `label/readmanyedge`, `tag/readallingraph`, `tag/readmanynode`, `tag/readmanyedge` |
-| Mutations (opt-in) | `graph/create`, `graph/update`, `graph/delete`, `node/create`, `node/update`, `node/delete`, `edge/create`, `edge/update`, `edge/delete` |
+| Graph (read) | `graph_all`, `graph_get`, `graph_search`, `graph_statistics` |
+| Node (read) | `node_readallingraph`, `node_get`, `node_search`, `node_neighbors`, `node_children`, `node_parents` |
+| Edge (read) | `edge_readallingraph`, `edge_get`, `edge_search`, `edge_betweennodes`, `edge_fromnode`, `edge_tonode` |
+| Vector | `vector_search` |
+| Labels and tags | `label_readallingraph`, `label_readmanynode`, `label_readmanyedge`, `tag_readallingraph`, `tag_readmanynode`, `tag_readmanyedge` |
+| Mutations (opt-in) | `graph_create`, `graph_update`, `graph_delete`, `node_create`, `node_update`, `node_delete`, `edge_create`, `edge_update`, `edge_delete` |
 
-`vector/search` is the one deliberate divergence from MCP: it takes natural-language `text` rather than raw embeddings, and the server embeds it through the tenant's embedding endpoint before searching. Models produce text readily; they do not produce 1024-dimension float arrays. Without an embedding endpoint configured, the tool reports itself unavailable to the model instead of failing the turn.
+`vector_search` is the one deliberate divergence from MCP: it takes natural-language `text` rather than raw embeddings, and the server embeds it through the tenant's embedding endpoint before searching. Models produce text readily; they do not produce 1024-dimension float arrays. Without an embedding endpoint configured, the tool reports itself unavailable to the model instead of failing the turn.
 
 ## Turn Telemetry Reference
 

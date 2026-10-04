@@ -27,7 +27,7 @@ namespace LiteGraph.McpServer.Registrations
         public static void RegisterHttpTools(McpHttpServer server, LiteGraphSdk sdk)
         {
             server.RegisterLiteGraphTool(
-                "cluster/status",
+                "cluster_status",
                 "Summarizes the LiteGraph deployment: whether it runs as a cluster, the cluster name, whether the node registry (Redis) is reachable, node counts by state, nodes waiting for a restart or behind the latest settings, and the settings and restart versions. Read-only; requires a system administrator token.",
                 new
                 {
@@ -38,7 +38,7 @@ namespace LiteGraph.McpServer.Registrations
                 (rpcArgs) => ClusterStatus(sdk));
 
             server.RegisterLiteGraphTool(
-                "cluster/nodes",
+                "cluster_nodes",
                 "Lists the nodes in the LiteGraph node registry with their state (Healthy, Degraded, Unavailable, Draining, Restarting, Stopped, Offline), health checks, version, start time, heartbeat age, settings version, and pending restart. On a single node the answering server is the only node. Read-only; requires a system administrator token.",
                 new
                 {
@@ -56,7 +56,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "cluster/node",
+                "cluster_node",
                 "Reads one node from the LiteGraph node registry by node identifier. Returns null when the node is not registered. Read-only; requires a system administrator token.",
                 new
                 {
@@ -85,13 +85,13 @@ namespace LiteGraph.McpServer.Registrations
         /// <param name="sdk">LiteGraph SDK instance.</param>
         public static void RegisterTcpMethods(McpTcpServer server, LiteGraphSdk sdk)
         {
-            server.RegisterLiteGraphMethod("cluster/status", (rpcArgs) => ClusterStatus(sdk));
-            server.RegisterLiteGraphMethod("cluster/nodes", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("cluster_status", (rpcArgs) => ClusterStatus(sdk));
+            server.RegisterLiteGraphMethod("cluster_nodes", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 return ClusterNodes(sdk, GetOptionalString(args, "state"));
             });
-            server.RegisterLiteGraphMethod("cluster/node", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("cluster_node", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 return ClusterNode(sdk, RequireNodeId(args));
@@ -109,13 +109,13 @@ namespace LiteGraph.McpServer.Registrations
         /// <param name="sdk">LiteGraph SDK instance.</param>
         public static void RegisterWebSocketMethods(McpWebsocketsServer server, LiteGraphSdk sdk)
         {
-            server.RegisterLiteGraphMethod("cluster/status", (rpcArgs) => ClusterStatus(sdk));
-            server.RegisterLiteGraphMethod("cluster/nodes", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("cluster_status", (rpcArgs) => ClusterStatus(sdk));
+            server.RegisterLiteGraphMethod("cluster_nodes", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 return ClusterNodes(sdk, GetOptionalString(args, "state"));
             });
-            server.RegisterLiteGraphMethod("cluster/node", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("cluster_node", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 return ClusterNode(sdk, RequireNodeId(args));

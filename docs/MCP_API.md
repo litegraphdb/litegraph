@@ -21,9 +21,13 @@ As of v8.0 the MCP server also exposes a Prometheus `/metrics` endpoint (default
 
 ## Request And Response Envelope
 
-Every call is a JSON-RPC 2.0 request. On the HTTP transport (`/mcp` and `/rpc`) a tool is invoked through the MCP `tools/call` method, with the tool name in `params.name` and the tool's argument object in `params.arguments`. The standard MCP methods (`initialize`, `server/discover`, `ping`, `tools/list`, `tools/call`) are available for clients that enumerate tools before calling them. `tools/list` is paginated (100 tools per page); follow `nextCursor` to read the full catalog. `tools/call` validates arguments against each tool's input schema, so a missing required argument, or an argument of the wrong JSON type, is rejected with `-32602` before the tool runs.
+Every call is a JSON-RPC 2.0 request. On the HTTP transport (`/mcp` and `/rpc`) a tool is invoked through the MCP `tools/call` method, with the tool name in `params.name` and the tool's argument object in `params.arguments`. The standard MCP methods (`initialize`, `server/discover`, `ping`, `tools/list`, `tools/call`) are available for clients that enumerate tools before calling them. `tools/list` is paginated (100 tools per page); follow `nextCursor` to read the full catalog. `tools/call` validates arguments against each tool's input schema, so a missing required argument, or an argument of the wrong JSON type, is rejected before the tool runs. As of v10.1 (Voltaic 2.2, following MCP 2025-11-25) the rejection is a tool result with `isError: true` whose text names the argument, so a model can correct the call; earlier releases returned a `-32602` error.
 
-As of Voltaic 2.0, calling a tool by its bare name over HTTP (for example `"method": "graph/get"`) returns `-32601` (method not found). The TCP and WebSocket transports still accept the bare form, with the tool name as `method` and the argument object as `params`; the examples below use the `tools/call` form, and on TCP or WebSocket the `arguments` object moves to `params` unchanged.
+As of v10.1, tool names use underscores (`graph_get`, `chat_endpoint_all`) instead of slashes (`graph/get`, `chat/endpoint/all`). The MCP specification allows only letters, digits, `_`, `-`, and `.` in tool names, and Voltaic 2.2 rejects any other name at registration. To migrate a client, replace each `/` in a tool name with `_`; the arguments and results are unchanged.
+
+As of Voltaic 2.0, calling a tool by its bare name over HTTP (for example `"method": "graph_get"`) returns `-32601` (method not found). The TCP and WebSocket transports still accept the bare form, with the tool name as `method` and the argument object as `params`; the examples below use the `tools/call` form, and on TCP or WebSocket the `arguments` object moves to `params` unchanged. Every JSON-RPC result must be a JSON object, so as of v10.1 a bare TCP or WebSocket call returns the same tool result `tools/call` returns (`{"content":[{"type":"text","text":"..."}]}`) instead of a bare string or boolean.
+
+Voltaic rate-limits tool calls per client. The LiteGraph MCP server turns this off by default; set `ToolCallsPerSecond` in `litegraph-mcp.json` (0 to 1,000,000, default 0 for no limit) to apply a limit on all three transports. A call over the limit returns a tool result with `isError: true`. Under the stateless `2026-07-28` revision `ping` is not defined and returns `-32601`; use `server/discover` instead.
 
 Request:
 
@@ -33,7 +37,7 @@ Request:
   "id": 1,
   "method": "tools/call",
   "params": {
-    "name": "graph/get",
+    "name": "graph_get",
     "arguments": {
       "tenantGuid": "00000000-0000-0000-0000-000000000000",
       "graphGuid": "00000000-0000-0000-0000-000000000000",
@@ -106,11 +110,11 @@ Every ordering is deterministic: records that share a sort value (for example, o
 
 All nine `*/getmany` tools (`tenant`, `user`, `credential`, `graph`, `node`, `edge`, `label`, `tag`, `vector`) take an array of GUIDs, proxy it to the REST `?guids=` filter, accept `maxResults`, and return the envelope. Passing an empty GUID array is rejected with a JSON-RPC error — at least one GUID is required.
 
-The intentional exceptions mirror REST: single-object reads, statistics objects, settings, effective-permissions composites, export streams, vector index configuration/statistics, and the search tools (`graph/search`, `node/search`, `edge/search` return `SearchResult`-shaped objects; `vector/search` returns the envelope of scored matches).
+The intentional exceptions mirror REST: single-object reads, statistics objects, settings, effective-permissions composites, export streams, vector index configuration/statistics, and the search tools (`graph_search`, `node_search`, `edge_search` return `SearchResult`-shaped objects; `vector_search` returns the envelope of scored matches).
 
 ## Tool Catalog
 
-Tools are grouped by resource. The name before the slash is the family; the name after it is the operation. Families follow the same verbs, so once you know `node/get`, `node/create`, `node/search`, and `node/enumerate`, the other families read the same way. Every tool described as listing or paging records returns the `EnumerationResult` envelope and takes the paging arguments described in [List Tools, Paging, And getmany](#list-tools-paging-and-getmany).
+Tools are grouped by resource. The name before the underscore is the family (for example `chat_endpoint` in `chat_endpoint_all`); the name after it is the operation. Families follow the same verbs, so once you know `node_get`, `node_create`, `node_search`, and `node_enumerate`, the other families read the same way. Every tool described as listing or paging records returns the `EnumerationResult` envelope and takes the paging arguments described in [List Tools, Paging, And getmany](#list-tools-paging-and-getmany).
 
 ### graph/*
 
@@ -118,17 +122,17 @@ Graph lifecycle, search, statistics, export and import, subgraph extraction, and
 
 | Tool | Purpose |
 |------|---------|
-| `graph/create`, `graph/get`, `graph/update`, `graph/delete` | Graph CRUD |
-| `graph/all`, `graph/readallintenant`, `graph/getmany`, `graph/enumerate` | List and page graphs |
-| `graph/search`, `graph/readfirst`, `graph/exists`, `graph/statistics` | Search, existence, and statistics |
-| `graph/deleteallintenant` | Delete every graph in a tenant |
-| `graph/getsubgraph`, `graph/getsubgraphstatistics` | Node-rooted subgraph read and its statistics |
-| `graph/exportgexf` | Render a graph as GEXF |
-| `graph/exportjsonl`, `graph/exportsubgraphjsonl`, `graph/importjsonl` | Streaming JSONL export and import (see below) |
-| `graph/enablevectorindexing`, `graph/rebuildvectorindex`, `graph/deletevectorindex`, `graph/getvectorindexconfig`, `graph/getvectorindexstatistics` | HNSW vector index management |
-| `graph/query`, `graph/transaction` | Native graph query and graph-scoped transaction |
+| `graph_create`, `graph_get`, `graph_update`, `graph_delete` | Graph CRUD |
+| `graph_all`, `graph_readallintenant`, `graph_getmany`, `graph_enumerate` | List and page graphs |
+| `graph_search`, `graph_readfirst`, `graph_exists`, `graph_statistics` | Search, existence, and statistics |
+| `graph_deleteallintenant` | Delete every graph in a tenant |
+| `graph_getsubgraph`, `graph_getsubgraphstatistics` | Node-rooted subgraph read and its statistics |
+| `graph_exportgexf` | Render a graph as GEXF |
+| `graph_exportjsonl`, `graph_exportsubgraphjsonl`, `graph_importjsonl` | Streaming JSONL export and import (see below) |
+| `graph_enablevectorindexing`, `graph_rebuildvectorindex`, `graph_deletevectorindex`, `graph_getvectorindexconfig`, `graph_getvectorindexstatistics` | HNSW vector index management |
+| `graph_query`, `graph_transaction` | Native graph query and graph-scoped transaction |
 
-`graph/query` takes `tenantGuid`, `graphGuid`, and either a full `request` object/string or the convenience fields `query`, `parameters`, `maxResults`, `timeoutSeconds`, and `maxScanRows`. It forwards to the REST query endpoint, so the same authentication and credential-scope checks apply. `maxResults` bounds the returned page; `maxScanRows` (default `1000000`, `0` disables it) bounds *global* operations — aggregates and `ORDER BY` — which are evaluated over the whole matching set, and a global query that exceeds it is rejected rather than silently truncated. The query text may **chain** multiple `MATCH` clauses and `WITH` stages terminated by a single `RETURN`; intermediate join/grouping sets are bounded by `maxScanRows` too. See [DSL.md](DSL.md#query-chaining-multiple-match-and-with).
+`graph_query` takes `tenantGuid`, `graphGuid`, and either a full `request` object/string or the convenience fields `query`, `parameters`, `maxResults`, `timeoutSeconds`, and `maxScanRows`. It forwards to the REST query endpoint, so the same authentication and credential-scope checks apply. `maxResults` bounds the returned page; `maxScanRows` (default `1000000`, `0` disables it) bounds *global* operations — aggregates and `ORDER BY` — which are evaluated over the whole matching set, and a global query that exceeds it is rejected rather than silently truncated. The query text may **chain** multiple `MATCH` clauses and `WITH` stages terminated by a single `RETURN`; intermediate join/grouping sets are bounded by `maxScanRows` too. See [DSL.md](DSL.md#query-chaining-multiple-match-and-with).
 
 ### node/*
 
@@ -136,12 +140,12 @@ Node CRUD plus traversal and connectivity helpers.
 
 | Tool | Purpose |
 |------|---------|
-| `node/create`, `node/createmany`, `node/get`, `node/getmany`, `node/update`, `node/delete` | Node CRUD and batch create |
-| `node/all`, `node/readallingraph`, `node/readallintenant`, `node/enumerate` | List and page nodes |
-| `node/search`, `node/readfirst`, `node/exists` | Search and existence |
-| `node/deleteall`, `node/deleteallintenant`, `node/deletemany` | Bulk delete |
-| `node/neighbors`, `node/parents`, `node/children`, `node/traverse` | Traversal |
-| `node/readmostconnected`, `node/readleastconnected` | Connectivity ranking |
+| `node_create`, `node_createmany`, `node_get`, `node_getmany`, `node_update`, `node_delete` | Node CRUD and batch create |
+| `node_all`, `node_readallingraph`, `node_readallintenant`, `node_enumerate` | List and page nodes |
+| `node_search`, `node_readfirst`, `node_exists` | Search and existence |
+| `node_deleteall`, `node_deleteallintenant`, `node_deletemany` | Bulk delete |
+| `node_neighbors`, `node_parents`, `node_children`, `node_traverse` | Traversal |
+| `node_readmostconnected`, `node_readleastconnected` | Connectivity ranking |
 
 ### edge/*
 
@@ -149,15 +153,15 @@ Edge CRUD plus node-relative edge lookups.
 
 | Tool | Purpose |
 |------|---------|
-| `edge/create`, `edge/createmany`, `edge/get`, `edge/getmany`, `edge/update`, `edge/delete` | Edge CRUD and batch create |
-| `edge/all`, `edge/readallingraph`, `edge/readallintenant`, `edge/enumerate` | List and page edges |
-| `edge/search`, `edge/readfirst`, `edge/exists`, `edge/betweennodes` | Search, existence, and edges between two nodes |
-| `edge/fromnode`, `edge/tonode`, `edge/nodeedges` | Edges by endpoint |
-| `edge/deleteallingraph`, `edge/deleteallintenant`, `edge/deletemany`, `edge/deletenodeedges`, `edge/deletenodeedgesmany` | Bulk and node-scoped delete |
+| `edge_create`, `edge_createmany`, `edge_get`, `edge_getmany`, `edge_update`, `edge_delete` | Edge CRUD and batch create |
+| `edge_all`, `edge_readallingraph`, `edge_readallintenant`, `edge_enumerate` | List and page edges |
+| `edge_search`, `edge_readfirst`, `edge_exists`, `edge_betweennodes` | Search, existence, and edges between two nodes |
+| `edge_fromnode`, `edge_tonode`, `edge_nodeedges` | Edges by endpoint |
+| `edge_deleteallingraph`, `edge_deleteallintenant`, `edge_deletemany`, `edge_deletenodeedges`, `edge_deletenodeedgesmany` | Bulk and node-scoped delete |
 
 ### label/*, tag/*, vector/*
 
-Metadata attached to graphs, nodes, and edges. The three families share a shape: create (single and `createmany`), read (`get`, `getmany`, `all`, `readallingraph`, `readallintenant`, `enumerate`, and per-parent `readmany*` reads), `update`, `exists`, and a set of scoped deletes (`delete`, `deletemany`, `deleteallingraph`, `deleteallintenant`, and per-parent deletes). `vector/*` adds `vector/search` for similarity search, which uses the graph's HNSW index when one is enabled and falls back to a linear scan otherwise.
+Metadata attached to graphs, nodes, and edges. The three families share a shape: create (single and `createmany`), read (`get`, `getmany`, `all`, `readallingraph`, `readallintenant`, `enumerate`, and per-parent `readmany*` reads), `update`, `exists`, and a set of scoped deletes (`delete`, `deletemany`, `deleteallingraph`, `deleteallintenant`, and per-parent deletes). `vector/*` adds `vector_search` for similarity search, which uses the graph's HNSW index when one is enabled and falls back to a linear scan otherwise.
 
 ### tenant/*, user/*, credential/*
 
@@ -165,11 +169,11 @@ Multi-tenant administration and authentication records.
 
 | Tool | Purpose |
 |------|---------|
-| `tenant/create`, `tenant/get`, `tenant/getmany`, `tenant/all`, `tenant/enumerate`, `tenant/update`, `tenant/delete`, `tenant/exists` | Tenant CRUD and listing |
-| `tenant/statistics`, `tenant/statisticsall` | Tenant statistics |
-| `user/create`, `user/get`, `user/getmany`, `user/all`, `user/enumerate`, `user/update`, `user/delete`, `user/exists` | User CRUD and listing; the user object carries the v8.0 `isSystemAdmin`/`isTenantAdmin` flags |
-| `credential/create`, `credential/get`, `credential/getmany`, `credential/all`, `credential/enumerate`, `credential/update`, `credential/delete`, `credential/exists` | Credential CRUD and listing |
-| `credential/getbybearertoken`, `credential/deletebyuser`, `credential/deleteallintenant` | Credential lookup and scoped delete |
+| `tenant_create`, `tenant_get`, `tenant_getmany`, `tenant_all`, `tenant_enumerate`, `tenant_update`, `tenant_delete`, `tenant_exists` | Tenant CRUD and listing |
+| `tenant_statistics`, `tenant_statisticsall` | Tenant statistics |
+| `user_create`, `user_get`, `user_getmany`, `user_all`, `user_enumerate`, `user_update`, `user_delete`, `user_exists` | User CRUD and listing; the user object carries the v8.0 `isSystemAdmin`/`isTenantAdmin` flags |
+| `credential_create`, `credential_get`, `credential_getmany`, `credential_all`, `credential_enumerate`, `credential_update`, `credential_delete`, `credential_exists` | Credential CRUD and listing |
+| `credential_getbybearertoken`, `credential_deletebyuser`, `credential_deleteallintenant` | Credential lookup and scoped delete |
 
 ### authorization/*
 
@@ -180,7 +184,7 @@ RBAC roles, user-role assignments, credential scopes, and effective-permission i
 | `authorization/role/*` | Role CRUD (`create`, `get`, `all`, `update`, `delete`) |
 | `authorization/userrole/*` | User-to-role assignment CRUD |
 | `authorization/credentialscope/*` | Credential scope CRUD |
-| `authorization/user/permissions`, `authorization/credential/permissions` | Effective permissions for a user or credential |
+| `authorization_user_permissions`, `authorization_credential_permissions` | Effective permissions for a user or credential |
 
 ### admin/*, batch/*, userauthentication/*
 
@@ -188,10 +192,10 @@ Operational and authentication utilities.
 
 | Tool | Purpose |
 |------|---------|
-| `admin/backup`, `admin/backups`, `admin/backupread`, `admin/backupexists`, `admin/backupdelete` | Binary database backup management |
-| `admin/flush` | Flush an in-memory database to disk |
-| `batch/existence` | Batch existence check for nodes, edges, and edges-between |
-| `userauthentication/generatetoken`, `userauthentication/gettokendetails`, `userauthentication/gettenantsforemail` | Security token issuance and lookup |
+| `admin_backup`, `admin_backups`, `admin_backupread`, `admin_backupexists`, `admin_backupdelete` | Binary database backup management |
+| `admin_flush` | Flush an in-memory database to disk |
+| `batch_existence` | Batch existence check for nodes, edges, and edges-between |
+| `userauthentication_generatetoken`, `userauthentication_gettokendetails`, `userauthentication_gettenantsforemail` | Security token issuance and lookup |
 
 ### cluster/* (v10.0)
 
@@ -199,9 +203,9 @@ Read-only views of the node registry. Tools that change cluster state (restartin
 
 | Tool | Arguments | Purpose |
 |------|-----------|---------|
-| `cluster/status` | none | Summary: whether the server runs as a cluster, cluster name, whether Redis is reachable, `NodesTotal`, `NodesByState`, `NodesRestartPending`, `NodesBehindSettings`, and the settings and restart versions |
-| `cluster/nodes` | `state` (optional, case-insensitive) | The `GET /v1.0/cluster/nodes` body, optionally filtered to one state |
-| `cluster/node` | `nodeId` | One node's registry entry, or `null` when the node is not registered |
+| `cluster_status` | none | Summary: whether the server runs as a cluster, cluster name, whether Redis is reachable, `NodesTotal`, `NodesByState`, `NodesRestartPending`, `NodesBehindSettings`, and the settings and restart versions |
+| `cluster_nodes` | `state` (optional, case-insensitive) | The `GET /v1.0/cluster/nodes` body, optionally filtered to one state |
+| `cluster_node` | `nodeId` | One node's registry entry, or `null` when the node is not registered |
 
 On a single node, the answering server is the only node. The MCP server itself runs as one instance even in a cluster: it keeps MCP sessions in memory and holds no LiteGraph data, so a second instance would add capacity but nothing else, and the Docker deployment points its one instance at the load balancer.
 
@@ -211,13 +215,13 @@ The v8.1 LLM chat surface: upstream endpoint management, completions, threads, f
 
 | Tool | Purpose |
 |------|---------|
-| `chat/endpoint/create`, `chat/endpoint/get`, `chat/endpoint/all`, `chat/endpoint/update`, `chat/endpoint/delete` | Chat endpoint CRUD |
-| `chat/endpoint/test` | Upstream connectivity test |
-| `chat/endpoint/health`, `chat/endpoint/healthall` | Background health-check status |
-| `chat/completions` | Non-streaming chat completion |
-| `chat/thread/all`, `chat/thread/get`, `chat/thread/delete`, `chat/thread/turns` | Thread listing, read, delete, and turn history |
-| `chat/feedback/create`, `chat/feedback/all`, `chat/feedback/delete` | Turn feedback |
-| `chat/settings/get`, `chat/settings/update` | Per-tenant chat settings |
+| `chat_endpoint_create`, `chat_endpoint_get`, `chat_endpoint_all`, `chat_endpoint_update`, `chat_endpoint_delete` | Chat endpoint CRUD |
+| `chat_endpoint_test` | Upstream connectivity test |
+| `chat_endpoint_health`, `chat_endpoint_healthall` | Background health-check status |
+| `chat_completions` | Non-streaming chat completion |
+| `chat_thread_all`, `chat_thread_get`, `chat_thread_delete`, `chat_thread_turns` | Thread listing, read, delete, and turn history |
+| `chat_feedback_create`, `chat_feedback_all`, `chat_feedback_delete` | Turn feedback |
+| `chat_settings_get`, `chat_settings_update` | Per-tenant chat settings |
 
 ## JSONL Export And Import Tools
 
@@ -240,7 +244,7 @@ Renders an entire graph as JSONL and returns it as a string. This is also the po
   "id": 10,
   "method": "tools/call",
   "params": {
-    "name": "graph/exportjsonl",
+    "name": "graph_exportjsonl",
     "arguments": {
       "tenantGuid": "00000000-0000-0000-0000-000000000000",
       "graphGuid": "00000000-0000-0000-0000-000000000000",
@@ -279,7 +283,7 @@ Extracts a subgraph from one or more start nodes and returns it as JSONL. The `r
   "id": 11,
   "method": "tools/call",
   "params": {
-    "name": "graph/exportsubgraphjsonl",
+    "name": "graph_exportsubgraphjsonl",
     "arguments": {
       "tenantGuid": "00000000-0000-0000-0000-000000000000",
       "graphGuid": "00000000-0000-0000-0000-000000000000",
@@ -310,7 +314,7 @@ Reads a JSONL body back into the store and returns a `GraphImportResult` string.
   "id": 12,
   "method": "tools/call",
   "params": {
-    "name": "graph/importjsonl",
+    "name": "graph_importjsonl",
     "arguments": {
       "tenantGuid": "00000000-0000-0000-0000-000000000000",
       "guidStrategy": "regenerate",
@@ -338,7 +342,7 @@ Under `regenerate`, the `GuidMap` in the result maps each original GUID to the f
 
 ## Chat Tools
 
-The chat tools wrap the LiteGraph v8.1 chat REST surface (see the [REST API](REST_API.md)) and follow the same conventions as the rest of the catalog: every tool takes `tenantGuid`, complex bodies travel as a JSON string in a single argument, and results are the REST payload serialized as a JSON string. The five list tools — `chat/endpoint/all`, `chat/endpoint/healthall`, `chat/thread/all`, `chat/thread/turns`, and `chat/feedback/all` — return the paginated `EnumerationResult` envelope and take `skip`, `maxResults`, and `continuationToken` per [List Tools, Paging, And getmany](#list-tools-paging-and-getmany). Server-side authorization applies as it does over REST: endpoint management, feedback listing and deletion, chat settings update, and all-users thread listing require an admin principal, while completions, thread creation, and feedback submission require a user principal — the admin break-glass token is rejected for those with a 400.
+The chat tools wrap the LiteGraph v8.1 chat REST surface (see the [REST API](REST_API.md)) and follow the same conventions as the rest of the catalog: every tool takes `tenantGuid`, complex bodies travel as a JSON string in a single argument, and results are the REST payload serialized as a JSON string. The five list tools — `chat_endpoint_all`, `chat_endpoint_healthall`, `chat_thread_all`, `chat_thread_turns`, and `chat_feedback_all` — return the paginated `EnumerationResult` envelope and take `skip`, `maxResults`, and `continuationToken` per [List Tools, Paging, And getmany](#list-tools-paging-and-getmany). Server-side authorization applies as it does over REST: endpoint management, feedback listing and deletion, chat settings update, and all-users thread listing require an admin principal, while completions, thread creation, and feedback submission require a user principal — the admin break-glass token is rejected for those with a 400.
 
 ### chat/endpoint/create, chat/endpoint/update
 
@@ -353,7 +357,7 @@ Create or update a chat endpoint, the record describing an upstream completion o
 {
   "jsonrpc": "2.0",
   "id": 20,
-  "method": "chat/endpoint/create",
+  "method": "chat_endpoint_create",
   "params": {
     "tenantGuid": "00000000-0000-0000-0000-000000000000",
     "endpoint": "{\"Name\":\"Local Ollama\",\"EndpointType\":\"Completion\",\"Provider\":\"Ollama\",\"Endpoint\":\"http://127.0.0.1:11434\",\"Model\":\"gemma3:4b\"}"
@@ -378,7 +382,7 @@ Read one endpoint, list endpoints, or delete an endpoint. Listing accepts an opt
 {
   "jsonrpc": "2.0",
   "id": 21,
-  "method": "chat/endpoint/all",
+  "method": "chat_endpoint_all",
   "params": {
     "tenantGuid": "00000000-0000-0000-0000-000000000000",
     "endpointType": "Completion"
@@ -399,7 +403,7 @@ Probes the upstream provider from the LiteGraph server and returns a `ChatEndpoi
 {
   "jsonrpc": "2.0",
   "id": 22,
-  "method": "chat/endpoint/test",
+  "method": "chat_endpoint_test",
   "params": {
     "tenantGuid": "00000000-0000-0000-0000-000000000000",
     "endpointGuid": "11111111-1111-1111-1111-111111111111"
@@ -423,7 +427,7 @@ Read background health-check status — monitored flag, healthy verdict, consecu
 {
   "jsonrpc": "2.0",
   "id": 23,
-  "method": "chat/endpoint/healthall",
+  "method": "chat_endpoint_healthall",
   "params": {
     "tenantGuid": "00000000-0000-0000-0000-000000000000"
   }
@@ -449,7 +453,7 @@ Executes a chat completion and returns a `ChatCompletionResult` string: the assi
 {
   "jsonrpc": "2.0",
   "id": 24,
-  "method": "chat/completions",
+  "method": "chat_completions",
   "params": {
     "tenantGuid": "00000000-0000-0000-0000-000000000000",
     "message": "What are the most connected nodes in this graph?",
@@ -461,7 +465,7 @@ Executes a chat completion and returns a `ChatCompletionResult` string: the assi
 
 ### chat/thread/all, chat/thread/get, chat/thread/delete, chat/thread/turns
 
-Thread management. `chat/thread/all` lists the caller's own threads, or every user's threads when `allUsers` is true (admin only). `chat/thread/turns` returns the thread's turns ascending by sequence as full `ChatTurn` objects, including per-stage metrics, the tool transcript, and telemetry. Both list tools return the `EnumerationResult` envelope. Deleting a thread also deletes its turns and feedback.
+Thread management. `chat_thread_all` lists the caller's own threads, or every user's threads when `allUsers` is true (admin only). `chat_thread_turns` returns the thread's turns ascending by sequence as full `ChatTurn` objects, including per-stage metrics, the tool transcript, and telemetry. Both list tools return the `EnumerationResult` envelope. Deleting a thread also deletes its turns and feedback.
 
 | Argument | Type | Required | Notes |
 |----------|------|----------|-------|
@@ -476,7 +480,7 @@ Thread management. `chat/thread/all` lists the caller's own threads, or every us
 {
   "jsonrpc": "2.0",
   "id": 25,
-  "method": "chat/thread/turns",
+  "method": "chat_thread_turns",
   "params": {
     "tenantGuid": "00000000-0000-0000-0000-000000000000",
     "threadGuid": "33333333-3333-3333-3333-333333333333"
@@ -486,7 +490,7 @@ Thread management. `chat/thread/all` lists the caller's own threads, or every us
 
 ### chat/feedback/create, chat/feedback/all, chat/feedback/delete
 
-Submit a rating on an assistant turn, list all feedback in the tenant (admin only), or delete a feedback record (admin only). `chat/feedback/all` returns the `EnumerationResult` envelope of feedback records.
+Submit a rating on an assistant turn, list all feedback in the tenant (admin only), or delete a feedback record (admin only). `chat_feedback_all` returns the `EnumerationResult` envelope of feedback records.
 
 | Argument | Type | Required | Notes |
 |----------|------|----------|-------|
@@ -503,7 +507,7 @@ Submit a rating on an assistant turn, list all feedback in the tenant (admin onl
 {
   "jsonrpc": "2.0",
   "id": 26,
-  "method": "chat/feedback/create",
+  "method": "chat_feedback_create",
   "params": {
     "tenantGuid": "00000000-0000-0000-0000-000000000000",
     "turnGuid": "44444444-4444-4444-4444-444444444444",
@@ -526,7 +530,7 @@ Read or upsert the tenant's chat settings: default completion and embedding endp
 {
   "jsonrpc": "2.0",
   "id": 27,
-  "method": "chat/settings/update",
+  "method": "chat_settings_update",
   "params": {
     "tenantGuid": "00000000-0000-0000-0000-000000000000",
     "settings": "{\"DefaultCompletionEndpointGUID\":\"11111111-1111-1111-1111-111111111111\",\"EnableChat\":true,\"EnableTools\":true,\"EnableRag\":true,\"RagTopK\":8}"
@@ -538,6 +542,6 @@ Read or upsert the tenant's chat settings: default completion and embedding endp
 
 LiteGraph v9.0.0 exposes graph algorithm tools over HTTP, TCP, and WebSocket. They proxy the REST endpoints under the caller's RBAC. See [ALGORITHMS.md](ALGORITHMS.md).
 
-- `algorithm/run` — run an algorithm over a graph. Arguments: `tenantGuid`, `graphGuid`, and either a `request` object (`GraphAlgorithmRequest`) or `algorithmType` plus optional `writeBack`/`maxResults`.
-- `algorithm/export` — export a graph projection. Arguments: `tenantGuid`, `graphGuid`, `format` (`NodeLinkJson` default, `EdgeList`, `Graphml`), `attributes` (`None`, `Meta` default, `Full`).
-- `algorithm/import` — write externally computed per-node values back onto nodes. Arguments: `tenantGuid`, `graphGuid`, `request` (a `GraphAlgorithmImportRequest` with a `Values` map).
+- `algorithm_run` — run an algorithm over a graph. Arguments: `tenantGuid`, `graphGuid`, and either a `request` object (`GraphAlgorithmRequest`) or `algorithmType` plus optional `writeBack`/`maxResults`.
+- `algorithm_export` — export a graph projection. Arguments: `tenantGuid`, `graphGuid`, `format` (`NodeLinkJson` default, `EdgeList`, `Graphml`), `attributes` (`None`, `Meta` default, `Full`).
+- `algorithm_import` — write externally computed per-node values back onto nodes. Arguments: `tenantGuid`, `graphGuid`, `request` (a `GraphAlgorithmImportRequest` with a `Values` map).

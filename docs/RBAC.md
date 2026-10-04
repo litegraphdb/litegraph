@@ -46,7 +46,7 @@ LiteGraph credential bearer tokens can be restricted by:
 - operation scope
 - graph allow-list
 
-MCP `graph/query` and `graph/transaction` route through the REST endpoints, so those tools use the same REST authentication, graph scoping, and credential-scope checks. Full per-tool authorization for legacy direct-SDK MCP tools remains future hardening.
+MCP `graph_query` and `graph_transaction` route through the REST endpoints, so those tools use the same REST authentication, graph scoping, and credential-scope checks. Full per-tool authorization for legacy direct-SDK MCP tools remains future hardening.
 
 REST authorization decisions are evaluated by `AuthorizationService`. The service currently centralizes:
 

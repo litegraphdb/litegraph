@@ -24,7 +24,7 @@ namespace LiteGraph.McpServer.Registrations
         public static void RegisterHttpTools(McpHttpServer server, LiteGraphSdk sdk)
         {
             server.RegisterLiteGraphTool(
-                "vector/create",
+                "vector_create",
                 "Creates a new vector in LiteGraph",
                 new
                 {
@@ -46,7 +46,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/get",
+                "vector_get",
                 "Reads a vector by GUID",
                 new
                 {
@@ -69,7 +69,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/all",
+                "vector_all",
                 "Lists all vectors in a tenant. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
@@ -96,7 +96,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/readallintenant",
+                "vector_readallintenant",
                 "Reads all vectors within a tenant. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
@@ -121,7 +121,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/readallingraph",
+                "vector_readallingraph",
                 "Reads all vectors within a graph. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
@@ -147,7 +147,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/readmanygraph",
+                "vector_readmanygraph",
                 "Reads vectors attached to a graph object. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
@@ -173,7 +173,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/readmanynode",
+                "vector_readmanynode",
                 "Reads vectors attached to a node. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
@@ -201,7 +201,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/readmanyedge",
+                "vector_readmanyedge",
                 "Reads vectors attached to an edge. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
@@ -229,7 +229,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/enumerate",
+                "vector_enumerate",
                 "Enumerates vectors with pagination and filtering",
                 new
                 {
@@ -255,7 +255,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/update",
+                "vector_update",
                 "Updates a vector",
                 new
                 {
@@ -277,7 +277,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/delete",
+                "vector_delete",
                 "Deletes a vector by GUID",
                 new
                 {
@@ -300,7 +300,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/exists",
+                "vector_exists",
                 "Checks if a vector exists by GUID",
                 new
                 {
@@ -322,7 +322,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/getmany",
+                "vector_getmany",
                 "Reads multiple vectors by their GUIDs. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
@@ -348,7 +348,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/createmany",
+                "vector_createmany",
                 "Creates multiple vectors",
                 new
                 {
@@ -374,7 +374,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/deletemany",
+                "vector_deletemany",
                 "Deletes multiple vectors by their GUIDs",
                 new
                 {
@@ -400,7 +400,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/deleteallintenant",
+                "vector_deleteallintenant",
                 "Deletes all vectors within a tenant",
                 new
                 {
@@ -421,7 +421,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/deleteallingraph",
+                "vector_deleteallingraph",
                 "Deletes all vectors within a graph",
                 new
                 {
@@ -444,7 +444,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/deletegraphvectors",
+                "vector_deletegraphvectors",
                 "Deletes vectors associated with the graph object itself",
                 new
                 {
@@ -467,7 +467,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/deletenodevectors",
+                "vector_deletenodevectors",
                 "Deletes vectors attached to a node",
                 new
                 {
@@ -492,7 +492,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/deleteedgevectors",
+                "vector_deleteedgevectors",
                 "Deletes vectors attached to an edge",
                 new
                 {
@@ -517,7 +517,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "vector/search",
+                "vector_search",
                 "Searches vectors using vector similarity. Returns a paginated EnumerationResult envelope of VectorSearchResult objects (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
@@ -558,7 +558,7 @@ namespace LiteGraph.McpServer.Registrations
         /// <param name="sdk">LiteGraph SDK instance.</param>
         public static void RegisterTcpMethods(McpTcpServer server, LiteGraphSdk sdk)
         {
-            server.RegisterLiteGraphMethod("vector/create", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_create", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("vector", out JsonElement vectorProp))
@@ -568,7 +568,7 @@ namespace LiteGraph.McpServer.Registrations
                 return CreateVector(sdk, vector);
             });
 
-            server.RegisterLiteGraphMethod("vector/get", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_get", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -578,7 +578,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadVector(sdk, tenantGuid, vectorGuid);
             });
 
-            server.RegisterLiteGraphMethod("vector/all", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_all", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
@@ -588,7 +588,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadVectors(sdk, tenantGuid, null, null, null, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
             });
 
-            server.RegisterLiteGraphMethod("vector/readallintenant", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_readallintenant", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -597,7 +597,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadAllVectorsInTenant(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
             });
 
-            server.RegisterLiteGraphMethod("vector/readallingraph", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_readallingraph", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -607,7 +607,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadAllVectorsInGraph(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
-            server.RegisterLiteGraphMethod("vector/readmanygraph", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_readmanygraph", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -617,7 +617,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadGraphVectors(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
-            server.RegisterLiteGraphMethod("vector/readmanynode", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_readmanynode", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -628,7 +628,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadNodeVectors(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
-            server.RegisterLiteGraphMethod("vector/readmanyedge", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_readmanyedge", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -639,7 +639,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadEdgeVectors(sdk, tenantGuid, graphGuid, edgeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
-            server.RegisterLiteGraphMethod("vector/enumerate", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_enumerate", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("query", out JsonElement queryProp))
@@ -653,7 +653,7 @@ namespace LiteGraph.McpServer.Registrations
                 return EnumerateVectors(sdk, query);
             });
 
-            server.RegisterLiteGraphMethod("vector/update", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_update", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("vector", out JsonElement vectorProp))
@@ -663,7 +663,7 @@ namespace LiteGraph.McpServer.Registrations
                 return UpdateVector(sdk, vector);
             });
 
-            server.RegisterLiteGraphMethod("vector/delete", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_delete", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -673,7 +673,7 @@ namespace LiteGraph.McpServer.Registrations
                 return true;
             });
 
-            server.RegisterLiteGraphMethod("vector/exists", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_exists", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -682,7 +682,7 @@ namespace LiteGraph.McpServer.Registrations
                 return VectorExists(sdk, tenantGuid, vectorGuid).ToString().ToLowerInvariant();
             });
 
-            server.RegisterLiteGraphMethod("vector/getmany", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_getmany", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -694,7 +694,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadVectorsByGuids(sdk, tenantGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
-            server.RegisterLiteGraphMethod("vector/createmany", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_createmany", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -707,7 +707,7 @@ namespace LiteGraph.McpServer.Registrations
                 return CreateVectors(sdk, tenantGuid, vectors);
             });
 
-            server.RegisterLiteGraphMethod("vector/deletemany", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_deletemany", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -720,7 +720,7 @@ namespace LiteGraph.McpServer.Registrations
                 return true;
             });
 
-            server.RegisterLiteGraphMethod("vector/deleteallintenant", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_deleteallintenant", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -729,7 +729,7 @@ namespace LiteGraph.McpServer.Registrations
                 return true;
             });
 
-            server.RegisterLiteGraphMethod("vector/deleteallingraph", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_deleteallingraph", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -739,7 +739,7 @@ namespace LiteGraph.McpServer.Registrations
                 return true;
             });
 
-            server.RegisterLiteGraphMethod("vector/deletegraphvectors", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_deletegraphvectors", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -749,7 +749,7 @@ namespace LiteGraph.McpServer.Registrations
                 return true;
             });
 
-            server.RegisterLiteGraphMethod("vector/deletenodevectors", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_deletenodevectors", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -760,7 +760,7 @@ namespace LiteGraph.McpServer.Registrations
                 return true;
             });
 
-            server.RegisterLiteGraphMethod("vector/deleteedgevectors", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_deleteedgevectors", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -771,7 +771,7 @@ namespace LiteGraph.McpServer.Registrations
                 return true;
             });
 
-            server.RegisterLiteGraphMethod("vector/search", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_search", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -797,7 +797,7 @@ namespace LiteGraph.McpServer.Registrations
         /// <param name="sdk">LiteGraph SDK instance.</param>
         public static void RegisterWebSocketMethods(McpWebsocketsServer server, LiteGraphSdk sdk)
         {
-            server.RegisterLiteGraphMethod("vector/create", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_create", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("vector", out JsonElement vectorProp))
@@ -807,7 +807,7 @@ namespace LiteGraph.McpServer.Registrations
                 return CreateVector(sdk, vector);
             });
 
-            server.RegisterLiteGraphMethod("vector/get", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_get", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -817,7 +817,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadVector(sdk, tenantGuid, vectorGuid);
             });
 
-            server.RegisterLiteGraphMethod("vector/all", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_all", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
@@ -827,7 +827,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadVectors(sdk, tenantGuid, null, null, null, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
             });
 
-            server.RegisterLiteGraphMethod("vector/enumerate", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_enumerate", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("query", out JsonElement queryProp))
@@ -841,7 +841,7 @@ namespace LiteGraph.McpServer.Registrations
                 return EnumerateVectors(sdk, query);
             });
 
-            server.RegisterLiteGraphMethod("vector/update", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_update", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("vector", out JsonElement vectorProp))
@@ -851,7 +851,7 @@ namespace LiteGraph.McpServer.Registrations
                 return UpdateVector(sdk, vector);
             });
 
-            server.RegisterLiteGraphMethod("vector/delete", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_delete", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -861,7 +861,7 @@ namespace LiteGraph.McpServer.Registrations
                 return true;
             });
 
-            server.RegisterLiteGraphMethod("vector/exists", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_exists", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -870,7 +870,7 @@ namespace LiteGraph.McpServer.Registrations
                 return VectorExists(sdk, tenantGuid, vectorGuid).ToString().ToLowerInvariant();
             });
 
-            server.RegisterLiteGraphMethod("vector/getmany", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_getmany", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -882,7 +882,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadVectorsByGuids(sdk, tenantGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
-            server.RegisterLiteGraphMethod("vector/createmany", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_createmany", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -895,7 +895,7 @@ namespace LiteGraph.McpServer.Registrations
                 return CreateVectors(sdk, tenantGuid, vectors);
             });
 
-            server.RegisterLiteGraphMethod("vector/deletemany", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_deletemany", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -908,7 +908,7 @@ namespace LiteGraph.McpServer.Registrations
                 return true;
             });
 
-            server.RegisterLiteGraphMethod("vector/search", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_search", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -922,7 +922,7 @@ namespace LiteGraph.McpServer.Registrations
                 return SearchVectors(sdk, tenantGuid, graphGuid, searchRequest, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetIntOrDefault(args.Value, "skip", 0));
             });
 
-            server.RegisterLiteGraphMethod("vector/readallintenant", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_readallintenant", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -931,7 +931,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadAllVectorsInTenant(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
             });
 
-            server.RegisterLiteGraphMethod("vector/readallingraph", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_readallingraph", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -941,7 +941,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadAllVectorsInGraph(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
-            server.RegisterLiteGraphMethod("vector/readmanygraph", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_readmanygraph", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -951,7 +951,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadGraphVectors(sdk, tenantGuid, graphGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
-            server.RegisterLiteGraphMethod("vector/readmanynode", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_readmanynode", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -962,7 +962,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadNodeVectors(sdk, tenantGuid, graphGuid, nodeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
-            server.RegisterLiteGraphMethod("vector/readmanyedge", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_readmanyedge", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -973,7 +973,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadEdgeVectors(sdk, tenantGuid, graphGuid, edgeGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
-            server.RegisterLiteGraphMethod("vector/deleteallintenant", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_deleteallintenant", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -982,7 +982,7 @@ namespace LiteGraph.McpServer.Registrations
                 return true;
             });
 
-            server.RegisterLiteGraphMethod("vector/deleteallingraph", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_deleteallingraph", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -992,7 +992,7 @@ namespace LiteGraph.McpServer.Registrations
                 return true;
             });
 
-            server.RegisterLiteGraphMethod("vector/deletegraphvectors", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_deletegraphvectors", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -1002,7 +1002,7 @@ namespace LiteGraph.McpServer.Registrations
                 return true;
             });
 
-            server.RegisterLiteGraphMethod("vector/deletenodevectors", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_deletenodevectors", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -1013,7 +1013,7 @@ namespace LiteGraph.McpServer.Registrations
                 return true;
             });
 
-            server.RegisterLiteGraphMethod("vector/deleteedgevectors", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("vector_deleteedgevectors", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");

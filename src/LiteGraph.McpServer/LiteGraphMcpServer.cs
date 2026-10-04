@@ -401,11 +401,15 @@
             _McpWebsocketServer = new McpWebsocketsServer(_Settings.WebSocket.Hostname, _Settings.WebSocket.Port, "/mcp");
 
             _McpHttpServer.ServerName = "LiteGraph.McpServer";
-            _McpHttpServer.ServerVersion = "10.0.0";
+            _McpHttpServer.ServerVersion = "10.1.0";
             _McpTcpServer.ServerName = "LiteGraph.McpServer";
-            _McpTcpServer.ServerVersion = "10.0.0";
+            _McpTcpServer.ServerVersion = "10.1.0";
             _McpWebsocketServer.ServerName = "LiteGraph.McpServer";
-            _McpWebsocketServer.ServerVersion = "10.0.0";
+            _McpWebsocketServer.ServerVersion = "10.1.0";
+
+            _McpHttpServer.RateLimits.ToolCallsPerSecond = _Settings.ToolCallsPerSecond;
+            _McpTcpServer.RateLimits.ToolCallsPerSecond = _Settings.ToolCallsPerSecond;
+            _McpWebsocketServer.RateLimits.ToolCallsPerSecond = _Settings.ToolCallsPerSecond;
 
             _McpHttpServer.ClientConnected += ClientConnected;
             _McpHttpServer.ClientDisconnected += ClientDisconnected;
@@ -682,7 +686,7 @@
                 Environment.NewLine +
                 "## Workflow" + Environment.NewLine +
                 Environment.NewLine +
-                "1. Ensure a tenant exists (use `tenant/all` to list, `tenant/create` to create)." + Environment.NewLine +
+                "1. Ensure a tenant exists (use `tenant_all` to list, `tenant_create` to create)." + Environment.NewLine +
                 "2. Create or select a graph within the tenant." + Environment.NewLine +
                 "3. Create nodes and edges to model relationships." + Environment.NewLine +
                 "4. Attach labels, tags, and vectors as needed." + Environment.NewLine +
@@ -693,8 +697,8 @@
                 Environment.NewLine +
                 "- Always confirm the tenant and graph GUIDs before performing operations." + Environment.NewLine +
                 "- Use `search` tools with expression filters for targeted queries." + Environment.NewLine +
-                "- Prefer batch operations (`node/createmany`, `edge/createmany`) for bulk data." + Environment.NewLine +
-                "- Use vector search (`vector/search`) for semantic similarity queries." + Environment.NewLine +
+                "- Prefer batch operations (`node_createmany`, `edge_createmany`) for bulk data." + Environment.NewLine +
+                "- Use vector search (`vector_search`) for semantic similarity queries." + Environment.NewLine +
                 "- Check graph export (`graph/export`) for full graph snapshots." + Environment.NewLine;
 
             if (dryRun)

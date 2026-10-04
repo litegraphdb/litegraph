@@ -14057,167 +14057,6 @@
             <param name="token">Cancellation token.</param>
             <returns>Task.</returns>
         </member>
-        <member name="T:LiteGraph.JsonlExportMetadata">
-            <summary>
-            Metadata rendered into the leading comment lines of a JSONL export.
-            Comment lines begin with '#' and are ignored on import.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.JsonlExportMetadata.FormatVersion">
-            <summary>
-            JSONL format version string.  Default is "v1".
-            </summary>
-        </member>
-        <member name="P:LiteGraph.JsonlExportMetadata.Kind">
-            <summary>
-            Kind of export, for example "subgraph" or "graph-backup".
-            </summary>
-        </member>
-        <member name="P:LiteGraph.JsonlExportMetadata.ExportedUtc">
-            <summary>
-            Timestamp of the export, in UTC.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.JsonlExportMetadata.SourceTenantGUID">
-            <summary>
-            Source tenant GUID.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.JsonlExportMetadata.SourceGraphGUID">
-            <summary>
-            Source graph GUID.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.JsonlExportMetadata.SourceGraphName">
-            <summary>
-            Source graph name, if known.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.JsonlExportMetadata.SelectionSummary">
-            <summary>
-            Human-readable summary of the selection criteria, if this export was a filtered subgraph.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.JsonlExportMetadata.Generator">
-            <summary>
-            Generator identifier, for example "LiteGraph 8.0.0".
-            </summary>
-        </member>
-        <member name="M:LiteGraph.JsonlExportMetadata.#ctor">
-            <summary>
-            Instantiate the object.
-            </summary>
-        </member>
-        <member name="T:LiteGraph.JsonlFormatException">
-            <summary>
-            Exception raised when a JSONL record line cannot be parsed or has an unrecognized type.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.JsonlFormatException.LineNumber">
-            <summary>
-            One-based line number of the offending line within the input.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.JsonlFormatException.Line">
-            <summary>
-            The offending line content.
-            </summary>
-        </member>
-        <member name="M:LiteGraph.JsonlFormatException.#ctor(System.Int64,System.String,System.String,System.Exception)">
-            <summary>
-            Instantiate the object.
-            </summary>
-            <param name="lineNumber">One-based line number.</param>
-            <param name="line">Offending line content.</param>
-            <param name="message">Message.</param>
-            <param name="inner">Inner exception.</param>
-        </member>
-        <member name="T:LiteGraph.JsonlRecord">
-            <summary>
-            A single JSONL record line: a type discriminator paired with a graph, node, or edge payload.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.JsonlRecord.Type">
-            <summary>
-            Record type discriminator.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.JsonlRecord.Object">
-            <summary>
-            Record payload.  On write this is a Graph, Node, or Edge instance; on read it is the deserialized JSON payload.
-            Use AsGraph, AsNode, or AsEdge to obtain a strongly-typed instance.
-            </summary>
-        </member>
-        <member name="M:LiteGraph.JsonlRecord.#ctor">
-            <summary>
-            Instantiate the object.
-            </summary>
-        </member>
-        <member name="M:LiteGraph.JsonlRecord.ForGraph(LiteGraph.Graph)">
-            <summary>
-            Create a record wrapping a graph.
-            </summary>
-            <param name="graph">Graph.</param>
-            <returns>Record.</returns>
-        </member>
-        <member name="M:LiteGraph.JsonlRecord.ForNode(LiteGraph.Node)">
-            <summary>
-            Create a record wrapping a node.
-            </summary>
-            <param name="node">Node.</param>
-            <returns>Record.</returns>
-        </member>
-        <member name="M:LiteGraph.JsonlRecord.ForEdge(LiteGraph.Edge)">
-            <summary>
-            Create a record wrapping an edge.
-            </summary>
-            <param name="edge">Edge.</param>
-            <returns>Record.</returns>
-        </member>
-        <member name="M:LiteGraph.JsonlRecord.AsGraph(LiteGraph.Serialization.Serializer)">
-            <summary>
-            Materialize the payload as a graph.
-            </summary>
-            <param name="serializer">Serializer used to convert the payload.</param>
-            <returns>Graph, or null if the payload is null.</returns>
-            <exception cref="T:System.ArgumentNullException">Thrown when the serializer is null.</exception>
-        </member>
-        <member name="M:LiteGraph.JsonlRecord.AsNode(LiteGraph.Serialization.Serializer)">
-            <summary>
-            Materialize the payload as a node.
-            </summary>
-            <param name="serializer">Serializer used to convert the payload.</param>
-            <returns>Node, or null if the payload is null.</returns>
-            <exception cref="T:System.ArgumentNullException">Thrown when the serializer is null.</exception>
-        </member>
-        <member name="M:LiteGraph.JsonlRecord.AsEdge(LiteGraph.Serialization.Serializer)">
-            <summary>
-            Materialize the payload as an edge.
-            </summary>
-            <param name="serializer">Serializer used to convert the payload.</param>
-            <returns>Edge, or null if the payload is null.</returns>
-            <exception cref="T:System.ArgumentNullException">Thrown when the serializer is null.</exception>
-        </member>
-        <member name="T:LiteGraph.JsonlRecordTypeEnum">
-            <summary>
-            Type discriminator for a single JSONL record line.
-            </summary>
-        </member>
-        <member name="F:LiteGraph.JsonlRecordTypeEnum.Graph">
-            <summary>
-            The record payload is a graph.
-            </summary>
-        </member>
-        <member name="F:LiteGraph.JsonlRecordTypeEnum.Node">
-            <summary>
-            The record payload is a node.
-            </summary>
-        </member>
-        <member name="F:LiteGraph.JsonlRecordTypeEnum.Edge">
-            <summary>
-            The record payload is an edge.
-            </summary>
-        </member>
         <member name="T:LiteGraph.Jsonl.JsonlGraphImporter">
             <summary>
             Imports LiteGraph JSONL into a new or existing graph.
@@ -14389,6 +14228,167 @@
             <param name="token">Cancellation token.</param>
             <returns>JSONL string.</returns>
             <exception cref="T:System.ArgumentNullException">Thrown when client is null.</exception>
+        </member>
+        <member name="T:LiteGraph.JsonlExportMetadata">
+            <summary>
+            Metadata rendered into the leading comment lines of a JSONL export.
+            Comment lines begin with '#' and are ignored on import.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlExportMetadata.FormatVersion">
+            <summary>
+            JSONL format version string.  Default is "v1".
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlExportMetadata.Kind">
+            <summary>
+            Kind of export, for example "subgraph" or "graph-backup".
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlExportMetadata.ExportedUtc">
+            <summary>
+            Timestamp of the export, in UTC.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlExportMetadata.SourceTenantGUID">
+            <summary>
+            Source tenant GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlExportMetadata.SourceGraphGUID">
+            <summary>
+            Source graph GUID.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlExportMetadata.SourceGraphName">
+            <summary>
+            Source graph name, if known.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlExportMetadata.SelectionSummary">
+            <summary>
+            Human-readable summary of the selection criteria, if this export was a filtered subgraph.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlExportMetadata.Generator">
+            <summary>
+            Generator identifier, for example "LiteGraph 8.0.0".
+            </summary>
+        </member>
+        <member name="M:LiteGraph.JsonlExportMetadata.#ctor">
+            <summary>
+            Instantiate the object.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.JsonlFormatException">
+            <summary>
+            Exception raised when a JSONL record line cannot be parsed or has an unrecognized type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlFormatException.LineNumber">
+            <summary>
+            One-based line number of the offending line within the input.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlFormatException.Line">
+            <summary>
+            The offending line content.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.JsonlFormatException.#ctor(System.Int64,System.String,System.String,System.Exception)">
+            <summary>
+            Instantiate the object.
+            </summary>
+            <param name="lineNumber">One-based line number.</param>
+            <param name="line">Offending line content.</param>
+            <param name="message">Message.</param>
+            <param name="inner">Inner exception.</param>
+        </member>
+        <member name="T:LiteGraph.JsonlRecord">
+            <summary>
+            A single JSONL record line: a type discriminator paired with a graph, node, or edge payload.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlRecord.Type">
+            <summary>
+            Record type discriminator.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.JsonlRecord.Object">
+            <summary>
+            Record payload.  On write this is a Graph, Node, or Edge instance; on read it is the deserialized JSON payload.
+            Use AsGraph, AsNode, or AsEdge to obtain a strongly-typed instance.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.JsonlRecord.#ctor">
+            <summary>
+            Instantiate the object.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.JsonlRecord.ForGraph(LiteGraph.Graph)">
+            <summary>
+            Create a record wrapping a graph.
+            </summary>
+            <param name="graph">Graph.</param>
+            <returns>Record.</returns>
+        </member>
+        <member name="M:LiteGraph.JsonlRecord.ForNode(LiteGraph.Node)">
+            <summary>
+            Create a record wrapping a node.
+            </summary>
+            <param name="node">Node.</param>
+            <returns>Record.</returns>
+        </member>
+        <member name="M:LiteGraph.JsonlRecord.ForEdge(LiteGraph.Edge)">
+            <summary>
+            Create a record wrapping an edge.
+            </summary>
+            <param name="edge">Edge.</param>
+            <returns>Record.</returns>
+        </member>
+        <member name="M:LiteGraph.JsonlRecord.AsGraph(LiteGraph.Serialization.Serializer)">
+            <summary>
+            Materialize the payload as a graph.
+            </summary>
+            <param name="serializer">Serializer used to convert the payload.</param>
+            <returns>Graph, or null if the payload is null.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the serializer is null.</exception>
+        </member>
+        <member name="M:LiteGraph.JsonlRecord.AsNode(LiteGraph.Serialization.Serializer)">
+            <summary>
+            Materialize the payload as a node.
+            </summary>
+            <param name="serializer">Serializer used to convert the payload.</param>
+            <returns>Node, or null if the payload is null.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the serializer is null.</exception>
+        </member>
+        <member name="M:LiteGraph.JsonlRecord.AsEdge(LiteGraph.Serialization.Serializer)">
+            <summary>
+            Materialize the payload as an edge.
+            </summary>
+            <param name="serializer">Serializer used to convert the payload.</param>
+            <returns>Edge, or null if the payload is null.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the serializer is null.</exception>
+        </member>
+        <member name="T:LiteGraph.JsonlRecordTypeEnum">
+            <summary>
+            Type discriminator for a single JSONL record line.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.JsonlRecordTypeEnum.Graph">
+            <summary>
+            The record payload is a graph.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.JsonlRecordTypeEnum.Node">
+            <summary>
+            The record payload is a node.
+            </summary>
+        </member>
+        <member name="F:LiteGraph.JsonlRecordTypeEnum.Edge">
+            <summary>
+            The record payload is an edge.
+            </summary>
         </member>
         <member name="T:LiteGraph.LabelMetadata">
             <summary>
@@ -16764,21 +16764,6 @@
             Emergency messages.
             </summary>
         </member>
-        <member name="T:LiteGraph.StorageSettings">
-            <summary>
-            Storage settings.
-            </summary>
-        </member>
-        <member name="P:LiteGraph.StorageSettings.BackupsDirectory">
-            <summary>
-            Backups directory.
-            </summary>
-        </member>
-        <member name="M:LiteGraph.StorageSettings.#ctor">
-            <summary>
-            Instantiate.
-            </summary>
-        </member>
         <member name="T:LiteGraph.Storage.StorageEntityCounts">
             <summary>
             Entity counts for a repository.
@@ -16964,6 +16949,55 @@
             True if no verification differences were found.
             </summary>
         </member>
+        <member name="T:LiteGraph.StorageSettings">
+            <summary>
+            Storage settings.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.StorageSettings.BackupsDirectory">
+            <summary>
+            Backups directory.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.StorageSettings.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="T:LiteGraph.Subgraph.SubgraphExtractor">
+            <summary>
+            Extracts a filtered, directional subgraph from a graph using a bounded breadth-first walk.
+            The walk composes the client's filter-aware traversal primitives so that all sanitization and
+            validation remain on the existing repository path.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Subgraph.SubgraphExtractor.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Subgraph.SubgraphExtractor.Extract(LiteGraph.LiteGraphClient,LiteGraph.SubgraphExtractionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Extract a subgraph as a materialized search result.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="request">Subgraph extraction request.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Search result containing the source graph metadata, the included nodes, and the retained edges.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the client or request is null.</exception>
+            <exception cref="T:System.ArgumentException">Thrown when the graph or a start node does not exist, or no start node is supplied.</exception>
+        </member>
+        <member name="M:LiteGraph.Subgraph.SubgraphExtractor.ExtractAsRecords(LiteGraph.LiteGraphClient,LiteGraph.SubgraphExtractionRequest,System.Threading.CancellationToken)">
+            <summary>
+            Extract a subgraph as a stream of JSONL records: the source graph record, then node records, then edge records.
+            </summary>
+            <param name="client">LiteGraph client.</param>
+            <param name="request">Subgraph extraction request.</param>
+            <param name="token">Cancellation token.</param>
+            <returns>Async enumerable of JSONL records.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when the client or request is null.</exception>
+            <exception cref="T:System.ArgumentException">Thrown when the graph or a start node does not exist, or no start node is supplied.</exception>
+        </member>
         <member name="T:LiteGraph.SubgraphExtractionRequest">
             <summary>
             Request describing a filtered, directional subgraph to extract from a graph.
@@ -17061,40 +17095,6 @@
             <summary>
             Instantiate the object.
             </summary>
-        </member>
-        <member name="T:LiteGraph.Subgraph.SubgraphExtractor">
-            <summary>
-            Extracts a filtered, directional subgraph from a graph using a bounded breadth-first walk.
-            The walk composes the client's filter-aware traversal primitives so that all sanitization and
-            validation remain on the existing repository path.
-            </summary>
-        </member>
-        <member name="M:LiteGraph.Subgraph.SubgraphExtractor.#ctor">
-            <summary>
-            Instantiate.
-            </summary>
-        </member>
-        <member name="M:LiteGraph.Subgraph.SubgraphExtractor.Extract(LiteGraph.LiteGraphClient,LiteGraph.SubgraphExtractionRequest,System.Threading.CancellationToken)">
-            <summary>
-            Extract a subgraph as a materialized search result.
-            </summary>
-            <param name="client">LiteGraph client.</param>
-            <param name="request">Subgraph extraction request.</param>
-            <param name="token">Cancellation token.</param>
-            <returns>Search result containing the source graph metadata, the included nodes, and the retained edges.</returns>
-            <exception cref="T:System.ArgumentNullException">Thrown when the client or request is null.</exception>
-            <exception cref="T:System.ArgumentException">Thrown when the graph or a start node does not exist, or no start node is supplied.</exception>
-        </member>
-        <member name="M:LiteGraph.Subgraph.SubgraphExtractor.ExtractAsRecords(LiteGraph.LiteGraphClient,LiteGraph.SubgraphExtractionRequest,System.Threading.CancellationToken)">
-            <summary>
-            Extract a subgraph as a stream of JSONL records: the source graph record, then node records, then edge records.
-            </summary>
-            <param name="client">LiteGraph client.</param>
-            <param name="request">Subgraph extraction request.</param>
-            <param name="token">Cancellation token.</param>
-            <returns>Async enumerable of JSONL records.</returns>
-            <exception cref="T:System.ArgumentNullException">Thrown when the client or request is null.</exception>
-            <exception cref="T:System.ArgumentException">Thrown when the graph or a start node does not exist, or no start node is supplied.</exception>
         </member>
         <member name="T:LiteGraph.SyslogServer">
             <summary>

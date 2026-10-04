@@ -63,8 +63,8 @@ describe('createChatSseParser', () => {
       { event: 'delta', content: 'text' },
       { event: 'thinking', content: 'reason' },
       { event: 'retrieval', chunks: [{ nodeGuid: 'n1', name: 'Node', score: 0.9 }] },
-      { event: 'tool_call', name: 'node/search', arguments: '{}', iteration: 1 },
-      { event: 'tool_result', name: 'node/search', success: true, error: null, runtimeMs: 12.3 },
+      { event: 'tool_call', name: 'node_search', arguments: '{}', iteration: 1 },
+      { event: 'tool_result', name: 'node_search', success: true, error: null, runtimeMs: 12.3 },
       { event: 'usage', usage: { ThreadGUID: 't', TurnGUID: 'u', TotalDurationMs: 5 } },
       { event: 'error', message: 'boom', statusCode: 502 },
     ];

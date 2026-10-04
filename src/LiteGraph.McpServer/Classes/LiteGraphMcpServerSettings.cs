@@ -27,7 +27,7 @@ namespace LiteGraph.McpServer.Classes
         /// <summary>
         /// Software version.
         /// </summary>
-        public string SoftwareVersion { get; set; } = "v10.0.0";
+        public string SoftwareVersion { get; set; } = "v10.1.0";
 
         /// <summary>
         /// Node information.
@@ -74,9 +74,31 @@ namespace LiteGraph.McpServer.Classes
         /// </summary>
         public DebugSettings Debug { get; set; } = new DebugSettings();
 
+        /// <summary>
+        /// Maximum MCP tool calls per second per client, applied on the HTTP, TCP, and WebSocket transports.
+        /// Default is 0, which disables the limit (LiteGraph server authentication and request timeouts still apply).
+        /// Minimum is 0, maximum is 1000000.  A positive value makes calls over the limit return a tool result
+        /// with isError set to true instead of running.
+        /// </summary>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when set outside 0 to 1000000.</exception>
+        public int ToolCallsPerSecond
+        {
+            get
+            {
+                return _ToolCallsPerSecond;
+            }
+            set
+            {
+                if (value < 0 || value > 1000000) throw new ArgumentOutOfRangeException(nameof(ToolCallsPerSecond), "ToolCallsPerSecond must be between 0 and 1000000.");
+                _ToolCallsPerSecond = value;
+            }
+        }
+
         #endregion
 
         #region Private-Members
+
+        private int _ToolCallsPerSecond = 0;
 
         #endregion
 

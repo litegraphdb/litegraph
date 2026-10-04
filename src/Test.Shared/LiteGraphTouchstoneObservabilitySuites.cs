@@ -142,7 +142,7 @@ namespace Test.Shared
                 // Invoke a read-only tool over the HTTP transport.
                 try
                 {
-                    await CallMcpToolAsync<string>("tenant/all", new { }).ConfigureAwait(false);
+                    await CallMcpToolAsync<string>("tenant_all", new { }).ConfigureAwait(false);
                 }
                 catch (Exception)
                 {
@@ -151,13 +151,13 @@ namespace Test.Shared
 
                 string metrics = await ScrapeUntilAsync(
                     _McpEnvironment.McpMetricsEndpoint + "/metrics",
-                    "tool=\"tenant/all\"",
+                    "tool=\"tenant_all\"",
                     cancellationToken).ConfigureAwait(false);
 
                 AssertTrue(metrics.Contains("litegraph_http_requests_total"), "MCP request counter is exposed");
                 AssertTrue(metrics.Contains("component=\"mcp\""), "MCP metrics carry component=mcp");
                 AssertTrue(metrics.Contains("transport=\"http\""), "MCP metrics carry the transport label");
-                AssertTrue(metrics.Contains("tool=\"tenant/all\""), "MCP metrics carry the tool label");
+                AssertTrue(metrics.Contains("tool=\"tenant_all\""), "MCP metrics carry the tool label");
                 AssertTrue(metrics.Contains("# TYPE litegraph_http_request_duration_ms histogram"), "MCP duration histogram is exposed");
                 AssertTrue(metrics.Contains("litegraph_http_requests_in_flight{component=\"mcp\""), "MCP in-flight gauge is exposed");
             }

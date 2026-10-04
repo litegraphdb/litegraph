@@ -3173,7 +3173,7 @@ namespace Test.Shared
             await InitializeMcpServer();
             if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
 
-            string result = await CallMcpToolAsync<string>("tenant/create", new { name = "MCP Test Tenant" });
+            string result = await CallMcpToolAsync<string>("tenant_create", new { name = "MCP Test Tenant" });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -3190,7 +3190,7 @@ namespace Test.Shared
             if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
             if (_McpTestTenantGuid == Guid.Empty) throw new InvalidOperationException("Test tenant GUID is empty");
 
-            string result = await CallMcpToolAsync<string>("tenant/get", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("tenant_get", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -3204,7 +3204,7 @@ namespace Test.Shared
             await InitializeMcpServer();
             if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
 
-            string result = await CallMcpToolAsync<string>("tenant/all", new { });
+            string result = await CallMcpToolAsync<string>("tenant_all", new { });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<TenantMetadata>? tenantsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TenantMetadata>>(result);
@@ -3222,7 +3222,7 @@ namespace Test.Shared
 
             TenantMetadata updated = new TenantMetadata { GUID = _McpTestTenantGuid, Name = "Updated MCP Tenant" };
             string tenantJson = _McpSerializer.SerializeJson(updated, false);
-            string result = await CallMcpToolAsync<string>("tenant/update", new { tenant = tenantJson });
+            string result = await CallMcpToolAsync<string>("tenant_update", new { tenant = tenantJson });
             AssertNotNull(result, "Result should not be null");
 
             TenantMetadata? tenant = _McpSerializer.DeserializeJson<TenantMetadata>(result);
@@ -3238,11 +3238,11 @@ namespace Test.Shared
 
             if (_McpTestGraphGuid != Guid.Empty)
             {
-                bool graphDeleted = await CallMcpToolAsync<bool>("graph/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), force = false });
+                bool graphDeleted = await CallMcpToolAsync<bool>("graph_delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), force = false });
                 AssertTrue(graphDeleted, "Graph delete should return true");
             }
 
-            bool result = await CallMcpToolAsync<bool>("tenant/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), force = false });
+            bool result = await CallMcpToolAsync<bool>("tenant_delete", new { tenantGuid = _McpTestTenantGuid.ToString(), force = false });
             AssertTrue(result, "Tenant delete should return true");
         }
 
@@ -3253,7 +3253,7 @@ namespace Test.Shared
 
             EnumerationRequest query = new EnumerationRequest { MaxResults = 10 };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await CallMcpToolAsync<string>("tenant/enumerate", new { query = queryJson });
+            string result = await CallMcpToolAsync<string>("tenant_enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<TenantMetadata>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<TenantMetadata>>(result);
@@ -3270,7 +3270,7 @@ namespace Test.Shared
                 await TestMcpTenantCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("tenant/exists", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("tenant_exists", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertTrue(result == "true" || result == "false", "Result should be 'true' or 'false'");
         }
@@ -3279,7 +3279,7 @@ namespace Test.Shared
         {
             await InitializeMcpServer();
 
-            string result = await CallMcpToolAsync<string>("tenant/statistics", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("tenant_statistics", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -3298,7 +3298,7 @@ namespace Test.Shared
 
             if (_McpTestUserGuid != Guid.Empty)
             {
-                string existingResult = await CallMcpToolAsync<string>("user/get", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
+                string existingResult = await CallMcpToolAsync<string>("user_get", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
                 if (existingResult != null && existingResult != "null")
                 {
                     UserMaster? existing = _McpSerializer.DeserializeJson<UserMaster>(existingResult);
@@ -3319,7 +3319,7 @@ namespace Test.Shared
                 LastName = "Test"
             };
             string userJson = _McpSerializer.SerializeJson(user, false);
-            string result = await CallMcpToolAsync<string>("user/create", new { user = userJson });
+            string result = await CallMcpToolAsync<string>("user_create", new { user = userJson });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -3339,7 +3339,7 @@ namespace Test.Shared
                 await TestMcpUserCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("user/get", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("user_get", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -3357,7 +3357,7 @@ namespace Test.Shared
                 await TestMcpTenantCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("user/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("user_all", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<UserMaster>? usersEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<UserMaster>>(result);
@@ -3386,7 +3386,7 @@ namespace Test.Shared
                 Active = false
             };
             string userJson = _McpSerializer.SerializeJson(updated, false);
-            string result = await CallMcpToolAsync<string>("user/update", new { user = userJson });
+            string result = await CallMcpToolAsync<string>("user_update", new { user = userJson });
             AssertNotNull(result, "Result should not be null");
 
             UserMaster? user = _McpSerializer.DeserializeJson<UserMaster>(result);
@@ -3410,7 +3410,7 @@ namespace Test.Shared
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await CallMcpToolAsync<string>("user/enumerate", new { query = queryJson });
+            string result = await CallMcpToolAsync<string>("user_enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<UserMaster>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<UserMaster>>(result);
@@ -3427,7 +3427,7 @@ namespace Test.Shared
                 await TestMcpUserCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("user/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("user_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertTrue(result == "true" || result == "false", "Result should be 'true' or 'false'");
             AssertTrue(result == "true", "User should exist");
@@ -3442,7 +3442,7 @@ namespace Test.Shared
                 await TestMcpUserCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("user/getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuids = new[] { _McpTestUserGuid.ToString() } });
+            string result = await CallMcpToolAsync<string>("user_getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuids = new[] { _McpTestUserGuid.ToString() } });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<UserMaster>? usersEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<UserMaster>>(result);
@@ -3462,7 +3462,7 @@ namespace Test.Shared
                 await TestMcpUserCreate();
             }
 
-            bool result = await CallMcpToolAsync<bool>("user/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("user_delete", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
             AssertTrue(result, "User delete should return true");
             _McpTestUserGuid = Guid.Empty;
         }
@@ -3489,7 +3489,7 @@ namespace Test.Shared
                 Active = true
             };
             string credentialJson = _McpSerializer.SerializeJson(credential, false);
-            string result = await CallMcpToolAsync<string>("credential/create", new { credential = credentialJson });
+            string result = await CallMcpToolAsync<string>("credential_create", new { credential = credentialJson });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -3509,7 +3509,7 @@ namespace Test.Shared
                 await TestMcpCredentialCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("credential/get", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("credential_get", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -3527,7 +3527,7 @@ namespace Test.Shared
                 await TestMcpTenantCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("credential/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("credential_all", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Credential>? credentialsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Credential>>(result);
@@ -3555,7 +3555,7 @@ namespace Test.Shared
                 Active = false
             };
             string credentialJson = _McpSerializer.SerializeJson(updated, false);
-            string result = await CallMcpToolAsync<string>("credential/update", new { credential = credentialJson });
+            string result = await CallMcpToolAsync<string>("credential_update", new { credential = credentialJson });
             AssertNotNull(result, "Result should not be null");
 
             Credential? credential = _McpSerializer.DeserializeJson<Credential>(result);
@@ -3579,7 +3579,7 @@ namespace Test.Shared
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await CallMcpToolAsync<string>("credential/enumerate", new { query = queryJson });
+            string result = await CallMcpToolAsync<string>("credential_enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Credential>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Credential>>(result);
@@ -3596,7 +3596,7 @@ namespace Test.Shared
                 await TestMcpCredentialCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("credential_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertTrue(result == "true" || result == "false", "Result should be 'true' or 'false'");
             AssertTrue(result == "true", "Credential should exist");
@@ -3611,7 +3611,7 @@ namespace Test.Shared
                 await TestMcpCredentialCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("credential/getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuids = new[] { _McpTestCredentialGuid.ToString() } });
+            string result = await CallMcpToolAsync<string>("credential_getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuids = new[] { _McpTestCredentialGuid.ToString() } });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Credential>? credentialsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Credential>>(result);
@@ -3630,7 +3630,7 @@ namespace Test.Shared
                 await TestMcpCredentialCreate();
 
             // Get the credential to retrieve its bearer token
-            string getResult = await CallMcpToolAsync<string>("credential/get", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            string getResult = await CallMcpToolAsync<string>("credential_get", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
             AssertNotNull(getResult, "Get result should not be null");
             AssertFalse(getResult == "null", "Get result should not be null string");
 
@@ -3639,7 +3639,7 @@ namespace Test.Shared
             AssertNotNull(credential!.BearerToken, "Bearer token should not be null");
 
             // Test ReadByBearerToken
-            string result = await CallMcpToolAsync<string>("credential/getbybearertoken", new { bearerToken = credential.BearerToken });
+            string result = await CallMcpToolAsync<string>("credential_getbybearertoken", new { bearerToken = credential.BearerToken });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -3662,13 +3662,13 @@ namespace Test.Shared
             if (_McpTestCredentialGuid == Guid.Empty)
                 await TestMcpCredentialCreate();
 
-            string existsResult = await CallMcpToolAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            string existsResult = await CallMcpToolAsync<string>("credential_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
             AssertTrue(existsResult == "true", "Credential should exist before deletion");
 
-            bool deleteResult = await CallMcpToolAsync<bool>("credential/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            bool deleteResult = await CallMcpToolAsync<bool>("credential_deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertTrue(deleteResult, "Credential deleteallintenant should return true");
 
-            string existsAfterResult = await CallMcpToolAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            string existsAfterResult = await CallMcpToolAsync<string>("credential_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
             AssertTrue(existsAfterResult == "false", "Credential should not exist after deletion");
 
             _McpTestCredentialGuid = Guid.Empty;
@@ -3686,13 +3686,13 @@ namespace Test.Shared
             if (_McpTestCredentialGuid == Guid.Empty)
                 await TestMcpCredentialCreate();
 
-            string existsResult = await CallMcpToolAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            string existsResult = await CallMcpToolAsync<string>("credential_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
             AssertTrue(existsResult == "true", "Credential should exist before deletion");
 
-            bool deleteByUserResult = await CallMcpToolAsync<bool>("credential/deletebyuser", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
+            bool deleteByUserResult = await CallMcpToolAsync<bool>("credential_deletebyuser", new { tenantGuid = _McpTestTenantGuid.ToString(), userGuid = _McpTestUserGuid.ToString() });
             AssertTrue(deleteByUserResult, "Credential deletebyuser should return true");
 
-            string existsAfterResult = await CallMcpToolAsync<string>("credential/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            string existsAfterResult = await CallMcpToolAsync<string>("credential_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
             AssertTrue(existsAfterResult == "false", "Credential should not exist after deletion");
 
             _McpTestCredentialGuid = Guid.Empty;
@@ -3707,7 +3707,7 @@ namespace Test.Shared
                 await TestMcpCredentialCreate();
             }
 
-            bool result = await CallMcpToolAsync<bool>("credential/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("credential_delete", new { tenantGuid = _McpTestTenantGuid.ToString(), credentialGuid = _McpTestCredentialGuid.ToString() });
             AssertTrue(result, "Credential delete should return true");
             _McpTestCredentialGuid = Guid.Empty;
         }
@@ -3716,7 +3716,7 @@ namespace Test.Shared
         {
             await InitializeMcpServer();
 
-            string result = await CallMcpToolAsync<string>("graph/create", new { tenantGuid = _McpTestTenantGuid.ToString(), name = "MCP Test Graph" });
+            string result = await CallMcpToolAsync<string>("graph_create", new { tenantGuid = _McpTestTenantGuid.ToString(), name = "MCP Test Graph" });
             AssertNotNull(result, "Result should not be null");
 
             Graph? graph = _McpSerializer.DeserializeJson<Graph>(result);
@@ -3730,7 +3730,7 @@ namespace Test.Shared
         {
             await InitializeMcpServer();
 
-            string result = await CallMcpToolAsync<string>("graph/get", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("graph_get", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -3743,7 +3743,7 @@ namespace Test.Shared
         {
             await InitializeMcpServer();
 
-            string result = await CallMcpToolAsync<string>("graph/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("graph_all", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Graph>? graphsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Graph>>(result);
@@ -3761,7 +3761,7 @@ namespace Test.Shared
             if (_McpTestGraphGuid == Guid.Empty)
                 await TestMcpGraphCreate();
 
-            string result = await CallMcpToolAsync<string>("graph/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("graph_readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Graph>? graphsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Graph>>(result);
@@ -3775,7 +3775,7 @@ namespace Test.Shared
         {
             await InitializeMcpServer();
 
-            string getResult = await CallMcpToolAsync<string>("graph/get", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string getResult = await CallMcpToolAsync<string>("graph_get", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(getResult, "Get result should not be null");
             AssertFalse(getResult == "null", "Graph should exist before update");
 
@@ -3784,7 +3784,7 @@ namespace Test.Shared
             existingGraph!.Name = "Updated MCP Graph";
 
             string graphJson = _McpSerializer.SerializeJson(existingGraph, false);
-            string result = await CallMcpToolAsync<string>("graph/update", new { graph = graphJson });
+            string result = await CallMcpToolAsync<string>("graph_update", new { graph = graphJson });
             AssertNotNull(result, "Result should not be null");
 
             Graph? graph = _McpSerializer.DeserializeJson<Graph>(result);
@@ -3800,9 +3800,9 @@ namespace Test.Shared
                 await TestMcpGraphCreate();
             }
 
-            bool nodesDeleted = await CallMcpToolAsync<bool>("node/deleteall", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            bool nodesDeleted = await CallMcpToolAsync<bool>("node_deleteall", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertTrue(nodesDeleted, "Node deleteall should return true");
-            bool result = await CallMcpToolAsync<bool>("graph/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), force = false });
+            bool result = await CallMcpToolAsync<bool>("graph_delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), force = false });
             AssertTrue(result, "Graph delete should return true");
             _McpTestGraphGuid = Guid.Empty;
         }
@@ -3816,7 +3816,7 @@ namespace Test.Shared
             if (_McpTestGraphGuid == Guid.Empty)
                 await TestMcpGraphCreate();
 
-            string existingResult = await CallMcpToolAsync<string>("graph/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string existingResult = await CallMcpToolAsync<string>("graph_readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(existingResult, "Existing graphs result should not be null");
             EnumerationResult<Graph>? existingGraphsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Graph>>(existingResult);
             AssertTrue(existingGraphsEnvelope == null || existingGraphsEnvelope.TotalRecords >= existingGraphsEnvelope.Objects.Count, "existingGraphs envelope TotalRecords should cover returned objects");
@@ -3824,19 +3824,19 @@ namespace Test.Shared
             AssertNotNull(existingGraphs, "Existing graphs list should not be null");
             AssertTrue(existingGraphs!.Count > 0, "Graphs should exist before delete all");
 
-            bool tagsDeleted = await CallMcpToolAsync<bool>("tag/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            bool tagsDeleted = await CallMcpToolAsync<bool>("tag_deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertTrue(tagsDeleted, "tag/deleteallintenant should return true");
-            bool labelsDeleted = await CallMcpToolAsync<bool>("label/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            bool labelsDeleted = await CallMcpToolAsync<bool>("label_deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertTrue(labelsDeleted, "label/deleteallintenant should return true");
-            bool edgesDeleted = await CallMcpToolAsync<bool>("edge/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            bool edgesDeleted = await CallMcpToolAsync<bool>("edge_deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertTrue(edgesDeleted, "edge/deleteallintenant should return true");
-            bool nodesDeleted = await CallMcpToolAsync<bool>("node/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            bool nodesDeleted = await CallMcpToolAsync<bool>("node_deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertTrue(nodesDeleted, "node/deleteallintenant should return true");
 
-            bool deleteResult = await CallMcpToolAsync<bool>("graph/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            bool deleteResult = await CallMcpToolAsync<bool>("graph_deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertTrue(deleteResult, "graph/deleteallintenant should return true");
 
-            string afterResult = await CallMcpToolAsync<string>("graph/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string afterResult = await CallMcpToolAsync<string>("graph_readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             EnumerationResult<Graph>? remainingGraphsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Graph>>(afterResult);
             AssertTrue(remainingGraphsEnvelope == null || remainingGraphsEnvelope.TotalRecords >= remainingGraphsEnvelope.Objects.Count, "remainingGraphs envelope TotalRecords should cover returned objects");
             List<Graph>? remainingGraphs = remainingGraphsEnvelope?.Objects;
@@ -3861,7 +3861,7 @@ namespace Test.Shared
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await CallMcpToolAsync<string>("graph/enumerate", new { query = queryJson });
+            string result = await CallMcpToolAsync<string>("graph_enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Graph>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Graph>>(result);
@@ -3877,7 +3877,7 @@ namespace Test.Shared
                 await TestMcpGraphCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("graph/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("graph_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertTrue(result == "true" || result == "false", "Result should be 'true' or 'false'");
         }
@@ -3886,7 +3886,7 @@ namespace Test.Shared
         {
             await InitializeMcpServer();
 
-            string result = await CallMcpToolAsync<string>("graph/statistics", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("graph_statistics", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -3898,7 +3898,7 @@ namespace Test.Shared
         {
             await InitializeMcpServer();
 
-            string result = await CallMcpToolAsync<string>("node/create", new
+            string result = await CallMcpToolAsync<string>("node_create", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -3912,7 +3912,7 @@ namespace Test.Shared
             AssertEqual("MCP Test Node 1", node.Name, "Node name");
             _McpTestNode1Guid = node.GUID;
 
-            result = await CallMcpToolAsync<string>("node/create", new
+            result = await CallMcpToolAsync<string>("node_create", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -3926,7 +3926,7 @@ namespace Test.Shared
         {
             await InitializeMcpServer();
 
-            string result = await CallMcpToolAsync<string>("node/get", new
+            string result = await CallMcpToolAsync<string>("node_get", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -3944,7 +3944,7 @@ namespace Test.Shared
         {
             await InitializeMcpServer();
 
-            string result = await CallMcpToolAsync<string>("node/all", new
+            string result = await CallMcpToolAsync<string>("node_all", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString()
@@ -3961,7 +3961,7 @@ namespace Test.Shared
         {
             await InitializeMcpServer();
 
-            string result = await CallMcpToolAsync<string>("node/parents", new
+            string result = await CallMcpToolAsync<string>("node_parents", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -3979,7 +3979,7 @@ namespace Test.Shared
         {
             await InitializeMcpServer();
 
-            string result = await CallMcpToolAsync<string>("node/children", new
+            string result = await CallMcpToolAsync<string>("node_children", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -3997,7 +3997,7 @@ namespace Test.Shared
         {
             await InitializeMcpServer();
 
-            string result = await CallMcpToolAsync<string>("node/neighbors", new
+            string result = await CallMcpToolAsync<string>("node_neighbors", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -4020,7 +4020,7 @@ namespace Test.Shared
                 await TestMcpTenantCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("tenant/getmany", new { tenantGuids = new[] { _McpTestTenantGuid.ToString() } });
+            string result = await CallMcpToolAsync<string>("tenant_getmany", new { tenantGuids = new[] { _McpTestTenantGuid.ToString() } });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<TenantMetadata>? tenantsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TenantMetadata>>(result);
@@ -4038,7 +4038,7 @@ namespace Test.Shared
                 await TestMcpGraphCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("graph/getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuids = new[] { _McpTestGraphGuid.ToString() } });
+            string result = await CallMcpToolAsync<string>("graph_getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuids = new[] { _McpTestGraphGuid.ToString() } });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Graph>? graphsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Graph>>(result);
@@ -4058,7 +4058,7 @@ namespace Test.Shared
 
             SearchRequest req = new SearchRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 10 };
             string reqJson = _McpSerializer.SerializeJson(req, false);
-            string result = await CallMcpToolAsync<string>("graph/search", new { searchRequest = reqJson });
+            string result = await CallMcpToolAsync<string>("graph_search", new { searchRequest = reqJson });
             AssertNotNull(result, "Result should not be null");
 
             SearchResult? searchResult = _McpSerializer.DeserializeJson<SearchResult>(result);
@@ -4075,7 +4075,7 @@ namespace Test.Shared
 
             SearchRequest req = new SearchRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 1 };
             string reqJson = _McpSerializer.SerializeJson(req, false);
-            string result = await CallMcpToolAsync<string>("graph/readfirst", new { searchRequest = reqJson });
+            string result = await CallMcpToolAsync<string>("graph_readfirst", new { searchRequest = reqJson });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -4107,7 +4107,7 @@ namespace Test.Shared
             };
 
             string createRequestJson = _McpSerializer.SerializeJson(createRequest, false);
-            string createResultJson = await CallMcpToolAsync<string>("graph/query", new
+            string createResultJson = await CallMcpToolAsync<string>("graph_query", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -4132,7 +4132,7 @@ namespace Test.Shared
             };
 
             string matchRequestJson = _McpSerializer.SerializeJson(matchRequest, false);
-            string matchResultJson = await CallMcpToolAsync<string>("graph/query", new
+            string matchResultJson = await CallMcpToolAsync<string>("graph_query", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -4180,7 +4180,7 @@ namespace Test.Shared
             };
 
             string transactionJson = _McpSerializer.SerializeJson(transaction, false);
-            string resultJson = await CallMcpToolAsync<string>("graph/transaction", new
+            string resultJson = await CallMcpToolAsync<string>("graph_transaction", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -4198,7 +4198,7 @@ namespace Test.Shared
             AssertEqual(nodeGuid, result.Operations[0].GUID.GetValueOrDefault(), "Created node GUID");
 
             Guid directNodeGuid = Guid.NewGuid();
-            string directResultJson = await CallMcpToolAsync<string>("graph/transaction", new
+            string directResultJson = await CallMcpToolAsync<string>("graph_transaction", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -4225,7 +4225,7 @@ namespace Test.Shared
             AssertEqual("Serializable", directResult.IsolationLevel, "Direct transaction isolation level");
             AssertEqual(directNodeGuid, directResult.Operations[0].GUID.GetValueOrDefault(), "Direct transaction created node GUID");
 
-            string invalidResultJson = await CallMcpToolAsync<string>("graph/transaction", new
+            string invalidResultJson = await CallMcpToolAsync<string>("graph_transaction", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -4246,7 +4246,7 @@ namespace Test.Shared
             AssertFalse(invalidResult.RolledBack, "Invalid transaction should not roll back before transaction start");
             AssertEqual(0, invalidResult.FailedOperationIndex.GetValueOrDefault(), "Invalid transaction failed operation index");
 
-            string nodeJson = await CallMcpToolAsync<string>("node/get", new
+            string nodeJson = await CallMcpToolAsync<string>("node_get", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -4272,7 +4272,7 @@ namespace Test.Shared
                 new Node { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, Name = "MCP Test Node Many 2" }
             };
             string nodesJson = _McpSerializer.SerializeJson(nodes, false);
-            string result = await CallMcpToolAsync<string>("node/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodes = nodesJson });
+            string result = await CallMcpToolAsync<string>("node_createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodes = nodesJson });
             AssertNotNull(result, "Result should not be null");
 
             List<Node>? created = _McpSerializer.DeserializeJson<List<Node>>(result);
@@ -4288,7 +4288,7 @@ namespace Test.Shared
                 await TestMcpNodeCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("node/getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuids = new[] { _McpTestNode1Guid.ToString() } });
+            string result = await CallMcpToolAsync<string>("node_getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuids = new[] { _McpTestNode1Guid.ToString() } });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Node>? nodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
@@ -4307,13 +4307,13 @@ namespace Test.Shared
             }
 
             // First get the node to update
-            string getResult = await CallMcpToolAsync<string>("node/get", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            string getResult = await CallMcpToolAsync<string>("node_get", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
             Node? node = _McpSerializer.DeserializeJson<Node>(getResult);
             AssertNotNull(node, "Node should not be null");
 
             node!.Name = "Updated MCP Node";
             string nodeJson = _McpSerializer.SerializeJson(node, false);
-            string result = await CallMcpToolAsync<string>("node/update", new { node = nodeJson });
+            string result = await CallMcpToolAsync<string>("node_update", new { node = nodeJson });
             AssertNotNull(result, "Result should not be null");
 
             Node? updated = _McpSerializer.DeserializeJson<Node>(result);
@@ -4330,11 +4330,11 @@ namespace Test.Shared
             }
 
             // Create a temporary node to delete
-            string createResult = await CallMcpToolAsync<string>("node/create", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), name = "Temp Node for Delete" });
+            string createResult = await CallMcpToolAsync<string>("node_create", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), name = "Temp Node for Delete" });
             Node? tempNode = _McpSerializer.DeserializeJson<Node>(createResult);
             AssertNotNull(tempNode, "Temp node should not be null");
 
-            bool result = await CallMcpToolAsync<bool>("node/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = tempNode!.GUID.ToString() });
+            bool result = await CallMcpToolAsync<bool>("node_delete", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = tempNode!.GUID.ToString() });
             AssertTrue(result, "Node delete should return true");
         }
 
@@ -4346,7 +4346,7 @@ namespace Test.Shared
                 await TestMcpNodeCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("node/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            string result = await CallMcpToolAsync<string>("node_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertTrue(result == "true" || result == "false", "Result should be 'true' or 'false'");
         }
@@ -4365,7 +4365,7 @@ namespace Test.Shared
 
             SearchRequest req = new SearchRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 10 };
             string reqJson = _McpSerializer.SerializeJson(req, false);
-            string result = await CallMcpToolAsync<string>("node/search", new { searchRequest = reqJson });
+            string result = await CallMcpToolAsync<string>("node_search", new { searchRequest = reqJson });
             AssertNotNull(result, "Result should not be null");
 
             SearchResult? searchResult = _McpSerializer.DeserializeJson<SearchResult>(result);
@@ -4386,7 +4386,7 @@ namespace Test.Shared
 
             SearchRequest req = new SearchRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 1 };
             string reqJson = _McpSerializer.SerializeJson(req, false);
-            string result = await CallMcpToolAsync<string>("node/readfirst", new { searchRequest = reqJson });
+            string result = await CallMcpToolAsync<string>("node_readfirst", new { searchRequest = reqJson });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -4408,7 +4408,7 @@ namespace Test.Shared
 
             EnumerationRequest query = new EnumerationRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 10 };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await CallMcpToolAsync<string>("node/enumerate", new { query = queryJson });
+            string result = await CallMcpToolAsync<string>("node_enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Node>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
@@ -4427,7 +4427,7 @@ namespace Test.Shared
             if (_McpTestNode1Guid == Guid.Empty)
                 await TestMcpNodeCreate();
 
-            string result = await CallMcpToolAsync<string>("node/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("node_readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Node>? nodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
@@ -4447,7 +4447,7 @@ namespace Test.Shared
             if (_McpTestNode1Guid == Guid.Empty)
                 await TestMcpNodeCreate();
 
-            string result = await CallMcpToolAsync<string>("node/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("node_readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Node>? nodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
@@ -4469,7 +4469,7 @@ namespace Test.Shared
             if (_McpTestEdgeGuid == Guid.Empty)
                 await TestMcpEdgeCreate();
 
-            string result = await CallMcpToolAsync<string>("node/readmostconnected", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("node_readmostconnected", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Node>? nodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
@@ -4489,7 +4489,7 @@ namespace Test.Shared
             if (_McpTestNode1Guid == Guid.Empty)
                 await TestMcpNodeCreate();
 
-            string result = await CallMcpToolAsync<string>("node/readleastconnected", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("node_readleastconnected", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Node>? nodesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(result);
@@ -4509,13 +4509,13 @@ namespace Test.Shared
             if (_McpTestNode1Guid == Guid.Empty)
                 await TestMcpNodeCreate();
 
-            string existsResult = await CallMcpToolAsync<string>("node/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            string existsResult = await CallMcpToolAsync<string>("node_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
             AssertTrue(existsResult == "true", "Node should exist before deletion");
 
-            bool result = await CallMcpToolAsync<bool>("node/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("node_deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertTrue(result, "node/deleteallintenant should return true");
 
-            string existsAfterResult = await CallMcpToolAsync<string>("node/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            string existsAfterResult = await CallMcpToolAsync<string>("node_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
             AssertTrue(existsAfterResult == "false", "Node should not exist after deletion");
 
             _McpTestNode1Guid = Guid.Empty;
@@ -4537,7 +4537,7 @@ namespace Test.Shared
             }
             if (_McpTestNode2Guid == Guid.Empty)
             {
-                string result = await CallMcpToolAsync<string>("node/create", new
+                string result = await CallMcpToolAsync<string>("node_create", new
                 {
                     tenantGuid = _McpTestTenantGuid.ToString(),
                     graphGuid = _McpTestGraphGuid.ToString(),
@@ -4559,7 +4559,7 @@ namespace Test.Shared
                 Name = "MCP Test Edge"
             };
             string edgeJson = _McpSerializer.SerializeJson(edge, false);
-            string result2 = await CallMcpToolAsync<string>("edge/create", new { edge = edgeJson });
+            string result2 = await CallMcpToolAsync<string>("edge_create", new { edge = edgeJson });
             AssertNotNull(result2, "Result should not be null");
             AssertFalse(result2 == "null", "Result should not be null string");
 
@@ -4579,7 +4579,7 @@ namespace Test.Shared
                 await TestMcpEdgeCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("edge/get", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("edge_get", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -4601,7 +4601,7 @@ namespace Test.Shared
                 await TestMcpEdgeCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("edge/all", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("edge_all", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Edge>? edgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
@@ -4630,7 +4630,7 @@ namespace Test.Shared
                 Name = "Updated MCP Edge"
             };
             string edgeJson = _McpSerializer.SerializeJson(updated, false);
-            string result = await CallMcpToolAsync<string>("edge/update", new { edge = edgeJson });
+            string result = await CallMcpToolAsync<string>("edge_update", new { edge = edgeJson });
             AssertNotNull(result, "Result should not be null");
 
             Edge? edge = _McpSerializer.DeserializeJson<Edge>(result);
@@ -4653,7 +4653,7 @@ namespace Test.Shared
 
             EnumerationRequest query = new EnumerationRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 10 };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await CallMcpToolAsync<string>("edge/enumerate", new { query = queryJson });
+            string result = await CallMcpToolAsync<string>("edge_enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Edge>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
@@ -4670,7 +4670,7 @@ namespace Test.Shared
                 await TestMcpEdgeCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("edge_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertTrue(result == "true" || result == "false", "Result should be 'true' or 'false'");
             AssertTrue(result == "true", "Edge should exist");
@@ -4685,7 +4685,7 @@ namespace Test.Shared
                 await TestMcpEdgeCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("edge/getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuids = new[] { _McpTestEdgeGuid.ToString() } });
+            string result = await CallMcpToolAsync<string>("edge_getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuids = new[] { _McpTestEdgeGuid.ToString() } });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Edge>? edgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
@@ -4715,7 +4715,7 @@ namespace Test.Shared
                 new Edge { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, From = _McpTestNode2Guid, To = _McpTestNode1Guid, Name = "MCP Test Edge Many 2" }
             };
             string edgesJson = _McpSerializer.SerializeJson(edges, false);
-            string result = await CallMcpToolAsync<string>("edge/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edges = edgesJson });
+            string result = await CallMcpToolAsync<string>("edge_createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edges = edgesJson });
             AssertNotNull(result, "Result should not be null");
 
             List<Edge>? created = _McpSerializer.DeserializeJson<List<Edge>>(result);
@@ -4732,7 +4732,7 @@ namespace Test.Shared
                 await TestMcpEdgeCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("edge/nodeedges", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            string result = await CallMcpToolAsync<string>("edge_nodeedges", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Edge>? edgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
@@ -4750,7 +4750,7 @@ namespace Test.Shared
                 await TestMcpEdgeCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("edge/fromnode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            string result = await CallMcpToolAsync<string>("edge_fromnode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Edge>? edgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
@@ -4768,7 +4768,7 @@ namespace Test.Shared
                 await TestMcpEdgeCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("edge/tonode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode2Guid.ToString() });
+            string result = await CallMcpToolAsync<string>("edge_tonode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode2Guid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Edge>? edgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
@@ -4786,7 +4786,7 @@ namespace Test.Shared
                 await TestMcpEdgeCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("edge/betweennodes", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), fromNodeGuid = _McpTestNode1Guid.ToString(), toNodeGuid = _McpTestNode2Guid.ToString() });
+            string result = await CallMcpToolAsync<string>("edge_betweennodes", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), fromNodeGuid = _McpTestNode1Guid.ToString(), toNodeGuid = _McpTestNode2Guid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Edge>? edgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
@@ -4810,7 +4810,7 @@ namespace Test.Shared
 
             SearchRequest req = new SearchRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 10 };
             string reqJson = _McpSerializer.SerializeJson(req, false);
-            string result = await CallMcpToolAsync<string>("edge/search", new { request = reqJson });
+            string result = await CallMcpToolAsync<string>("edge_search", new { request = reqJson });
             AssertNotNull(result, "Result should not be null");
 
             SearchResult? searchResult = _McpSerializer.DeserializeJson<SearchResult>(result);
@@ -4832,7 +4832,7 @@ namespace Test.Shared
 
             SearchRequest req = new SearchRequest { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, MaxResults = 1 };
             string reqJson = _McpSerializer.SerializeJson(req, false);
-            string result = await CallMcpToolAsync<string>("edge/readfirst", new { request = reqJson });
+            string result = await CallMcpToolAsync<string>("edge_readfirst", new { request = reqJson });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -4854,15 +4854,15 @@ namespace Test.Shared
             }
 
             // Verify edge exists before deletion
-            string existsResult = await CallMcpToolAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            string existsResult = await CallMcpToolAsync<string>("edge_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             AssertTrue(existsResult == "true", "Edge should exist before deletion");
 
             // Delete all edges in graph
-            bool result = await CallMcpToolAsync<bool>("edge/deleteallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("edge_deleteallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertTrue(result, "edge/deleteallingraph should return true");
 
             // Verify edge no longer exists
-            string existsAfterResult = await CallMcpToolAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            string existsAfterResult = await CallMcpToolAsync<string>("edge_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             AssertTrue(existsAfterResult == "false", "Edge should not exist after deletion");
 
             _McpTestEdgeGuid = Guid.Empty;
@@ -4885,7 +4885,7 @@ namespace Test.Shared
                 await TestMcpEdgeCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("edge/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("edge_readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Edge>? edgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
@@ -4908,7 +4908,7 @@ namespace Test.Shared
                 await TestMcpEdgeCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("edge/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("edge_readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<Edge>? edgesEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(result);
@@ -4936,15 +4936,15 @@ namespace Test.Shared
             }
 
             // Verify edge exists before deletion
-            string existsResult = await CallMcpToolAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            string existsResult = await CallMcpToolAsync<string>("edge_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             AssertTrue(existsResult == "true", "Edge should exist before deletion");
 
             // Delete all edges in tenant
-            bool result = await CallMcpToolAsync<bool>("edge/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("edge_deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertTrue(result, "edge/deleteallintenant should return true");
 
             // Verify edge no longer exists
-            string existsAfterResult = await CallMcpToolAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            string existsAfterResult = await CallMcpToolAsync<string>("edge_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             AssertTrue(existsAfterResult == "false", "Edge should not exist after deletion");
 
             _McpTestEdgeGuid = Guid.Empty;
@@ -4968,15 +4968,15 @@ namespace Test.Shared
             }
 
             // Verify edge exists before deletion
-            string existsResult = await CallMcpToolAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            string existsResult = await CallMcpToolAsync<string>("edge_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             AssertTrue(existsResult == "true", "Edge should exist before deletion");
 
             // Delete edges for nodes
-            bool result = await CallMcpToolAsync<bool>("edge/deletenodeedgesmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuids = new[] { _McpTestNode1Guid.ToString(), _McpTestNode2Guid.ToString() } });
+            bool result = await CallMcpToolAsync<bool>("edge_deletenodeedgesmany", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuids = new[] { _McpTestNode1Guid.ToString(), _McpTestNode2Guid.ToString() } });
             AssertTrue(result, "edge/deletenodeedgesmany should return true");
 
             // Verify edge no longer exists
-            string existsAfterResult = await CallMcpToolAsync<string>("edge/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            string existsAfterResult = await CallMcpToolAsync<string>("edge_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             AssertTrue(existsAfterResult == "false", "Edge should not exist after deletion");
 
             _McpTestEdgeGuid = Guid.Empty;
@@ -5002,7 +5002,7 @@ namespace Test.Shared
                 Label = "MCP Test Label"
             };
             string labelJson = _McpSerializer.SerializeJson(label, false);
-            string result = await CallMcpToolAsync<string>("label/create", new { label = labelJson });
+            string result = await CallMcpToolAsync<string>("label_create", new { label = labelJson });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -5022,7 +5022,7 @@ namespace Test.Shared
                 await TestMcpLabelCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("label/get", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuid = _McpTestLabelGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("label_get", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuid = _McpTestLabelGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -5040,7 +5040,7 @@ namespace Test.Shared
                 await TestMcpTenantCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("label/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("label_all", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
@@ -5058,13 +5058,13 @@ namespace Test.Shared
                 await TestMcpLabelCreate();
             }
 
-            string getResult = await CallMcpToolAsync<string>("label/get", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuid = _McpTestLabelGuid.ToString() });
+            string getResult = await CallMcpToolAsync<string>("label_get", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuid = _McpTestLabelGuid.ToString() });
             LabelMetadata? label = _McpSerializer.DeserializeJson<LabelMetadata>(getResult);
             AssertNotNull(label, "Label should not be null");
 
             label!.Label = "Updated MCP Label";
             string labelJson = _McpSerializer.SerializeJson(label, false);
-            string result = await CallMcpToolAsync<string>("label/update", new { label = labelJson });
+            string result = await CallMcpToolAsync<string>("label_update", new { label = labelJson });
             AssertNotNull(result, "Result should not be null");
 
             LabelMetadata? updated = _McpSerializer.DeserializeJson<LabelMetadata>(result);
@@ -5087,7 +5087,7 @@ namespace Test.Shared
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await CallMcpToolAsync<string>("label/enumerate", new { query = queryJson });
+            string result = await CallMcpToolAsync<string>("label_enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<LabelMetadata>? enumerationResult = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
@@ -5103,7 +5103,7 @@ namespace Test.Shared
                 await TestMcpLabelCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("label/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuid = _McpTestLabelGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("label_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuid = _McpTestLabelGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertTrue(result.ToLower() == "true", "Label should exist");
         }
@@ -5117,7 +5117,7 @@ namespace Test.Shared
                 await TestMcpLabelCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("label/getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuids = new[] { _McpTestLabelGuid.ToString() } });
+            string result = await CallMcpToolAsync<string>("label_getmany", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuids = new[] { _McpTestLabelGuid.ToString() } });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
@@ -5148,7 +5148,7 @@ namespace Test.Shared
                 new LabelMetadata { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, Label = "MCP Test Label 2" }
             };
             string labelsJson = _McpSerializer.SerializeJson(labels, false);
-            string result = await CallMcpToolAsync<string>("label/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), labels = labelsJson });
+            string result = await CallMcpToolAsync<string>("label_createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), labels = labelsJson });
             AssertNotNull(result, "Result should not be null");
 
             List<LabelMetadata>? created = _McpSerializer.DeserializeJson<List<LabelMetadata>>(result);
@@ -5176,13 +5176,13 @@ namespace Test.Shared
                 new LabelMetadata { TenantGUID = _McpTestTenantGuid, GraphGUID = _McpTestGraphGuid, Label = "MCP Test Label Delete 2" }
             };
             string labelsJson = _McpSerializer.SerializeJson(labels, false);
-            string createResult = await CallMcpToolAsync<string>("label/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), labels = labelsJson });
+            string createResult = await CallMcpToolAsync<string>("label_createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), labels = labelsJson });
             List<LabelMetadata>? created = _McpSerializer.DeserializeJson<List<LabelMetadata>>(createResult);
             AssertNotNull(created, "Created labels should not be null");
             AssertTrue(created!.Count == 2, "Should have created 2 labels");
 
             List<Guid> guidsToDelete = created.Select(l => l.GUID).ToList();
-            bool deleteResult = await CallMcpToolAsync<bool>("label/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            bool deleteResult = await CallMcpToolAsync<bool>("label_deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
             AssertTrue(deleteResult, "DeleteMany should return true");
         }
 
@@ -5195,7 +5195,7 @@ namespace Test.Shared
                 await TestMcpLabelCreate();
             }
 
-            bool result = await CallMcpToolAsync<bool>("label/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuid = _McpTestLabelGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("label_delete", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuid = _McpTestLabelGuid.ToString() });
             AssertTrue(result, "Delete should return true");
             _McpTestLabelGuid = Guid.Empty;
         }
@@ -5209,7 +5209,7 @@ namespace Test.Shared
                 await TestMcpLabelCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("label/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("label_readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
@@ -5228,7 +5228,7 @@ namespace Test.Shared
                 await TestMcpLabelCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("label/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("label_readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
@@ -5247,7 +5247,7 @@ namespace Test.Shared
                 await TestMcpLabelCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("label/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("label_readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
@@ -5277,9 +5277,9 @@ namespace Test.Shared
                 Label = "Node Label"
             };
             string nodeLabelJson = _McpSerializer.SerializeJson(nodeLabel, false);
-            await CallMcpToolAsync<string>("label/create", new { label = nodeLabelJson });
+            await CallMcpToolAsync<string>("label_create", new { label = nodeLabelJson });
 
-            string result = await CallMcpToolAsync<string>("label/readmanynode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            string result = await CallMcpToolAsync<string>("label_readmanynode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
@@ -5306,9 +5306,9 @@ namespace Test.Shared
                 Label = "Edge Label"
             };
             string edgeLabelJson = _McpSerializer.SerializeJson(edgeLabel, false);
-            await CallMcpToolAsync<string>("label/create", new { label = edgeLabelJson });
+            await CallMcpToolAsync<string>("label_create", new { label = edgeLabelJson });
 
-            string result = await CallMcpToolAsync<string>("label/readmanyedge", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("label_readmanyedge", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(result);
@@ -5327,10 +5327,10 @@ namespace Test.Shared
                 await TestMcpLabelCreate();
             }
 
-            bool result = await CallMcpToolAsync<bool>("label/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("label_deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertTrue(result, "Delete should return true");
 
-            string existsResult = await CallMcpToolAsync<string>("label/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuid = _McpTestLabelGuid.ToString() });
+            string existsResult = await CallMcpToolAsync<string>("label_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), labelGuid = _McpTestLabelGuid.ToString() });
             AssertEqual("false", existsResult, "Label should not exist after deletion");
             _McpTestLabelGuid = Guid.Empty;
         }
@@ -5344,10 +5344,10 @@ namespace Test.Shared
                 await TestMcpLabelCreate();
             }
 
-            bool result = await CallMcpToolAsync<bool>("label/deleteallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("label_deleteallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertTrue(result, "Delete should return true");
 
-            string readResult = await CallMcpToolAsync<string>("label/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string readResult = await CallMcpToolAsync<string>("label_readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(readResult);
             AssertTrue(labelsEnvelope == null || labelsEnvelope.TotalRecords >= labelsEnvelope.Objects.Count, "labels envelope TotalRecords should cover returned objects");
             List<LabelMetadata>? labels = labelsEnvelope?.Objects;
@@ -5361,10 +5361,10 @@ namespace Test.Shared
             if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
             await TestMcpLabelCreate();
 
-            bool result = await CallMcpToolAsync<bool>("label/deletegraphlabels", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("label_deletegraphlabels", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertTrue(result, "Delete should return true");
 
-            string readResult = await CallMcpToolAsync<string>("label/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string readResult = await CallMcpToolAsync<string>("label_readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(readResult);
             AssertTrue(labelsEnvelope == null || labelsEnvelope.TotalRecords >= labelsEnvelope.Objects.Count, "labels envelope TotalRecords should cover returned objects");
             List<LabelMetadata>? labels = labelsEnvelope?.Objects;
@@ -5389,12 +5389,12 @@ namespace Test.Shared
                 Label = "Node Label Delete"
             };
             string nodeLabelJson = _McpSerializer.SerializeJson(nodeLabel, false);
-            await CallMcpToolAsync<string>("label/create", new { label = nodeLabelJson });
+            await CallMcpToolAsync<string>("label_create", new { label = nodeLabelJson });
 
-            bool result = await CallMcpToolAsync<bool>("label/deletenodelabels", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("label_deletenodelabels", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
             AssertTrue(result, "Delete should return true");
 
-            string readResult = await CallMcpToolAsync<string>("label/readmanynode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            string readResult = await CallMcpToolAsync<string>("label_readmanynode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
             EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(readResult);
             AssertTrue(labelsEnvelope == null || labelsEnvelope.TotalRecords >= labelsEnvelope.Objects.Count, "labels envelope TotalRecords should cover returned objects");
             List<LabelMetadata>? labels = labelsEnvelope?.Objects;
@@ -5418,12 +5418,12 @@ namespace Test.Shared
                 Label = "Edge Label Delete"
             };
             string edgeLabelJson = _McpSerializer.SerializeJson(edgeLabel, false);
-            await CallMcpToolAsync<string>("label/create", new { label = edgeLabelJson });
+            await CallMcpToolAsync<string>("label_create", new { label = edgeLabelJson });
 
-            bool result = await CallMcpToolAsync<bool>("label/deleteedgelabels", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("label_deleteedgelabels", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             AssertTrue(result, "Delete should return true");
 
-            string readResult = await CallMcpToolAsync<string>("label/readmanyedge", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            string readResult = await CallMcpToolAsync<string>("label_readmanyedge", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             EnumerationResult<LabelMetadata>? labelsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(readResult);
             AssertTrue(labelsEnvelope == null || labelsEnvelope.TotalRecords >= labelsEnvelope.Objects.Count, "labels envelope TotalRecords should cover returned objects");
             List<LabelMetadata>? labels = labelsEnvelope?.Objects;
@@ -5452,7 +5452,7 @@ namespace Test.Shared
                 Value = "MCP Test Tag Value"
             };
             string tagJson = _McpSerializer.SerializeJson(tag, false);
-            string result = await CallMcpToolAsync<string>("tag/create", new { tag = tagJson });
+            string result = await CallMcpToolAsync<string>("tag_create", new { tag = tagJson });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -5471,7 +5471,7 @@ namespace Test.Shared
             if (_McpTestTagGuid == Guid.Empty)
                 await TestMcpTagCreate();
 
-            string result = await CallMcpToolAsync<string>("tag/get", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuid = _McpTestTagGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("tag_get", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuid = _McpTestTagGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -5489,7 +5489,7 @@ namespace Test.Shared
                 await TestMcpTagCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("tag/readmany", new
+            string result = await CallMcpToolAsync<string>("tag_readmany", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -5522,7 +5522,7 @@ namespace Test.Shared
                 Value = "MCP Test Tag Value Updated"
             };
             string tagJson = _McpSerializer.SerializeJson(tag, false);
-            string result = await CallMcpToolAsync<string>("tag/update", new { tag = tagJson });
+            string result = await CallMcpToolAsync<string>("tag_update", new { tag = tagJson });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -5546,7 +5546,7 @@ namespace Test.Shared
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await CallMcpToolAsync<string>("tag/enumerate", new { query = queryJson });
+            string result = await CallMcpToolAsync<string>("tag_enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<TagMetadata>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(result);
@@ -5561,7 +5561,7 @@ namespace Test.Shared
             if (_McpTestTagGuid == Guid.Empty)
                 await TestMcpTagCreate();
 
-            string result = await CallMcpToolAsync<string>("tag/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuid = _McpTestTagGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("tag_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuid = _McpTestTagGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertTrue(result.ToLower() == "true", "Tag should exist");
         }
@@ -5573,7 +5573,7 @@ namespace Test.Shared
             if (_McpTestTagGuid == Guid.Empty)
                 await TestMcpTagCreate();
 
-            string result = await CallMcpToolAsync<string>("tag/getmany", new
+            string result = await CallMcpToolAsync<string>("tag_getmany", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 tagGuids = new[] { _McpTestTagGuid.ToString() }
@@ -5621,7 +5621,7 @@ namespace Test.Shared
                 }
             };
             string tagsJson = _McpSerializer.SerializeJson(tags, false);
-            string result = await CallMcpToolAsync<string>("tag/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), tags = tagsJson });
+            string result = await CallMcpToolAsync<string>("tag_createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), tags = tagsJson });
             AssertNotNull(result, "Result should not be null");
 
             List<TagMetadata>? created = _McpSerializer.DeserializeJson<List<TagMetadata>>(result);
@@ -5629,7 +5629,7 @@ namespace Test.Shared
             AssertTrue(created!.Count == 2, "Should have created 2 tags");
 
             List<Guid> guidsToDelete = created.Select(t => t.GUID).ToList();
-            bool deleteManyResult = await CallMcpToolAsync<bool>("tag/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            bool deleteManyResult = await CallMcpToolAsync<bool>("tag_deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
             AssertTrue(deleteManyResult, "tag/deletemany should return true");
         }
 
@@ -5666,13 +5666,13 @@ namespace Test.Shared
                 }
             };
             string tagsJson = _McpSerializer.SerializeJson(tags, false);
-            string createResult = await CallMcpToolAsync<string>("tag/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), tags = tagsJson });
+            string createResult = await CallMcpToolAsync<string>("tag_createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), tags = tagsJson });
             List<TagMetadata>? created = _McpSerializer.DeserializeJson<List<TagMetadata>>(createResult);
             AssertNotNull(created, "Created tags should not be null");
             AssertTrue(created!.Count == 2, "Should have created 2 tags");
 
             List<Guid> guidsToDelete = created.Select(t => t.GUID).ToList();
-            bool deleteManyResult = await CallMcpToolAsync<bool>("tag/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            bool deleteManyResult = await CallMcpToolAsync<bool>("tag_deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
             AssertTrue(deleteManyResult, "tag/deletemany should return true");
         }
 
@@ -5683,7 +5683,7 @@ namespace Test.Shared
             if (_McpTestTagGuid == Guid.Empty)
                 await TestMcpTagCreate();
 
-            bool result = await CallMcpToolAsync<bool>("tag/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuid = _McpTestTagGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("tag_delete", new { tenantGuid = _McpTestTenantGuid.ToString(), tagGuid = _McpTestTagGuid.ToString() });
             AssertTrue(result, "tag/delete should return true");
             _McpTestTagGuid = Guid.Empty;
         }
@@ -5700,7 +5700,7 @@ namespace Test.Shared
                 await TestMcpNodeCreate();
             await TestMcpTagCreate();
 
-            string result = await CallMcpToolAsync<string>("tag/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("tag_readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(result);
@@ -5719,7 +5719,7 @@ namespace Test.Shared
                 await TestMcpGraphCreate();
             await TestMcpTagCreate();
 
-            string result = await CallMcpToolAsync<string>("tag/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("tag_readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(result);
@@ -5738,7 +5738,7 @@ namespace Test.Shared
                 await TestMcpGraphCreate();
             await TestMcpTagCreate();
 
-            string result = await CallMcpToolAsync<string>("tag/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("tag_readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(result);
@@ -5767,9 +5767,9 @@ namespace Test.Shared
                 Value = "NodeTagValue"
             };
             string nodeTagJson = _McpSerializer.SerializeJson(nodeTag, false);
-            await CallMcpToolAsync<string>("tag/create", new { tag = nodeTagJson });
+            await CallMcpToolAsync<string>("tag_create", new { tag = nodeTagJson });
 
-            string result = await CallMcpToolAsync<string>("tag/readmanynode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            string result = await CallMcpToolAsync<string>("tag_readmanynode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(result);
@@ -5795,9 +5795,9 @@ namespace Test.Shared
                 Value = "EdgeTagValue"
             };
             string edgeTagJson = _McpSerializer.SerializeJson(edgeTag, false);
-            await CallMcpToolAsync<string>("tag/create", new { tag = edgeTagJson });
+            await CallMcpToolAsync<string>("tag_create", new { tag = edgeTagJson });
 
-            string result = await CallMcpToolAsync<string>("tag/readmanyedge", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("tag_readmanyedge", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(result);
@@ -5819,10 +5819,10 @@ namespace Test.Shared
                 await TestMcpNodeCreate();
             await TestMcpTagCreate();
 
-            bool result = await CallMcpToolAsync<bool>("tag/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("tag_deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertTrue(result, "tag/deleteallintenant should return true");
 
-            string readResult = await CallMcpToolAsync<string>("tag/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string readResult = await CallMcpToolAsync<string>("tag_readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(readResult);
             AssertTrue(tagsEnvelope == null || tagsEnvelope.TotalRecords >= tagsEnvelope.Objects.Count, "tags envelope TotalRecords should cover returned objects");
             List<TagMetadata>? tags = tagsEnvelope?.Objects;
@@ -5840,10 +5840,10 @@ namespace Test.Shared
                 await TestMcpGraphCreate();
             await TestMcpTagCreate();
 
-            bool result = await CallMcpToolAsync<bool>("tag/deleteallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("tag_deleteallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertTrue(result, "tag/deleteallingraph should return true");
 
-            string readResult = await CallMcpToolAsync<string>("tag/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string readResult = await CallMcpToolAsync<string>("tag_readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(readResult);
             AssertTrue(tagsEnvelope == null || tagsEnvelope.TotalRecords >= tagsEnvelope.Objects.Count, "tags envelope TotalRecords should cover returned objects");
             List<TagMetadata>? tags = tagsEnvelope?.Objects;
@@ -5857,10 +5857,10 @@ namespace Test.Shared
             if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
             await TestMcpTagCreate();
 
-            bool result = await CallMcpToolAsync<bool>("tag/deletegraphlabels", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("tag_deletegraphlabels", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertTrue(result, "tag/deletegraphlabels should return true");
 
-            string readResult = await CallMcpToolAsync<string>("tag/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string readResult = await CallMcpToolAsync<string>("tag_readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(readResult);
             AssertTrue(tagsEnvelope == null || tagsEnvelope.TotalRecords >= tagsEnvelope.Objects.Count, "tags envelope TotalRecords should cover returned objects");
             List<TagMetadata>? tags = tagsEnvelope?.Objects;
@@ -5884,12 +5884,12 @@ namespace Test.Shared
                 Value = "NodeTagDeleteValue"
             };
             string nodeTagJson = _McpSerializer.SerializeJson(nodeTag, false);
-            await CallMcpToolAsync<string>("tag/create", new { tag = nodeTagJson });
+            await CallMcpToolAsync<string>("tag_create", new { tag = nodeTagJson });
 
-            bool result = await CallMcpToolAsync<bool>("tag/deletenodelabels", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("tag_deletenodelabels", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
             AssertTrue(result, "tag/deletenodelabels should return true");
 
-            string readResult = await CallMcpToolAsync<string>("tag/readmanynode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
+            string readResult = await CallMcpToolAsync<string>("tag_readmanynode", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), nodeGuid = _McpTestNode1Guid.ToString() });
             EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(readResult);
             AssertTrue(tagsEnvelope == null || tagsEnvelope.TotalRecords >= tagsEnvelope.Objects.Count, "tags envelope TotalRecords should cover returned objects");
             List<TagMetadata>? tags = tagsEnvelope?.Objects;
@@ -5912,12 +5912,12 @@ namespace Test.Shared
                 Value = "EdgeTagDeleteValue"
             };
             string edgeTagJson = _McpSerializer.SerializeJson(edgeTag, false);
-            await CallMcpToolAsync<string>("tag/create", new { tag = edgeTagJson });
+            await CallMcpToolAsync<string>("tag_create", new { tag = edgeTagJson });
 
-            bool result = await CallMcpToolAsync<bool>("tag/deleteedgetags", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("tag_deleteedgetags", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             AssertTrue(result, "tag/deleteedgetags should return true");
 
-            string readResult = await CallMcpToolAsync<string>("tag/readmanyedge", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
+            string readResult = await CallMcpToolAsync<string>("tag_readmanyedge", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString(), edgeGuid = _McpTestEdgeGuid.ToString() });
             EnumerationResult<TagMetadata>? tagsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(readResult);
             AssertTrue(tagsEnvelope == null || tagsEnvelope.TotalRecords >= tagsEnvelope.Objects.Count, "tags envelope TotalRecords should cover returned objects");
             List<TagMetadata>? tags = tagsEnvelope?.Objects;
@@ -5952,7 +5952,7 @@ namespace Test.Shared
                 Vectors = new List<float> { 0.1f, 0.2f, 0.3f }
             };
             string vectorJson = _McpSerializer.SerializeJson(vector, false);
-            string result = await CallMcpToolAsync<string>("vector/create", new { vector = vectorJson });
+            string result = await CallMcpToolAsync<string>("vector_create", new { vector = vectorJson });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -5972,7 +5972,7 @@ namespace Test.Shared
                 Vectors = new List<float> { 0.7f, 0.8f, 0.9f }
             };
             string graphVectorJson = _McpSerializer.SerializeJson(graphVector, false);
-            string graphResult = await CallMcpToolAsync<string>("vector/create", new { vector = graphVectorJson });
+            string graphResult = await CallMcpToolAsync<string>("vector_create", new { vector = graphVectorJson });
             AssertNotNull(graphResult, "MCP graph vector create result should not be null");
         }
 
@@ -5985,7 +5985,7 @@ namespace Test.Shared
                 await TestMcpVectorCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("vector/get", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuid = _McpTestVectorGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("vector_get", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuid = _McpTestVectorGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertFalse(result == "null", "Result should not be null string");
 
@@ -6003,7 +6003,7 @@ namespace Test.Shared
                 await TestMcpTenantCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("vector/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("vector_all", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(result);
@@ -6021,7 +6021,7 @@ namespace Test.Shared
                 await TestMcpVectorCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("vector/readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("vector_readallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(result);
@@ -6040,7 +6040,7 @@ namespace Test.Shared
                 await TestMcpVectorCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("vector/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("vector_readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(result);
@@ -6058,7 +6058,7 @@ namespace Test.Shared
                 await TestMcpVectorCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("vector/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("vector_readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(result);
@@ -6077,7 +6077,7 @@ namespace Test.Shared
             }
 
             string result = await CallMcpToolAsync<string>(
-                "vector/readmanynode",
+                "vector_readmanynode",
                 new
                 {
                     tenantGuid = _McpTestTenantGuid.ToString(),
@@ -6113,10 +6113,10 @@ namespace Test.Shared
                 Vectors = new List<float> { 0.1f, 0.2f, 0.3f }
             };
             string edgeVectorJson = _McpSerializer.SerializeJson(edgeVector, false);
-            await CallMcpToolAsync<string>("vector/create", new { vector = edgeVectorJson });
+            await CallMcpToolAsync<string>("vector_create", new { vector = edgeVectorJson });
 
             string result = await CallMcpToolAsync<string>(
-                "vector/readmanyedge",
+                "vector_readmanyedge",
                 new
                 {
                     tenantGuid = _McpTestTenantGuid.ToString(),
@@ -6141,13 +6141,13 @@ namespace Test.Shared
                 await TestMcpVectorCreate();
             }
 
-            string getResult = await CallMcpToolAsync<string>("vector/get", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuid = _McpTestVectorGuid.ToString() });
+            string getResult = await CallMcpToolAsync<string>("vector_get", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuid = _McpTestVectorGuid.ToString() });
             VectorMetadata? vector = _McpSerializer.DeserializeJson<VectorMetadata>(getResult);
             AssertNotNull(vector, "Vector should not be null");
 
             vector!.Content = "Updated MCP Vector Content";
             string vectorJson = _McpSerializer.SerializeJson(vector, false);
-            string result = await CallMcpToolAsync<string>("vector/update", new { vector = vectorJson });
+            string result = await CallMcpToolAsync<string>("vector_update", new { vector = vectorJson });
             AssertNotNull(result, "Result should not be null");
 
             VectorMetadata? updated = _McpSerializer.DeserializeJson<VectorMetadata>(result);
@@ -6170,7 +6170,7 @@ namespace Test.Shared
                 MaxResults = 10
             };
             string queryJson = _McpSerializer.SerializeJson(query, false);
-            string result = await CallMcpToolAsync<string>("vector/enumerate", new { query = queryJson });
+            string result = await CallMcpToolAsync<string>("vector_enumerate", new { query = queryJson });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<VectorMetadata>? enumResult = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(result);
@@ -6187,7 +6187,7 @@ namespace Test.Shared
                 await TestMcpVectorCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("vector/exists", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuid = _McpTestVectorGuid.ToString() });
+            string result = await CallMcpToolAsync<string>("vector_exists", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuid = _McpTestVectorGuid.ToString() });
             AssertNotNull(result, "Result should not be null");
             AssertTrue(result.ToLower() == "true", "Vector should exist");
         }
@@ -6201,7 +6201,7 @@ namespace Test.Shared
                 await TestMcpVectorCreate();
             }
 
-            string result = await CallMcpToolAsync<string>("vector/getmany", new
+            string result = await CallMcpToolAsync<string>("vector_getmany", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 vectorGuids = new[] { _McpTestVectorGuid.ToString() }
@@ -6259,7 +6259,7 @@ namespace Test.Shared
                 }
             };
             string vectorsJson = _McpSerializer.SerializeJson(vectors, false);
-            string result = await CallMcpToolAsync<string>("vector/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectors = vectorsJson });
+            string result = await CallMcpToolAsync<string>("vector_createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectors = vectorsJson });
             AssertNotNull(result, "Result should not be null");
 
             List<VectorMetadata>? created = _McpSerializer.DeserializeJson<List<VectorMetadata>>(result);
@@ -6267,7 +6267,7 @@ namespace Test.Shared
             AssertTrue(created!.Count == 2, "Should have created 2 vectors");
 
             List<Guid> guidsToDelete = created.Select(v => v.GUID).ToList();
-            bool deleteManyResult = await CallMcpToolAsync<bool>("vector/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            bool deleteManyResult = await CallMcpToolAsync<bool>("vector_deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
             AssertTrue(deleteManyResult, "vector/deletemany should return true");
         }
 
@@ -6314,13 +6314,13 @@ namespace Test.Shared
                 }
             };
             string vectorsJson = _McpSerializer.SerializeJson(vectors, false);
-            string createResult = await CallMcpToolAsync<string>("vector/createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectors = vectorsJson });
+            string createResult = await CallMcpToolAsync<string>("vector_createmany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectors = vectorsJson });
             List<VectorMetadata>? created = _McpSerializer.DeserializeJson<List<VectorMetadata>>(createResult);
             AssertNotNull(created, "Created vectors should not be null");
             AssertTrue(created!.Count == 2, "Should have created 2 vectors");
 
             List<Guid> guidsToDelete = created.Select(v => v.GUID).ToList();
-            bool deleteManyResult = await CallMcpToolAsync<bool>("vector/deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
+            bool deleteManyResult = await CallMcpToolAsync<bool>("vector_deletemany", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuids = guidsToDelete.Select(g => g.ToString()).ToArray() });
             AssertTrue(deleteManyResult, "vector/deletemany should return true");
         }
 
@@ -6351,7 +6351,7 @@ namespace Test.Shared
                 Embeddings = new List<float> { 0.1f, 0.2f, 0.3f }
             };
             string searchRequestJson = _McpSerializer.SerializeJson(searchRequest, false);
-            string result = await CallMcpToolAsync<string>("vector/search", new
+            string result = await CallMcpToolAsync<string>("vector_search", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -6374,7 +6374,7 @@ namespace Test.Shared
                 await TestMcpVectorCreate();
             }
 
-            bool result = await CallMcpToolAsync<bool>("vector/delete", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuid = _McpTestVectorGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("vector_delete", new { tenantGuid = _McpTestTenantGuid.ToString(), vectorGuid = _McpTestVectorGuid.ToString() });
             AssertTrue(result, "vector/delete should return true");
             _McpTestVectorGuid = Guid.Empty;
         }
@@ -6388,10 +6388,10 @@ namespace Test.Shared
                 await TestMcpVectorCreate();
             }
 
-            bool result = await CallMcpToolAsync<bool>("vector/deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("vector_deleteallintenant", new { tenantGuid = _McpTestTenantGuid.ToString() });
             AssertTrue(result, "vector/deleteallintenant should return true");
 
-            string readResult = await CallMcpToolAsync<string>("vector/all", new { tenantGuid = _McpTestTenantGuid.ToString() });
+            string readResult = await CallMcpToolAsync<string>("vector_all", new { tenantGuid = _McpTestTenantGuid.ToString() });
             EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(readResult);
             AssertTrue(vectorsEnvelope == null || vectorsEnvelope.TotalRecords >= vectorsEnvelope.Objects.Count, "vectors envelope TotalRecords should cover returned objects");
             List<VectorMetadata>? vectors = vectorsEnvelope?.Objects;
@@ -6408,10 +6408,10 @@ namespace Test.Shared
                 await TestMcpVectorCreate();
             }
 
-            bool result = await CallMcpToolAsync<bool>("vector/deleteallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("vector_deleteallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertTrue(result, "vector/deleteallingraph should return true");
 
-            string readResult = await CallMcpToolAsync<string>("vector/readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string readResult = await CallMcpToolAsync<string>("vector_readallingraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(readResult);
             AssertTrue(vectorsEnvelope == null || vectorsEnvelope.TotalRecords >= vectorsEnvelope.Objects.Count, "vectors envelope TotalRecords should cover returned objects");
             List<VectorMetadata>? vectors = vectorsEnvelope?.Objects;
@@ -6442,12 +6442,12 @@ namespace Test.Shared
                 Vectors = new List<float> { 0.5f, 0.6f, 0.7f }
             };
             string graphVectorJson = _McpSerializer.SerializeJson(graphVector, false);
-            await CallMcpToolAsync<string>("vector/create", new { vector = graphVectorJson });
+            await CallMcpToolAsync<string>("vector_create", new { vector = graphVectorJson });
 
-            bool result = await CallMcpToolAsync<bool>("vector/deletegraphvectors", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            bool result = await CallMcpToolAsync<bool>("vector_deletegraphvectors", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             AssertTrue(result, "vector/deletegraphvectors should return true");
 
-            string readResult = await CallMcpToolAsync<string>("vector/readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
+            string readResult = await CallMcpToolAsync<string>("vector_readmanygraph", new { tenantGuid = _McpTestTenantGuid.ToString(), graphGuid = _McpTestGraphGuid.ToString() });
             EnumerationResult<VectorMetadata>? vectorsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(readResult);
             AssertTrue(vectorsEnvelope == null || vectorsEnvelope.TotalRecords >= vectorsEnvelope.Objects.Count, "vectors envelope TotalRecords should cover returned objects");
             List<VectorMetadata>? vectors = vectorsEnvelope?.Objects;
@@ -6474,9 +6474,9 @@ namespace Test.Shared
                 Vectors = new List<float> { 0.9f, 0.8f, 0.7f }
             };
             string nodeVectorJson = _McpSerializer.SerializeJson(nodeVector, false);
-            await CallMcpToolAsync<string>("vector/create", new { vector = nodeVectorJson });
+            await CallMcpToolAsync<string>("vector_create", new { vector = nodeVectorJson });
 
-            bool result = await CallMcpToolAsync<bool>("vector/deletenodevectors", new
+            bool result = await CallMcpToolAsync<bool>("vector_deletenodevectors", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -6484,7 +6484,7 @@ namespace Test.Shared
             });
             AssertTrue(result, "vector/deletenodevectors should return true");
 
-            string readResult = await CallMcpToolAsync<string>("vector/readmanynode", new
+            string readResult = await CallMcpToolAsync<string>("vector_readmanynode", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -6516,9 +6516,9 @@ namespace Test.Shared
                 Vectors = new List<float> { 0.2f, 0.4f, 0.6f }
             };
             string edgeVectorJson = _McpSerializer.SerializeJson(edgeVector, false);
-            await CallMcpToolAsync<string>("vector/create", new { vector = edgeVectorJson });
+            await CallMcpToolAsync<string>("vector_create", new { vector = edgeVectorJson });
 
-            bool result = await CallMcpToolAsync<bool>("vector/deleteedgevectors", new
+            bool result = await CallMcpToolAsync<bool>("vector_deleteedgevectors", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -6526,7 +6526,7 @@ namespace Test.Shared
             });
             AssertTrue(result, "vector/deleteedgevectors should return true");
 
-            string readResult = await CallMcpToolAsync<string>("vector/readmanyedge", new
+            string readResult = await CallMcpToolAsync<string>("vector_readmanyedge", new
             {
                 tenantGuid = _McpTestTenantGuid.ToString(),
                 graphGuid = _McpTestGraphGuid.ToString(),
@@ -6544,7 +6544,7 @@ namespace Test.Shared
             if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
 
             string backupFilename = "test-backup-" + DateTime.UtcNow.Ticks + ".db";
-            string result = await CallMcpToolAsync<string>("admin/backup", new { outputFilename = backupFilename });
+            string result = await CallMcpToolAsync<string>("admin_backup", new { outputFilename = backupFilename });
             AssertTrue(string.IsNullOrEmpty(result), "Backup should return empty string on success");
         }
 
@@ -6553,7 +6553,7 @@ namespace Test.Shared
             await InitializeMcpServer();
             if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
 
-            string result = await CallMcpToolAsync<string>("admin/backups", new { });
+            string result = await CallMcpToolAsync<string>("admin_backups", new { });
             AssertNotNull(result, "Result should not be null");
 
             EnumerationResult<BackupFile>? backupsEnvelope = _McpSerializer.DeserializeJson<EnumerationResult<BackupFile>>(result);
@@ -6569,10 +6569,10 @@ namespace Test.Shared
 
             // First create a backup
             string backupFilename = "test-backup-read-" + DateTime.UtcNow.Ticks + ".db";
-            await CallMcpToolAsync<string>("admin/backup", new { outputFilename = backupFilename });
+            await CallMcpToolAsync<string>("admin_backup", new { outputFilename = backupFilename });
 
             // Then read it
-            string result = await CallMcpToolAsync<string>("admin/backupread", new { backupFilename = backupFilename });
+            string result = await CallMcpToolAsync<string>("admin_backupread", new { backupFilename = backupFilename });
             AssertNotNull(result, "Result should not be null");
 
             BackupFile? backup = _McpSerializer.DeserializeJson<BackupFile>(result);
@@ -6586,10 +6586,10 @@ namespace Test.Shared
 
             // First create a backup
             string backupFilename = "test-backup-exists-" + DateTime.UtcNow.Ticks + ".db";
-            await CallMcpToolAsync<string>("admin/backup", new { outputFilename = backupFilename });
+            await CallMcpToolAsync<string>("admin_backup", new { outputFilename = backupFilename });
 
             // Then check if it exists
-            string result = await CallMcpToolAsync<string>("admin/backupexists", new { backupFilename = backupFilename });
+            string result = await CallMcpToolAsync<string>("admin_backupexists", new { backupFilename = backupFilename });
             AssertNotNull(result, "Result should not be null");
             AssertTrue(result == "true" || result == "false", "Result should be 'true' or 'false'");
             AssertEqual("true", result, "Backup should exist");
@@ -6602,10 +6602,10 @@ namespace Test.Shared
 
             // First create a backup
             string backupFilename = "test-backup-delete-" + DateTime.UtcNow.Ticks + ".db";
-            await CallMcpToolAsync<string>("admin/backup", new { outputFilename = backupFilename });
+            await CallMcpToolAsync<string>("admin_backup", new { outputFilename = backupFilename });
 
             // Then delete it
-            bool result = await CallMcpToolAsync<bool>("admin/backupdelete", new { backupFilename = backupFilename });
+            bool result = await CallMcpToolAsync<bool>("admin_backupdelete", new { backupFilename = backupFilename });
             AssertTrue(result, "Backup delete should return true");
         }
 
@@ -6614,7 +6614,7 @@ namespace Test.Shared
             await InitializeMcpServer();
             if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
 
-            string result = await CallMcpToolAsync<string>("admin/flush", new { });
+            string result = await CallMcpToolAsync<string>("admin_flush", new { });
             // Flush should return empty string on success
             AssertTrue(string.IsNullOrEmpty(result), "Flush should return empty string on success");
         }
@@ -6624,7 +6624,7 @@ namespace Test.Shared
             await InitializeMcpServer();
             if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
 
-            string result = await CallMcpToolAsync<string>("cluster/status", new { });
+            string result = await CallMcpToolAsync<string>("cluster_status", new { });
             using (JsonDocument doc = JsonDocument.Parse(result))
             {
                 JsonElement root = doc.RootElement;
@@ -6639,7 +6639,7 @@ namespace Test.Shared
             await InitializeMcpServer();
             if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
 
-            string all = await CallMcpToolAsync<string>("cluster/nodes", new { });
+            string all = await CallMcpToolAsync<string>("cluster_nodes", new { });
             using (JsonDocument doc = JsonDocument.Parse(all))
             {
                 JsonElement nodes = doc.RootElement.GetProperty("Nodes");
@@ -6647,7 +6647,7 @@ namespace Test.Shared
                 AssertEqual(doc.RootElement.GetProperty("AnsweredBy").GetString(), nodes[0].GetProperty("NodeId").GetString(), "The listed node answered");
             }
 
-            string offline = await CallMcpToolAsync<string>("cluster/nodes", new { state = "Offline" });
+            string offline = await CallMcpToolAsync<string>("cluster_nodes", new { state = "Offline" });
             using (JsonDocument doc = JsonDocument.Parse(offline))
             {
                 AssertEqual(0, doc.RootElement.GetProperty("Nodes").GetArrayLength(), "The state filter excludes the healthy node");
@@ -6659,20 +6659,20 @@ namespace Test.Shared
             await InitializeMcpServer();
             if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
 
-            string all = await CallMcpToolAsync<string>("cluster/nodes", new { });
+            string all = await CallMcpToolAsync<string>("cluster_nodes", new { });
             string? nodeId;
             using (JsonDocument doc = JsonDocument.Parse(all))
             {
                 nodeId = doc.RootElement.GetProperty("AnsweredBy").GetString();
             }
 
-            string node = await CallMcpToolAsync<string>("cluster/node", new { nodeId = nodeId });
+            string node = await CallMcpToolAsync<string>("cluster_node", new { nodeId = nodeId });
             using (JsonDocument doc = JsonDocument.Parse(node))
             {
                 AssertEqual(nodeId, doc.RootElement.GetProperty("NodeId").GetString(), "The node is read by identifier");
             }
 
-            string missing = await CallMcpToolAsync<string>("cluster/node", new { nodeId = "no-such-node" });
+            string missing = await CallMcpToolAsync<string>("cluster_node", new { nodeId = "no-such-node" });
             AssertTrue(missing == null || missing.Trim() == "null", "An unknown node reads as null");
         }
 

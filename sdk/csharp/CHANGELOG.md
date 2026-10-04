@@ -2,6 +2,12 @@
 
 ## Current Version
 
+v10.1.0
+
+- RestWrapper 3.3.0 → 3.3.1. No API changes.
+
+## Previous Versions
+
 v10.0.0
 
 - Added cluster administration: `ReadClusterNodes`, `ReadClusterNode`, `RestartCluster`, `RestartClusterNode`, `DeleteClusterNode`, and the `ClusterStatus`, `ClusterNode`, `ClusterNodeChecks`, `ClusterNodeStateEnum`, and `ClusterRestartResult` models

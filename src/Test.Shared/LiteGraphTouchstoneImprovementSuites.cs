@@ -5391,7 +5391,7 @@
                     }
                 };
 
-                string mcpCreateRoleBody = await CallMcpToolAsync<string>("authorization/role/create", new
+                string mcpCreateRoleBody = await CallMcpToolAsync<string>("authorization_role_create", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     role = _McpSerializer.SerializeJson(mcpRole, false)
@@ -5400,7 +5400,7 @@
                 AssertEqual(tenant.GUID, mcpCreatedRole.TenantGUID.GetValueOrDefault(), "MCP role create tenant");
                 AssertFalse(mcpCreatedRole.BuiltIn, "MCP role create forces custom role");
 
-                string mcpReadRoleBody = await CallMcpToolAsync<string>("authorization/role/get", new
+                string mcpReadRoleBody = await CallMcpToolAsync<string>("authorization_role_get", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     roleGuid = mcpCreatedRole.GUID.ToString()
@@ -5411,7 +5411,7 @@
                 mcpCreatedRole.DisplayName = "MCP Curator Updated";
                 mcpCreatedRole.Permissions.Add(AuthorizationPermissionEnum.Delete);
                 mcpCreatedRole.ResourceTypes.Add(AuthorizationResourceTypeEnum.Edge);
-                string mcpUpdateRoleBody = await CallMcpToolAsync<string>("authorization/role/update", new
+                string mcpUpdateRoleBody = await CallMcpToolAsync<string>("authorization_role_update", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     roleGuid = mcpCreatedRole.GUID.ToString(),
@@ -5421,7 +5421,7 @@
                 AssertTrue(mcpUpdatedRole.Permissions.Contains(AuthorizationPermissionEnum.Delete), "MCP role update permissions");
                 AssertTrue(mcpUpdatedRole.ResourceTypes.Contains(AuthorizationResourceTypeEnum.Edge), "MCP role update resource types");
 
-                string mcpRoleListBody = await CallMcpToolAsync<string>("authorization/role/all", new
+                string mcpRoleListBody = await CallMcpToolAsync<string>("authorization_role_all", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     includeBuiltIns = false,
@@ -5439,7 +5439,7 @@
                     ResourceScope = AuthorizationResourceScopeEnum.Graph,
                     GraphGUID = graph.GUID
                 };
-                string mcpCreateUserRoleBody = await CallMcpToolAsync<string>("authorization/userrole/create", new
+                string mcpCreateUserRoleBody = await CallMcpToolAsync<string>("authorization_userrole_create", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     userGuid = targetUser.GUID.ToString(),
@@ -5448,7 +5448,7 @@
                 UserRoleAssignment mcpCreatedUserRole = _McpSerializer.DeserializeJson<UserRoleAssignment>(mcpCreateUserRoleBody);
                 AssertEqual(targetUser.GUID, mcpCreatedUserRole.UserGUID, "MCP user role create route user");
 
-                string mcpReadUserRoleBody = await CallMcpToolAsync<string>("authorization/userrole/get", new
+                string mcpReadUserRoleBody = await CallMcpToolAsync<string>("authorization_userrole_get", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     userGuid = targetUser.GUID.ToString(),
@@ -5458,7 +5458,7 @@
                 AssertEqual(mcpCreatedUserRole.GUID, mcpReadUserRole.GUID, "MCP user role read GUID");
 
                 mcpCreatedUserRole.GraphGUID = null;
-                string mcpUpdateUserRoleBody = await CallMcpToolAsync<string>("authorization/userrole/update", new
+                string mcpUpdateUserRoleBody = await CallMcpToolAsync<string>("authorization_userrole_update", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     userGuid = targetUser.GUID.ToString(),
@@ -5468,7 +5468,7 @@
                 UserRoleAssignment mcpUpdatedUserRole = _McpSerializer.DeserializeJson<UserRoleAssignment>(mcpUpdateUserRoleBody);
                 AssertTrue(mcpUpdatedUserRole.GraphGUID == null, "MCP user role update graph");
 
-                string mcpUserRoleListBody = await CallMcpToolAsync<string>("authorization/userrole/all", new
+                string mcpUserRoleListBody = await CallMcpToolAsync<string>("authorization_userrole_all", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     userGuid = targetUser.GUID.ToString(),
@@ -5478,7 +5478,7 @@
                 EnumerationResult<UserRoleAssignment> mcpUserRoleList = _McpSerializer.DeserializeJson<EnumerationResult<UserRoleAssignment>>(mcpUserRoleListBody);
                 AssertEqual(1L, mcpUserRoleList.TotalRecords, "MCP user role filtered count");
 
-                string mcpUserEffectiveBody = await CallMcpToolAsync<string>("authorization/user/permissions", new
+                string mcpUserEffectiveBody = await CallMcpToolAsync<string>("authorization_user_permissions", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     userGuid = targetUser.GUID.ToString(),
@@ -5502,7 +5502,7 @@
                         AuthorizationResourceTypeEnum.Query
                     }
                 };
-                string mcpCreateCredentialScopeBody = await CallMcpToolAsync<string>("authorization/credentialscope/create", new
+                string mcpCreateCredentialScopeBody = await CallMcpToolAsync<string>("authorization_credentialscope_create", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     credentialGuid = credential.GUID.ToString(),
@@ -5511,7 +5511,7 @@
                 CredentialScopeAssignment mcpCreatedCredentialScope = _McpSerializer.DeserializeJson<CredentialScopeAssignment>(mcpCreateCredentialScopeBody);
                 AssertEqual(credential.GUID, mcpCreatedCredentialScope.CredentialGUID, "MCP credential scope route credential");
 
-                string mcpReadCredentialScopeBody = await CallMcpToolAsync<string>("authorization/credentialscope/get", new
+                string mcpReadCredentialScopeBody = await CallMcpToolAsync<string>("authorization_credentialscope_get", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     credentialGuid = credential.GUID.ToString(),
@@ -5522,7 +5522,7 @@
 
                 mcpCreatedCredentialScope.Permissions = new List<AuthorizationPermissionEnum> { AuthorizationPermissionEnum.Delete };
                 mcpCreatedCredentialScope.ResourceTypes = new List<AuthorizationResourceTypeEnum> { AuthorizationResourceTypeEnum.Edge };
-                string mcpUpdateCredentialScopeBody = await CallMcpToolAsync<string>("authorization/credentialscope/update", new
+                string mcpUpdateCredentialScopeBody = await CallMcpToolAsync<string>("authorization_credentialscope_update", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     credentialGuid = credential.GUID.ToString(),
@@ -5533,7 +5533,7 @@
                 AssertTrue(mcpUpdatedCredentialScope.Permissions.Contains(AuthorizationPermissionEnum.Delete), "MCP credential scope update permission");
                 AssertTrue(mcpUpdatedCredentialScope.ResourceTypes.Contains(AuthorizationResourceTypeEnum.Edge), "MCP credential scope update resource type");
 
-                string mcpCredentialScopeListBody = await CallMcpToolAsync<string>("authorization/credentialscope/all", new
+                string mcpCredentialScopeListBody = await CallMcpToolAsync<string>("authorization_credentialscope_all", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     credentialGuid = credential.GUID.ToString(),
@@ -5545,7 +5545,7 @@
                 EnumerationResult<CredentialScopeAssignment> mcpCredentialScopeList = _McpSerializer.DeserializeJson<EnumerationResult<CredentialScopeAssignment>>(mcpCredentialScopeListBody);
                 AssertEqual(1L, mcpCredentialScopeList.TotalRecords, "MCP credential scope filtered count");
 
-                string mcpCredentialEffectiveBody = await CallMcpToolAsync<string>("authorization/credential/permissions", new
+                string mcpCredentialEffectiveBody = await CallMcpToolAsync<string>("authorization_credential_permissions", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     credentialGuid = credential.GUID.ToString(),
@@ -5556,7 +5556,7 @@
                 AssertTrue(mcpCredentialEffective.Grants[0].Permissions.Contains(AuthorizationPermissionEnum.Delete), "MCP credential effective grants include direct permissions");
                 AssertTrue(mcpCredentialEffective.Roles.Any(role => role.Name == AuthorizationPolicyDefinitions.ViewerRoleName), "MCP credential effective grants resolve roles");
 
-                bool mcpDeleteCredentialScope = await CallMcpToolAsync<bool>("authorization/credentialscope/delete", new
+                bool mcpDeleteCredentialScope = await CallMcpToolAsync<bool>("authorization_credentialscope_delete", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     credentialGuid = credential.GUID.ToString(),
@@ -5564,7 +5564,7 @@
                 }).ConfigureAwait(false);
                 AssertTrue(mcpDeleteCredentialScope, "MCP credential scope delete result");
 
-                bool mcpDeleteUserRole = await CallMcpToolAsync<bool>("authorization/userrole/delete", new
+                bool mcpDeleteUserRole = await CallMcpToolAsync<bool>("authorization_userrole_delete", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     userGuid = targetUser.GUID.ToString(),
@@ -5572,7 +5572,7 @@
                 }).ConfigureAwait(false);
                 AssertTrue(mcpDeleteUserRole, "MCP user role delete result");
 
-                bool mcpDeleteRole = await CallMcpToolAsync<bool>("authorization/role/delete", new
+                bool mcpDeleteRole = await CallMcpToolAsync<bool>("authorization_role_delete", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     roleGuid = mcpUpdatedRole.GUID.ToString()
@@ -5815,7 +5815,7 @@
                     }, cancellationToken).ConfigureAwait(false);
                 }
 
-                string nodeReadBody = await CallMcpToolAsync<string>("node/get", new
+                string nodeReadBody = await CallMcpToolAsync<string>("node_get", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -5824,7 +5824,7 @@
                 Node readNode = _McpSerializer.DeserializeJson<Node>(nodeReadBody);
                 AssertEqual(nodeA.GUID, readNode.GUID, "MCP read-scoped credential can read allowed node");
 
-                string edgeReadBody = await CallMcpToolAsync<string>("edge/get", new
+                string edgeReadBody = await CallMcpToolAsync<string>("edge_get", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -5833,7 +5833,7 @@
                 Edge readEdge = _McpSerializer.DeserializeJson<Edge>(edgeReadBody);
                 AssertEqual(edgeA.GUID, readEdge.GUID, "MCP read-scoped credential can read allowed edge");
 
-                string edgeAllBody = await CallMcpToolAsync<string>("edge/all", new
+                string edgeAllBody = await CallMcpToolAsync<string>("edge_all", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
@@ -5843,7 +5843,7 @@
                 List<Edge> edgeAll = edgeAllEnvelope.Objects;
                 AssertTrue(edgeAll.Any(edge => edge.GUID == edgeA.GUID), "MCP read-scoped credential can list allowed graph edges");
 
-                string edgeReadAllInGraphBody = await CallMcpToolAsync<string>("edge/readallingraph", new
+                string edgeReadAllInGraphBody = await CallMcpToolAsync<string>("edge_readallingraph", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
@@ -5853,7 +5853,7 @@
                 List<Edge> graphEdges = graphEdgesEnvelope.Objects;
                 AssertTrue(graphEdges.Any(edge => edge.GUID == edgeA.GUID), "MCP read-scoped credential can read all edges in allowed graph");
 
-                string edgeReadAllInTenantBody = await CallMcpToolAsync<string>("edge/readallintenant", new
+                string edgeReadAllInTenantBody = await CallMcpToolAsync<string>("edge_readallintenant", new
                 {
                     tenantGuid = tenant.GUID.ToString()
                 }).ConfigureAwait(false);
@@ -5862,7 +5862,7 @@
                 List<Edge> tenantEdges = tenantEdgesEnvelope.Objects;
                 AssertTrue(tenantEdges.Any(edge => edge.GUID == edgeA.GUID), "MCP read-scoped credential can invoke tenant edge listing");
 
-                string edgeGetManyBody = await CallMcpToolAsync<string>("edge/getmany", new
+                string edgeGetManyBody = await CallMcpToolAsync<string>("edge_getmany", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -5873,7 +5873,7 @@
                 List<Edge> manyEdges = manyEdgesEnvelope.Objects;
                 AssertEqual(1, manyEdges.Count, "MCP read-scoped credential can read many allowed edges");
 
-                string edgeExistsBody = await CallMcpToolAsync<string>("edge/exists", new
+                string edgeExistsBody = await CallMcpToolAsync<string>("edge_exists", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -5881,7 +5881,7 @@
                 }).ConfigureAwait(false);
                 AssertEqual("true", edgeExistsBody, "MCP read-scoped credential can check allowed edge existence");
 
-                string nodeEdgesBody = await CallMcpToolAsync<string>("edge/nodeedges", new
+                string nodeEdgesBody = await CallMcpToolAsync<string>("edge_nodeedges", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -5892,7 +5892,7 @@
                 List<Edge> nodeEdges = nodeEdgesEnvelope.Objects;
                 AssertTrue(nodeEdges.Any(edge => edge.GUID == edgeA.GUID), "MCP read-scoped credential can read allowed node edges");
 
-                string filteredNodeEdgesBody = await CallMcpToolAsync<string>("edge/nodeedges", new
+                string filteredNodeEdgesBody = await CallMcpToolAsync<string>("edge_nodeedges", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -5904,7 +5904,7 @@
                 List<Edge> filteredNodeEdges = filteredNodeEdgesEnvelope.Objects;
                 AssertTrue(filteredNodeEdges.Any(edge => edge.GUID == edgeA.GUID), "MCP read-scoped credential can read filtered allowed node edges");
 
-                string fromNodeEdgesBody = await CallMcpToolAsync<string>("edge/fromnode", new
+                string fromNodeEdgesBody = await CallMcpToolAsync<string>("edge_fromnode", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -5915,7 +5915,7 @@
                 List<Edge> fromNodeEdges = fromNodeEdgesEnvelope.Objects;
                 AssertTrue(fromNodeEdges.Any(edge => edge.GUID == edgeA.GUID), "MCP read-scoped credential can read allowed outgoing edges");
 
-                string toNodeEdgesBody = await CallMcpToolAsync<string>("edge/tonode", new
+                string toNodeEdgesBody = await CallMcpToolAsync<string>("edge_tonode", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -5926,7 +5926,7 @@
                 List<Edge> toNodeEdges = toNodeEdgesEnvelope.Objects;
                 AssertTrue(toNodeEdges.Any(edge => edge.GUID == edgeA.GUID), "MCP read-scoped credential can read allowed incoming edges");
 
-                string betweenNodeEdgesBody = await CallMcpToolAsync<string>("edge/betweennodes", new
+                string betweenNodeEdgesBody = await CallMcpToolAsync<string>("edge_betweennodes", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -5944,21 +5944,21 @@
                     GraphGUID = graphA.GUID,
                     Name = edgeA.Name
                 };
-                string edgeSearchBody = await CallMcpToolAsync<string>("edge/search", new
+                string edgeSearchBody = await CallMcpToolAsync<string>("edge_search", new
                 {
                     request = _McpSerializer.SerializeJson(edgeSearchRequest, false)
                 }).ConfigureAwait(false);
                 SearchResult edgeSearch = _McpSerializer.DeserializeJson<SearchResult>(edgeSearchBody);
                 AssertTrue(edgeSearch.Edges.Any(edge => edge.GUID == edgeA.GUID), "MCP read-scoped credential can search allowed edges");
 
-                string edgeReadFirstBody = await CallMcpToolAsync<string>("edge/readfirst", new
+                string edgeReadFirstBody = await CallMcpToolAsync<string>("edge_readfirst", new
                 {
                     request = _McpSerializer.SerializeJson(edgeSearchRequest, false)
                 }).ConfigureAwait(false);
                 Edge firstEdge = _McpSerializer.DeserializeJson<Edge>(edgeReadFirstBody);
                 AssertEqual(edgeA.GUID, firstEdge.GUID, "MCP read-scoped credential can read first allowed edge");
 
-                string edgeEnumerateBody = await CallMcpToolAsync<string>("edge/enumerate", new
+                string edgeEnumerateBody = await CallMcpToolAsync<string>("edge_enumerate", new
                 {
                     query = _McpSerializer.SerializeJson(new EnumerationRequest
                     {
@@ -5970,7 +5970,7 @@
                 EnumerationResult<Edge> edgeEnumeration = _McpSerializer.DeserializeJson<EnumerationResult<Edge>>(edgeEnumerateBody);
                 AssertTrue(edgeEnumeration.Objects.Any(edge => edge.GUID == edgeA.GUID), "MCP read-scoped credential can enumerate allowed graph edges");
 
-                string labelReadBody = await CallMcpToolAsync<string>("label/get", new
+                string labelReadBody = await CallMcpToolAsync<string>("label_get", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     labelGuid = labelA.GUID.ToString()
@@ -5978,7 +5978,7 @@
                 LabelMetadata readLabel = _McpSerializer.DeserializeJson<LabelMetadata>(labelReadBody);
                 AssertEqual(labelA.GUID, readLabel.GUID, "MCP read-scoped credential can read allowed label");
 
-                string labelAllBody = await CallMcpToolAsync<string>("label/all", new
+                string labelAllBody = await CallMcpToolAsync<string>("label_all", new
                 {
                     tenantGuid = tenant.GUID.ToString()
                 }).ConfigureAwait(false);
@@ -5987,7 +5987,7 @@
                 List<LabelMetadata> labelAll = labelAllEnvelope.Objects;
                 AssertTrue(labelAll.Any(label => label.GUID == labelA.GUID), "MCP read-scoped credential can list labels");
 
-                string labelReadAllInTenantBody = await CallMcpToolAsync<string>("label/readallintenant", new
+                string labelReadAllInTenantBody = await CallMcpToolAsync<string>("label_readallintenant", new
                 {
                     tenantGuid = tenant.GUID.ToString()
                 }).ConfigureAwait(false);
@@ -5996,7 +5996,7 @@
                 List<LabelMetadata> tenantLabels = tenantLabelsEnvelope.Objects;
                 AssertTrue(tenantLabels.Any(label => label.GUID == labelA.GUID), "MCP read-scoped credential can invoke tenant label listing");
 
-                string labelReadAllInGraphBody = await CallMcpToolAsync<string>("label/readallingraph", new
+                string labelReadAllInGraphBody = await CallMcpToolAsync<string>("label_readallingraph", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
@@ -6006,7 +6006,7 @@
                 List<LabelMetadata> graphLabels = graphLabelsEnvelope.Objects;
                 AssertTrue(graphLabels.Any(label => label.GUID == labelA.GUID), "MCP read-scoped credential can read all labels in allowed graph");
 
-                string labelReadManyGraphBody = await CallMcpToolAsync<string>("label/readmanygraph", new
+                string labelReadManyGraphBody = await CallMcpToolAsync<string>("label_readmanygraph", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
@@ -6016,7 +6016,7 @@
                 List<LabelMetadata> graphScopedLabels = graphScopedLabelsEnvelope.Objects;
                 AssertTrue(graphScopedLabels.Any(label => label.GUID == graphLabelA.GUID), "MCP read-scoped credential can read graph labels");
 
-                string labelReadManyNodeBody = await CallMcpToolAsync<string>("label/readmanynode", new
+                string labelReadManyNodeBody = await CallMcpToolAsync<string>("label_readmanynode", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -6027,7 +6027,7 @@
                 List<LabelMetadata> nodeLabels = nodeLabelsEnvelope.Objects;
                 AssertTrue(nodeLabels.Any(label => label.GUID == labelA.GUID), "MCP read-scoped credential can read node labels");
 
-                string labelReadManyEdgeBody = await CallMcpToolAsync<string>("label/readmanyedge", new
+                string labelReadManyEdgeBody = await CallMcpToolAsync<string>("label_readmanyedge", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -6038,7 +6038,7 @@
                 List<LabelMetadata> edgeLabels = edgeLabelsEnvelope.Objects;
                 AssertTrue(edgeLabels.Any(label => label.GUID == edgeLabelA.GUID), "MCP read-scoped credential can read edge labels");
 
-                string labelGetManyBody = await CallMcpToolAsync<string>("label/getmany", new
+                string labelGetManyBody = await CallMcpToolAsync<string>("label_getmany", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     labelGuids = new[] { labelA.GUID.ToString(), edgeLabelA.GUID.ToString() }
@@ -6048,14 +6048,14 @@
                 List<LabelMetadata> manyLabels = manyLabelsEnvelope.Objects;
                 AssertEqual(2, manyLabels.Count, "MCP read-scoped credential can read many allowed labels");
 
-                string labelExistsBody = await CallMcpToolAsync<string>("label/exists", new
+                string labelExistsBody = await CallMcpToolAsync<string>("label_exists", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     labelGuid = labelA.GUID.ToString()
                 }).ConfigureAwait(false);
                 AssertEqual("true", labelExistsBody, "MCP read-scoped credential can check allowed label existence");
 
-                string labelEnumerateBody = await CallMcpToolAsync<string>("label/enumerate", new
+                string labelEnumerateBody = await CallMcpToolAsync<string>("label_enumerate", new
                 {
                     query = _McpSerializer.SerializeJson(new EnumerationRequest
                     {
@@ -6067,7 +6067,7 @@
                 EnumerationResult<LabelMetadata> labelEnumeration = _McpSerializer.DeserializeJson<EnumerationResult<LabelMetadata>>(labelEnumerateBody);
                 AssertTrue(labelEnumeration.Objects.Any(label => label.GUID == labelA.GUID), "MCP read-scoped credential can enumerate allowed graph labels");
 
-                string tagReadBody = await CallMcpToolAsync<string>("tag/get", new
+                string tagReadBody = await CallMcpToolAsync<string>("tag_get", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     tagGuid = tagA.GUID.ToString()
@@ -6075,7 +6075,7 @@
                 TagMetadata readTag = _McpSerializer.DeserializeJson<TagMetadata>(tagReadBody);
                 AssertEqual(tagA.GUID, readTag.GUID, "MCP read-scoped credential can read allowed tag");
 
-                string tagReadManyBody = await CallMcpToolAsync<string>("tag/readmany", new
+                string tagReadManyBody = await CallMcpToolAsync<string>("tag_readmany", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
@@ -6085,7 +6085,7 @@
                 List<TagMetadata> readManyTags = readManyTagsEnvelope.Objects;
                 AssertTrue(readManyTags.Any(tag => tag.GUID == tagA.GUID), "MCP read-scoped credential can list allowed graph tags through readmany");
 
-                string tagReadAllInTenantBody = await CallMcpToolAsync<string>("tag/readallintenant", new
+                string tagReadAllInTenantBody = await CallMcpToolAsync<string>("tag_readallintenant", new
                 {
                     tenantGuid = tenant.GUID.ToString()
                 }).ConfigureAwait(false);
@@ -6094,7 +6094,7 @@
                 List<TagMetadata> tenantTags = tenantTagsEnvelope.Objects;
                 AssertTrue(tenantTags.Any(tag => tag.GUID == tagA.GUID), "MCP read-scoped credential can invoke tenant tag listing");
 
-                string tagReadAllInGraphBody = await CallMcpToolAsync<string>("tag/readallingraph", new
+                string tagReadAllInGraphBody = await CallMcpToolAsync<string>("tag_readallingraph", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
@@ -6104,7 +6104,7 @@
                 List<TagMetadata> graphTags = graphTagsEnvelope.Objects;
                 AssertTrue(graphTags.Any(tag => tag.GUID == tagA.GUID), "MCP read-scoped credential can read all tags in allowed graph");
 
-                string tagReadManyGraphBody = await CallMcpToolAsync<string>("tag/readmanygraph", new
+                string tagReadManyGraphBody = await CallMcpToolAsync<string>("tag_readmanygraph", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
@@ -6114,7 +6114,7 @@
                 List<TagMetadata> graphScopedTags = graphScopedTagsEnvelope.Objects;
                 AssertTrue(graphScopedTags.Any(tag => tag.GUID == graphTagA.GUID), "MCP read-scoped credential can read graph tags");
 
-                string tagReadManyNodeBody = await CallMcpToolAsync<string>("tag/readmanynode", new
+                string tagReadManyNodeBody = await CallMcpToolAsync<string>("tag_readmanynode", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -6125,7 +6125,7 @@
                 List<TagMetadata> nodeTags = nodeTagsEnvelope.Objects;
                 AssertTrue(nodeTags.Any(tag => tag.GUID == tagA.GUID), "MCP read-scoped credential can read node tags");
 
-                string tagReadManyEdgeBody = await CallMcpToolAsync<string>("tag/readmanyedge", new
+                string tagReadManyEdgeBody = await CallMcpToolAsync<string>("tag_readmanyedge", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -6136,7 +6136,7 @@
                 List<TagMetadata> edgeTags = edgeTagsEnvelope.Objects;
                 AssertTrue(edgeTags.Any(tag => tag.GUID == edgeTagA.GUID), "MCP read-scoped credential can read edge tags");
 
-                string tagGetManyBody = await CallMcpToolAsync<string>("tag/getmany", new
+                string tagGetManyBody = await CallMcpToolAsync<string>("tag_getmany", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     tagGuids = new[] { tagA.GUID.ToString(), edgeTagA.GUID.ToString() }
@@ -6146,14 +6146,14 @@
                 List<TagMetadata> manyTags = manyTagsEnvelope.Objects;
                 AssertEqual(2, manyTags.Count, "MCP read-scoped credential can read many allowed tags");
 
-                string tagExistsBody = await CallMcpToolAsync<string>("tag/exists", new
+                string tagExistsBody = await CallMcpToolAsync<string>("tag_exists", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     tagGuid = tagA.GUID.ToString()
                 }).ConfigureAwait(false);
                 AssertEqual("true", tagExistsBody, "MCP read-scoped credential can check allowed tag existence");
 
-                string tagEnumerateBody = await CallMcpToolAsync<string>("tag/enumerate", new
+                string tagEnumerateBody = await CallMcpToolAsync<string>("tag_enumerate", new
                 {
                     query = _McpSerializer.SerializeJson(new EnumerationRequest
                     {
@@ -6165,7 +6165,7 @@
                 EnumerationResult<TagMetadata> tagEnumeration = _McpSerializer.DeserializeJson<EnumerationResult<TagMetadata>>(tagEnumerateBody);
                 AssertTrue(tagEnumeration.Objects.Any(tag => tag.GUID == tagA.GUID), "MCP read-scoped credential can enumerate allowed graph tags");
 
-                string vectorReadBody = await CallMcpToolAsync<string>("vector/get", new
+                string vectorReadBody = await CallMcpToolAsync<string>("vector_get", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     vectorGuid = vectorA.GUID.ToString()
@@ -6173,7 +6173,7 @@
                 VectorMetadata readVector = _McpSerializer.DeserializeJson<VectorMetadata>(vectorReadBody);
                 AssertEqual(vectorA.GUID, readVector.GUID, "MCP read-scoped credential can read allowed vector");
 
-                string vectorAllBody = await CallMcpToolAsync<string>("vector/all", new
+                string vectorAllBody = await CallMcpToolAsync<string>("vector_all", new
                 {
                     tenantGuid = tenant.GUID.ToString()
                 }).ConfigureAwait(false);
@@ -6182,7 +6182,7 @@
                 List<VectorMetadata> allVectors = allVectorsEnvelope.Objects;
                 AssertTrue(allVectors.Any(vector => vector.GUID == vectorA.GUID), "MCP read-scoped credential can list vectors");
 
-                string vectorReadAllInTenantBody = await CallMcpToolAsync<string>("vector/readallintenant", new
+                string vectorReadAllInTenantBody = await CallMcpToolAsync<string>("vector_readallintenant", new
                 {
                     tenantGuid = tenant.GUID.ToString()
                 }).ConfigureAwait(false);
@@ -6191,7 +6191,7 @@
                 List<VectorMetadata> tenantVectors = tenantVectorsEnvelope.Objects;
                 AssertTrue(tenantVectors.Any(vector => vector.GUID == vectorA.GUID), "MCP read-scoped credential can invoke tenant vector listing");
 
-                string vectorReadAllInGraphBody = await CallMcpToolAsync<string>("vector/readallingraph", new
+                string vectorReadAllInGraphBody = await CallMcpToolAsync<string>("vector_readallingraph", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
@@ -6201,7 +6201,7 @@
                 List<VectorMetadata> graphVectors = graphVectorsEnvelope.Objects;
                 AssertTrue(graphVectors.Any(vector => vector.GUID == vectorA.GUID), "MCP read-scoped credential can read all vectors in allowed graph");
 
-                string vectorReadManyGraphBody = await CallMcpToolAsync<string>("vector/readmanygraph", new
+                string vectorReadManyGraphBody = await CallMcpToolAsync<string>("vector_readmanygraph", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
@@ -6211,7 +6211,7 @@
                 List<VectorMetadata> graphScopedVectors = graphScopedVectorsEnvelope.Objects;
                 AssertTrue(graphScopedVectors.Any(vector => vector.GUID == graphVectorA.GUID), "MCP read-scoped credential can read graph vectors");
 
-                string vectorReadManyNodeBody = await CallMcpToolAsync<string>("vector/readmanynode", new
+                string vectorReadManyNodeBody = await CallMcpToolAsync<string>("vector_readmanynode", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -6222,7 +6222,7 @@
                 List<VectorMetadata> nodeVectors = nodeVectorsEnvelope.Objects;
                 AssertTrue(nodeVectors.Any(vector => vector.GUID == vectorA.GUID), "MCP read-scoped credential can read node vectors");
 
-                string vectorReadManyEdgeBody = await CallMcpToolAsync<string>("vector/readmanyedge", new
+                string vectorReadManyEdgeBody = await CallMcpToolAsync<string>("vector_readmanyedge", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -6233,7 +6233,7 @@
                 List<VectorMetadata> edgeVectors = edgeVectorsEnvelope.Objects;
                 AssertTrue(edgeVectors.Any(vector => vector.GUID == edgeVectorA.GUID), "MCP read-scoped credential can read edge vectors");
 
-                string vectorGetManyBody = await CallMcpToolAsync<string>("vector/getmany", new
+                string vectorGetManyBody = await CallMcpToolAsync<string>("vector_getmany", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     vectorGuids = new[] { vectorA.GUID.ToString(), edgeVectorA.GUID.ToString() }
@@ -6243,14 +6243,14 @@
                 List<VectorMetadata> manyVectors = manyVectorsEnvelope.Objects;
                 AssertEqual(2, manyVectors.Count, "MCP read-scoped credential can read many allowed vectors");
 
-                string vectorExistsBody = await CallMcpToolAsync<string>("vector/exists", new
+                string vectorExistsBody = await CallMcpToolAsync<string>("vector_exists", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     vectorGuid = vectorA.GUID.ToString()
                 }).ConfigureAwait(false);
                 AssertEqual("true", vectorExistsBody, "MCP read-scoped credential can check allowed vector existence");
 
-                string vectorEnumerateBody = await CallMcpToolAsync<string>("vector/enumerate", new
+                string vectorEnumerateBody = await CallMcpToolAsync<string>("vector_enumerate", new
                 {
                     query = _McpSerializer.SerializeJson(new EnumerationRequest
                     {
@@ -6262,7 +6262,7 @@
                 EnumerationResult<VectorMetadata> vectorEnumeration = _McpSerializer.DeserializeJson<EnumerationResult<VectorMetadata>>(vectorEnumerateBody);
                 AssertTrue(vectorEnumeration.Objects.Any(vector => vector.GUID == vectorA.GUID), "MCP read-scoped credential can enumerate allowed graph vectors");
 
-                string vectorSearchBody = await CallMcpToolAsync<string>("vector/search", new
+                string vectorSearchBody = await CallMcpToolAsync<string>("vector_search", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -6279,7 +6279,7 @@
                 List<VectorSearchResult> vectorSearchResults = vectorSearchResultsEnvelope.Objects;
                 AssertTrue(vectorSearchResults.Any(result => result.Node != null && result.Node.GUID == nodeA.GUID), "MCP read-scoped credential can search allowed graph vectors");
 
-                string queryBody = await CallMcpToolAsync<string>("graph/query", new
+                string queryBody = await CallMcpToolAsync<string>("graph_query", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -6289,7 +6289,7 @@
                 AssertFalse(queryResult.Mutated, "MCP read query does not mutate");
                 AssertTrue(queryResult.RowCount >= 1, "MCP read query returns rows");
 
-                string graphReadBody = await CallMcpToolAsync<string>("graph/get", new
+                string graphReadBody = await CallMcpToolAsync<string>("graph_get", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
@@ -6297,7 +6297,7 @@
                 Graph readGraph = _McpSerializer.DeserializeJson<Graph>(graphReadBody);
                 AssertEqual(graphA.GUID, readGraph.GUID, "MCP read-scoped credential can read allowed graph");
 
-                string jsonlExportBody = await CallMcpToolAsync<string>("graph/exportjsonl", new
+                string jsonlExportBody = await CallMcpToolAsync<string>("graph_exportjsonl", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -6307,7 +6307,7 @@
                 AssertTrue(jsonlExportBody.Contains("# litegraph-jsonl"), "MCP graph/exportjsonl returns a JSONL header");
                 AssertTrue(jsonlExportBody.Contains("\"Type\":\"Node\""), "MCP graph/exportjsonl includes node records");
 
-                string subgraphJsonlBody = await CallMcpToolAsync<string>("graph/exportsubgraphjsonl", new
+                string subgraphJsonlBody = await CallMcpToolAsync<string>("graph_exportsubgraphjsonl", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -6323,7 +6323,7 @@
                 AssertTrue(subgraphJsonlBody.Contains("\"Type\":\"Node\""), "MCP graph/exportsubgraphjsonl includes node records");
 
                 // Import is a write; a read-scoped credential must be denied, and the tool must surface that as a non-success result.
-                string jsonlImportBody = await CallMcpToolAsync<string>("graph/importjsonl", new
+                string jsonlImportBody = await CallMcpToolAsync<string>("graph_importjsonl", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     jsonl = jsonlExportBody,
@@ -6332,7 +6332,7 @@
                 GraphImportResult jsonlImport = _McpSerializer.DeserializeJson<GraphImportResult>(jsonlImportBody);
                 AssertFalse(jsonlImport.Success, "MCP graph/importjsonl is denied for a read-scoped credential");
 
-                string batchExistenceBody = await CallMcpToolAsync<string>("batch/existence", new
+                string batchExistenceBody = await CallMcpToolAsync<string>("batch_existence", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -6348,7 +6348,7 @@
                 AssertTrue(batchExistence.ExistingEdges.Contains(edgeA.GUID), "MCP read-scoped credential can run allowed batch edge existence");
                 AssertTrue(batchExistence.ExistingVectors.Contains(vectorA.GUID), "MCP read-scoped credential can run allowed batch vector existence");
 
-                string nodeAllBody = await CallMcpToolAsync<string>("node/all", new
+                string nodeAllBody = await CallMcpToolAsync<string>("node_all", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
@@ -6358,7 +6358,7 @@
                 List<Node> nodeAll = nodeAllEnvelope.Objects;
                 AssertTrue(nodeAll.Any(node => node.GUID == nodeA.GUID), "MCP read-scoped credential can list allowed graph nodes");
 
-                string nodeReadAllInTenantBody = await CallMcpToolAsync<string>("node/readallintenant", new
+                string nodeReadAllInTenantBody = await CallMcpToolAsync<string>("node_readallintenant", new
                 {
                     tenantGuid = tenant.GUID.ToString()
                 }).ConfigureAwait(false);
@@ -6367,7 +6367,7 @@
                 List<Node> tenantNodes = tenantNodesEnvelope.Objects;
                 AssertTrue(tenantNodes.Any(node => node.GUID == nodeA.GUID), "MCP read-scoped credential can invoke tenant node listing");
 
-                string nodeReadAllInGraphBody = await CallMcpToolAsync<string>("node/readallingraph", new
+                string nodeReadAllInGraphBody = await CallMcpToolAsync<string>("node_readallingraph", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
@@ -6377,7 +6377,7 @@
                 List<Node> graphNodes = graphNodesEnvelope.Objects;
                 AssertTrue(graphNodes.Any(node => node.GUID == nodeA.GUID), "MCP read-scoped credential can read all nodes in allowed graph");
 
-                string mostConnectedBody = await CallMcpToolAsync<string>("node/readmostconnected", new
+                string mostConnectedBody = await CallMcpToolAsync<string>("node_readmostconnected", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
@@ -6387,7 +6387,7 @@
                 List<Node> mostConnectedNodes = mostConnectedNodesEnvelope.Objects;
                 AssertNotNull(mostConnectedNodes, "MCP read-scoped credential can read most-connected nodes in allowed graph");
 
-                string leastConnectedBody = await CallMcpToolAsync<string>("node/readleastconnected", new
+                string leastConnectedBody = await CallMcpToolAsync<string>("node_readleastconnected", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString()
@@ -6397,7 +6397,7 @@
                 List<Node> leastConnectedNodes = leastConnectedNodesEnvelope.Objects;
                 AssertNotNull(leastConnectedNodes, "MCP read-scoped credential can read least-connected nodes in allowed graph");
 
-                string nodeGetManyBody = await CallMcpToolAsync<string>("node/getmany", new
+                string nodeGetManyBody = await CallMcpToolAsync<string>("node_getmany", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -6408,7 +6408,7 @@
                 List<Node> manyNodes = manyNodesEnvelope.Objects;
                 AssertEqual(2, manyNodes.Count, "MCP read-scoped credential can read many allowed nodes");
 
-                string nodeExistsBody = await CallMcpToolAsync<string>("node/exists", new
+                string nodeExistsBody = await CallMcpToolAsync<string>("node_exists", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -6422,21 +6422,21 @@
                     GraphGUID = graphA.GUID,
                     Name = nodeA3.Name
                 };
-                string nodeSearchBody = await CallMcpToolAsync<string>("node/search", new
+                string nodeSearchBody = await CallMcpToolAsync<string>("node_search", new
                 {
                     searchRequest = _McpSerializer.SerializeJson(nodeSearchRequest, false)
                 }).ConfigureAwait(false);
                 SearchResult nodeSearch = _McpSerializer.DeserializeJson<SearchResult>(nodeSearchBody);
                 AssertTrue(nodeSearch.Nodes.Any(node => node.GUID == nodeA3.GUID), "MCP read-scoped credential can search allowed nodes");
 
-                string nodeReadFirstBody = await CallMcpToolAsync<string>("node/readfirst", new
+                string nodeReadFirstBody = await CallMcpToolAsync<string>("node_readfirst", new
                 {
                     searchRequest = _McpSerializer.SerializeJson(nodeSearchRequest, false)
                 }).ConfigureAwait(false);
                 Node firstNode = _McpSerializer.DeserializeJson<Node>(nodeReadFirstBody);
                 AssertEqual(nodeA3.GUID, firstNode.GUID, "MCP read-scoped credential can read first allowed node");
 
-                string nodeEnumerateBody = await CallMcpToolAsync<string>("node/enumerate", new
+                string nodeEnumerateBody = await CallMcpToolAsync<string>("node_enumerate", new
                 {
                     query = _McpSerializer.SerializeJson(new EnumerationRequest
                     {
@@ -6448,7 +6448,7 @@
                 EnumerationResult<Node> nodeEnumeration = _McpSerializer.DeserializeJson<EnumerationResult<Node>>(nodeEnumerateBody);
                 AssertTrue(nodeEnumeration.Objects.Any(node => node.GUID == nodeA.GUID), "MCP read-scoped credential can enumerate allowed graph nodes");
 
-                string nodeParentsBody = await CallMcpToolAsync<string>("node/parents", new
+                string nodeParentsBody = await CallMcpToolAsync<string>("node_parents", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -6459,7 +6459,7 @@
                 List<Node> parentNodes = parentNodesEnvelope.Objects;
                 AssertTrue(parentNodes.Any(node => node.GUID == nodeA.GUID), "MCP read-scoped credential can read allowed node parents");
 
-                string nodeChildrenBody = await CallMcpToolAsync<string>("node/children", new
+                string nodeChildrenBody = await CallMcpToolAsync<string>("node_children", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -6470,7 +6470,7 @@
                 List<Node> childNodes = childNodesEnvelope.Objects;
                 AssertTrue(childNodes.Any(node => node.GUID == nodeA2.GUID), "MCP read-scoped credential can read allowed node children");
 
-                string nodeNeighborsBody = await CallMcpToolAsync<string>("node/neighbors", new
+                string nodeNeighborsBody = await CallMcpToolAsync<string>("node_neighbors", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -6481,7 +6481,7 @@
                 List<Node> neighborNodes = neighborNodesEnvelope.Objects;
                 AssertTrue(neighborNodes.Any(node => node.GUID == nodeA2.GUID), "MCP read-scoped credential can read allowed node neighbors");
 
-                string nodeTraverseBody = await CallMcpToolAsync<string>("node/traverse", new
+                string nodeTraverseBody = await CallMcpToolAsync<string>("node_traverse", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     graphGuid = graphA.GUID.ToString(),
@@ -6493,7 +6493,7 @@
                 AssertTrue(routes.Count > 0, "MCP read-scoped credential can traverse allowed graph nodes");
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tenant/create", new
+                    () => CallMcpToolAsync<string>("tenant_create", new
                     {
                         name = "Blocked MCP Tenant"
                     }),
@@ -6501,7 +6501,7 @@
 
                 // v8.0: any authenticated member of a tenant may read that tenant's own metadata (name/active),
                 // which the tenant-scoped dashboard depends on. Reading a different tenant is still denied.
-                string ownTenantBody = await CallMcpToolAsync<string>("tenant/get", new
+                string ownTenantBody = await CallMcpToolAsync<string>("tenant_get", new
                 {
                     tenantGuid = tenant.GUID.ToString()
                 }).ConfigureAwait(false);
@@ -6509,14 +6509,14 @@
                 AssertEqual(tenant.GUID, ownTenant.GUID, "MCP read-scoped credential can read its own tenant metadata");
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tenant/get", new
+                    () => CallMcpToolAsync<string>("tenant_get", new
                     {
                         tenantGuid = targetTenant.GUID.ToString()
                     }),
                     "MCP read-scoped credential cannot read another tenant's metadata").ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tenant/all", new { }),
+                    () => CallMcpToolAsync<string>("tenant_all", new { }),
                     "MCP read-scoped credential cannot list tenants").ConfigureAwait(false);
                 await AssertMcpAuthorizationAudit(
                     credential.GUID,
@@ -6529,7 +6529,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tenant/enumerate", new
+                    () => CallMcpToolAsync<string>("tenant_enumerate", new
                     {
                         query = _McpSerializer.SerializeJson(new EnumerationRequest { MaxResults = 10 }, false)
                     }),
@@ -6545,7 +6545,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tenant/statisticsall", new { }),
+                    () => CallMcpToolAsync<string>("tenant_statisticsall", new { }),
                     "MCP read-scoped credential cannot read all tenant statistics").ConfigureAwait(false);
                 await AssertMcpAuthorizationAudit(
                     credential.GUID,
@@ -6559,7 +6559,7 @@
 
                 // v8.0: checking the existence of a different tenant is still denied for a non-admin member.
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tenant/exists", new
+                    () => CallMcpToolAsync<string>("tenant_exists", new
                     {
                         tenantGuid = targetTenant.GUID.ToString()
                     }),
@@ -6573,7 +6573,7 @@
                     ResourceTypes = new List<AuthorizationResourceTypeEnum> { AuthorizationResourceTypeEnum.Node }
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("authorization/role/create", new
+                    () => CallMcpToolAsync<string>("authorization_role_create", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         role = _McpSerializer.SerializeJson(blockedMcpRole, false)
@@ -6590,7 +6590,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("authorization/role/all", new
+                    () => CallMcpToolAsync<string>("authorization_role_all", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         includeBuiltIns = false
@@ -6613,7 +6613,7 @@
                     GraphGUID = graphA.GUID
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("authorization/userrole/create", new
+                    () => CallMcpToolAsync<string>("authorization_userrole_create", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         userGuid = user.GUID.ToString(),
@@ -6637,7 +6637,7 @@
                     GraphGUID = graphA.GUID
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("authorization/credentialscope/create", new
+                    () => CallMcpToolAsync<string>("authorization_credentialscope_create", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         credentialGuid = credential.GUID.ToString(),
@@ -6655,7 +6655,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("authorization/user/permissions", new
+                    () => CallMcpToolAsync<string>("authorization_user_permissions", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         userGuid = user.GUID.ToString(),
@@ -6673,7 +6673,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("authorization/credential/permissions", new
+                    () => CallMcpToolAsync<string>("authorization_credential_permissions", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         credentialGuid = credential.GUID.ToString(),
@@ -6690,7 +6690,7 @@
                     "MCP credential effective permissions denial audit",
                     cancellationToken).ConfigureAwait(false);
 
-                string tenantStatisticsBody = await CallMcpToolAsync<string>("tenant/statistics", new
+                string tenantStatisticsBody = await CallMcpToolAsync<string>("tenant_statistics", new
                 {
                     tenantGuid = tenant.GUID.ToString()
                 }).ConfigureAwait(false);
@@ -6699,7 +6699,7 @@
 
                 // v8.0: reading another tenant (even via getmany) is still denied for a non-admin member.
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tenant/getmany", new
+                    () => CallMcpToolAsync<string>("tenant_getmany", new
                     {
                         tenantGuids = new[] { targetTenant.GUID.ToString() }
                     }),
@@ -6711,7 +6711,7 @@
                     Name = "Blocked MCP Tenant Update"
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tenant/update", new
+                    () => CallMcpToolAsync<string>("tenant_update", new
                     {
                         tenant = _McpSerializer.SerializeJson(tenantUpdate, false)
                     }),
@@ -6727,7 +6727,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tenant/delete", new
+                    () => CallMcpToolAsync<string>("tenant_delete", new
                     {
                         tenantGuid = targetTenant.GUID.ToString(),
                         force = true
@@ -6752,7 +6752,7 @@
                     Password = "password"
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("user/create", new
+                    () => CallMcpToolAsync<string>("user_create", new
                     {
                         user = _McpSerializer.SerializeJson(userCreate, false)
                     }),
@@ -6768,7 +6768,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 // v8.0 self-service: a user may read its own record (the read-scoped credential belongs to `user`).
-                string ownUserBody = await CallMcpToolAsync<string>("user/get", new
+                string ownUserBody = await CallMcpToolAsync<string>("user_get", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     userGuid = user.GUID.ToString()
@@ -6778,7 +6778,7 @@
 
                 // Reading another user (in another tenant) remains denied.
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("user/get", new
+                    () => CallMcpToolAsync<string>("user_get", new
                     {
                         tenantGuid = targetTenant.GUID.ToString(),
                         userGuid = targetUser.GUID.ToString()
@@ -6786,7 +6786,7 @@
                     "MCP read-scoped credential cannot read another user").ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("user/all", new
+                    () => CallMcpToolAsync<string>("user_all", new
                     {
                         tenantGuid = tenant.GUID.ToString()
                     }),
@@ -6795,7 +6795,7 @@
                 // service handler by CanManageAccounts, which does not emit an authorization audit record.
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("user/enumerate", new
+                    () => CallMcpToolAsync<string>("user_enumerate", new
                     {
                         query = _McpSerializer.SerializeJson(new EnumerationRequest
                         {
@@ -6809,7 +6809,7 @@
 
                 // v8.0: checking existence of another user (in another tenant) remains denied.
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("user/exists", new
+                    () => CallMcpToolAsync<string>("user_exists", new
                     {
                         tenantGuid = targetTenant.GUID.ToString(),
                         userGuid = targetUser.GUID.ToString()
@@ -6819,7 +6819,7 @@
                 // Reading other users in bulk is a management operation and remains denied (only self-service
                 // single-record reads are permitted for a regular user in v8.0).
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("user/getmany", new
+                    () => CallMcpToolAsync<string>("user_getmany", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         userGuids = new[] { targetUser.GUID.ToString() }
@@ -6836,7 +6836,7 @@
                     Password = "password"
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("user/update", new
+                    () => CallMcpToolAsync<string>("user_update", new
                     {
                         user = _McpSerializer.SerializeJson(userUpdate, false)
                     }),
@@ -6852,7 +6852,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("user/delete", new
+                    () => CallMcpToolAsync<string>("user_delete", new
                     {
                         tenantGuid = targetTenant.GUID.ToString(),
                         userGuid = targetUser.GUID.ToString()
@@ -6877,7 +6877,7 @@
                     Scopes = new List<string> { "read" }
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("credential/create", new
+                    () => CallMcpToolAsync<string>("credential_create", new
                     {
                         credential = _McpSerializer.SerializeJson(credentialCreate, false)
                     }),
@@ -6893,7 +6893,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("credential/get", new
+                    () => CallMcpToolAsync<string>("credential_get", new
                     {
                         tenantGuid = targetTenant.GUID.ToString(),
                         credentialGuid = targetCredential.GUID.ToString()
@@ -6910,7 +6910,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("credential/all", new
+                    () => CallMcpToolAsync<string>("credential_all", new
                     {
                         tenantGuid = tenant.GUID.ToString()
                     }),
@@ -6919,7 +6919,7 @@
                 // service handler by CanManageAccounts, which does not emit an authorization audit record.
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("credential/enumerate", new
+                    () => CallMcpToolAsync<string>("credential_enumerate", new
                     {
                         query = _McpSerializer.SerializeJson(new EnumerationRequest
                         {
@@ -6932,7 +6932,7 @@
                 // service handler by CanManageAccounts, which does not emit an authorization audit record.
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("credential/exists", new
+                    () => CallMcpToolAsync<string>("credential_exists", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         credentialGuid = credential.GUID.ToString()
@@ -6942,7 +6942,7 @@
                 // service handler by CanManageAccounts, which does not emit an authorization audit record.
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("credential/getmany", new
+                    () => CallMcpToolAsync<string>("credential_getmany", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         credentialGuids = new[] { credential.GUID.ToString() }
@@ -6952,7 +6952,7 @@
                 // service handler by CanManageAccounts, which does not emit an authorization audit record.
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("credential/getbybearertoken", new
+                    () => CallMcpToolAsync<string>("credential_getbybearertoken", new
                     {
                         bearerToken = targetCredential.BearerToken
                     }),
@@ -6970,7 +6970,7 @@
                     Scopes = new List<string> { "read" }
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("credential/update", new
+                    () => CallMcpToolAsync<string>("credential_update", new
                     {
                         credential = _McpSerializer.SerializeJson(credentialUpdate, false)
                     }),
@@ -6986,7 +6986,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("credential/deletebyuser", new
+                    () => CallMcpToolAsync<string>("credential_deletebyuser", new
                     {
                         tenantGuid = targetTenant.GUID.ToString(),
                         userGuid = targetUser.GUID.ToString()
@@ -7003,7 +7003,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("credential/deleteallintenant", new
+                    () => CallMcpToolAsync<string>("credential_deleteallintenant", new
                     {
                         tenantGuid = targetTenant.GUID.ToString()
                     }),
@@ -7019,7 +7019,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("credential/delete", new
+                    () => CallMcpToolAsync<string>("credential_delete", new
                     {
                         tenantGuid = targetTenant.GUID.ToString(),
                         credentialGuid = targetCredential.GUID.ToString()
@@ -7036,7 +7036,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("graph/create", new
+                    () => CallMcpToolAsync<string>("graph_create", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         name = "Blocked MCP Graph"
@@ -7059,7 +7059,7 @@
                     Name = "Blocked MCP Graph Update"
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("graph/update", new
+                    () => CallMcpToolAsync<string>("graph_update", new
                     {
                         graph = _McpSerializer.SerializeJson(graphUpdate, false)
                     }),
@@ -7075,7 +7075,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("graph/delete", new
+                    () => CallMcpToolAsync<string>("graph_delete", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphC.GUID.ToString()
@@ -7092,7 +7092,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/create", new
+                    () => CallMcpToolAsync<string>("node_create", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString(),
@@ -7117,7 +7117,7 @@
                     Name = "Blocked MCP Node Update"
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/update", new
+                    () => CallMcpToolAsync<string>("node_update", new
                     {
                         node = _McpSerializer.SerializeJson(nodeUpdate, false)
                     }),
@@ -7133,7 +7133,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/delete", new
+                    () => CallMcpToolAsync<string>("node_delete", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString(),
@@ -7160,7 +7160,7 @@
                     }
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/createmany", new
+                    () => CallMcpToolAsync<string>("node_createmany", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString(),
@@ -7178,7 +7178,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/deletemany", new
+                    () => CallMcpToolAsync<string>("node_deletemany", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString(),
@@ -7196,7 +7196,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/deleteall", new
+                    () => CallMcpToolAsync<string>("node_deleteall", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString()
@@ -7213,7 +7213,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/deleteallintenant", new
+                    () => CallMcpToolAsync<string>("node_deleteallintenant", new
                     {
                         tenantGuid = tenant.GUID.ToString()
                     }),
@@ -7237,7 +7237,7 @@
                     Name = "Blocked MCP Edge Create"
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/create", new
+                    () => CallMcpToolAsync<string>("edge_create", new
                     {
                         edge = _McpSerializer.SerializeJson(edgeCreate, false)
                     }),
@@ -7262,7 +7262,7 @@
                     Name = "Blocked MCP Edge Update"
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/update", new
+                    () => CallMcpToolAsync<string>("edge_update", new
                     {
                         edge = _McpSerializer.SerializeJson(edgeUpdate, false)
                     }),
@@ -7278,7 +7278,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/delete", new
+                    () => CallMcpToolAsync<string>("edge_delete", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString(),
@@ -7307,7 +7307,7 @@
                     }
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/createmany", new
+                    () => CallMcpToolAsync<string>("edge_createmany", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString(),
@@ -7325,7 +7325,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/deletemany", new
+                    () => CallMcpToolAsync<string>("edge_deletemany", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString(),
@@ -7343,7 +7343,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/deleteallingraph", new
+                    () => CallMcpToolAsync<string>("edge_deleteallingraph", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString()
@@ -7360,7 +7360,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/deleteallintenant", new
+                    () => CallMcpToolAsync<string>("edge_deleteallintenant", new
                     {
                         tenantGuid = tenant.GUID.ToString()
                     }),
@@ -7376,7 +7376,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/deletenodeedges", new
+                    () => CallMcpToolAsync<string>("edge_deletenodeedges", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString(),
@@ -7394,7 +7394,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/deletenodeedgesmany", new
+                    () => CallMcpToolAsync<string>("edge_deletenodeedgesmany", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString(),
@@ -7419,7 +7419,7 @@
                     Label = "BlockedMcpLabelCreate"
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("label/create", new
+                    () => CallMcpToolAsync<string>("label_create", new
                     {
                         label = _McpSerializer.SerializeJson(labelCreate, false)
                     }),
@@ -7443,7 +7443,7 @@
                     Label = "BlockedMcpLabelUpdate"
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("label/update", new
+                    () => CallMcpToolAsync<string>("label_update", new
                     {
                         label = _McpSerializer.SerializeJson(labelUpdate, false)
                     }),
@@ -7459,7 +7459,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("label/delete", new
+                    () => CallMcpToolAsync<string>("label_delete", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         labelGuid = labelA.GUID.ToString()
@@ -7486,7 +7486,7 @@
                     }
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("label/createmany", new
+                    () => CallMcpToolAsync<string>("label_createmany", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         labels = _McpSerializer.SerializeJson(blockedCreateManyLabels, false)
@@ -7503,7 +7503,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("label/deletemany", new
+                    () => CallMcpToolAsync<string>("label_deletemany", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         labelGuids = new[] { labelA.GUID.ToString() }
@@ -7520,7 +7520,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("label/deleteallintenant", new
+                    () => CallMcpToolAsync<string>("label_deleteallintenant", new
                     {
                         tenantGuid = tenant.GUID.ToString()
                     }),
@@ -7536,7 +7536,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("label/deleteallingraph", new
+                    () => CallMcpToolAsync<string>("label_deleteallingraph", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString()
@@ -7553,7 +7553,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("label/deletegraphlabels", new
+                    () => CallMcpToolAsync<string>("label_deletegraphlabels", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString()
@@ -7570,7 +7570,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("label/deletenodelabels", new
+                    () => CallMcpToolAsync<string>("label_deletenodelabels", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString(),
@@ -7588,7 +7588,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("label/deleteedgelabels", new
+                    () => CallMcpToolAsync<string>("label_deleteedgelabels", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString(),
@@ -7614,7 +7614,7 @@
                     Value = "mcp-tag-create"
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tag/create", new
+                    () => CallMcpToolAsync<string>("tag_create", new
                     {
                         tag = _McpSerializer.SerializeJson(tagCreate, false)
                     }),
@@ -7639,7 +7639,7 @@
                     Value = "mcp-tag-update"
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tag/update", new
+                    () => CallMcpToolAsync<string>("tag_update", new
                     {
                         tag = _McpSerializer.SerializeJson(tagUpdate, false)
                     }),
@@ -7655,7 +7655,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tag/delete", new
+                    () => CallMcpToolAsync<string>("tag_delete", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         tagGuid = tagA.GUID.ToString()
@@ -7672,7 +7672,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tag/createmany", new
+                    () => CallMcpToolAsync<string>("tag_createmany", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         tags = _McpSerializer.SerializeJson(new List<TagMetadata>
@@ -7699,7 +7699,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tag/deletemany", new
+                    () => CallMcpToolAsync<string>("tag_deletemany", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         tagGuids = new[] { tagA.GUID.ToString() }
@@ -7716,7 +7716,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tag/deleteallintenant", new
+                    () => CallMcpToolAsync<string>("tag_deleteallintenant", new
                     {
                         tenantGuid = tenant.GUID.ToString()
                     }),
@@ -7732,7 +7732,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tag/deleteallingraph", new
+                    () => CallMcpToolAsync<string>("tag_deleteallingraph", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString()
@@ -7749,7 +7749,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tag/deletegraphlabels", new
+                    () => CallMcpToolAsync<string>("tag_deletegraphlabels", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString()
@@ -7766,7 +7766,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tag/deletenodelabels", new
+                    () => CallMcpToolAsync<string>("tag_deletenodelabels", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString(),
@@ -7784,7 +7784,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tag/deleteedgetags", new
+                    () => CallMcpToolAsync<string>("tag_deleteedgetags", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString(),
@@ -7812,7 +7812,7 @@
                     Vectors = BuildDeterministicVector(1, 4)
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/create", new
+                    () => CallMcpToolAsync<string>("vector_create", new
                     {
                         vector = _McpSerializer.SerializeJson(vectorCreate, false)
                     }),
@@ -7839,7 +7839,7 @@
                     Vectors = BuildDeterministicVector(2, 4)
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/update", new
+                    () => CallMcpToolAsync<string>("vector_update", new
                     {
                         vector = _McpSerializer.SerializeJson(vectorUpdate, false)
                     }),
@@ -7855,7 +7855,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/delete", new
+                    () => CallMcpToolAsync<string>("vector_delete", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         vectorGuid = vectorA.GUID.ToString()
@@ -7872,7 +7872,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/createmany", new
+                    () => CallMcpToolAsync<string>("vector_createmany", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         vectors = _McpSerializer.SerializeJson(new List<VectorMetadata>
@@ -7901,7 +7901,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/deletemany", new
+                    () => CallMcpToolAsync<string>("vector_deletemany", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         vectorGuids = new[] { vectorA.GUID.ToString() }
@@ -7918,7 +7918,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/deleteallintenant", new
+                    () => CallMcpToolAsync<string>("vector_deleteallintenant", new
                     {
                         tenantGuid = tenant.GUID.ToString()
                     }),
@@ -7934,7 +7934,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/deleteallingraph", new
+                    () => CallMcpToolAsync<string>("vector_deleteallingraph", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString()
@@ -7951,7 +7951,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/deletegraphvectors", new
+                    () => CallMcpToolAsync<string>("vector_deletegraphvectors", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString()
@@ -7968,7 +7968,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/deletenodevectors", new
+                    () => CallMcpToolAsync<string>("vector_deletenodevectors", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString(),
@@ -7986,7 +7986,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/deleteedgevectors", new
+                    () => CallMcpToolAsync<string>("vector_deleteedgevectors", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString(),
@@ -8004,7 +8004,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("graph/query", new
+                    () => CallMcpToolAsync<string>("graph_query", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString(),
@@ -8022,7 +8022,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("graph/transaction", new
+                    () => CallMcpToolAsync<string>("graph_transaction", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphA.GUID.ToString(),
@@ -8040,7 +8040,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("graph/get", new
+                    () => CallMcpToolAsync<string>("graph_get", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString()
@@ -8057,7 +8057,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("batch/existence", new
+                    () => CallMcpToolAsync<string>("batch_existence", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8075,7 +8075,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/get", new
+                    () => CallMcpToolAsync<string>("node_get", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8093,7 +8093,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/getmany", new
+                    () => CallMcpToolAsync<string>("node_getmany", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8113,7 +8113,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/all", new
+                    () => CallMcpToolAsync<string>("node_all", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString()
@@ -8131,7 +8131,7 @@
                     2).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/readallingraph", new
+                    () => CallMcpToolAsync<string>("node_readallingraph", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString()
@@ -8148,7 +8148,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/readmostconnected", new
+                    () => CallMcpToolAsync<string>("node_readmostconnected", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString()
@@ -8165,7 +8165,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/readleastconnected", new
+                    () => CallMcpToolAsync<string>("node_readleastconnected", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString()
@@ -8182,7 +8182,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/enumerate", new
+                    () => CallMcpToolAsync<string>("node_enumerate", new
                     {
                         query = _McpSerializer.SerializeJson(new EnumerationRequest
                         {
@@ -8203,7 +8203,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/exists", new
+                    () => CallMcpToolAsync<string>("node_exists", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8227,7 +8227,7 @@
                     Name = nodeB.Name
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/search", new
+                    () => CallMcpToolAsync<string>("node_search", new
                     {
                         searchRequest = _McpSerializer.SerializeJson(deniedNodeSearch, false)
                     }),
@@ -8243,7 +8243,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/readfirst", new
+                    () => CallMcpToolAsync<string>("node_readfirst", new
                     {
                         searchRequest = _McpSerializer.SerializeJson(deniedNodeSearch, false)
                     }),
@@ -8259,7 +8259,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/parents", new
+                    () => CallMcpToolAsync<string>("node_parents", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8277,7 +8277,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/children", new
+                    () => CallMcpToolAsync<string>("node_children", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8295,7 +8295,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/neighbors", new
+                    () => CallMcpToolAsync<string>("node_neighbors", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8313,7 +8313,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("node/traverse", new
+                    () => CallMcpToolAsync<string>("node_traverse", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8333,7 +8333,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/get", new
+                    () => CallMcpToolAsync<string>("edge_get", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8351,7 +8351,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/getmany", new
+                    () => CallMcpToolAsync<string>("edge_getmany", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8371,7 +8371,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/all", new
+                    () => CallMcpToolAsync<string>("edge_all", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString()
@@ -8389,7 +8389,7 @@
                     2).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/readallingraph", new
+                    () => CallMcpToolAsync<string>("edge_readallingraph", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString()
@@ -8406,7 +8406,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/enumerate", new
+                    () => CallMcpToolAsync<string>("edge_enumerate", new
                     {
                         query = _McpSerializer.SerializeJson(new EnumerationRequest
                         {
@@ -8427,7 +8427,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/exists", new
+                    () => CallMcpToolAsync<string>("edge_exists", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8445,7 +8445,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/nodeedges", new
+                    () => CallMcpToolAsync<string>("edge_nodeedges", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8463,7 +8463,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/fromnode", new
+                    () => CallMcpToolAsync<string>("edge_fromnode", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8481,7 +8481,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/tonode", new
+                    () => CallMcpToolAsync<string>("edge_tonode", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8499,7 +8499,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/betweennodes", new
+                    () => CallMcpToolAsync<string>("edge_betweennodes", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8524,7 +8524,7 @@
                     Name = edgeB.Name
                 };
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/search", new
+                    () => CallMcpToolAsync<string>("edge_search", new
                     {
                         request = _McpSerializer.SerializeJson(deniedEdgeSearch, false)
                     }),
@@ -8540,7 +8540,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("edge/readfirst", new
+                    () => CallMcpToolAsync<string>("edge_readfirst", new
                     {
                         request = _McpSerializer.SerializeJson(deniedEdgeSearch, false)
                     }),
@@ -8556,7 +8556,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("label/get", new
+                    () => CallMcpToolAsync<string>("label_get", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         labelGuid = labelB.GUID.ToString()
@@ -8575,7 +8575,7 @@
                 // v8.1: label/getmany proxies the tenant-level GET /labels?guids= route, which carries no graph
                 // GUID; graph allow-list credentials are permitted tenant-level reads (matching label/all), so
                 // the call succeeds and returns the enumeration envelope.
-                string labelGetManyScopedBody = await CallMcpToolAsync<string>("label/getmany", new
+                string labelGetManyScopedBody = await CallMcpToolAsync<string>("label_getmany", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     labelGuids = new[] { labelB.GUID.ToString() }
@@ -8584,7 +8584,7 @@
                 AssertEqual(1, labelGetManyScoped.Objects.Count, "MCP graph allow-list label getmany returns the requested label via the tenant-level route");
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("label/exists", new
+                    () => CallMcpToolAsync<string>("label_exists", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         labelGuid = labelB.GUID.ToString()
@@ -8601,7 +8601,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("label/readallingraph", new
+                    () => CallMcpToolAsync<string>("label_readallingraph", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString()
@@ -8618,7 +8618,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("label/readmanygraph", new
+                    () => CallMcpToolAsync<string>("label_readmanygraph", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString()
@@ -8635,7 +8635,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("label/readmanynode", new
+                    () => CallMcpToolAsync<string>("label_readmanynode", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8653,7 +8653,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("label/readmanyedge", new
+                    () => CallMcpToolAsync<string>("label_readmanyedge", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8671,7 +8671,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("label/enumerate", new
+                    () => CallMcpToolAsync<string>("label_enumerate", new
                     {
                         query = _McpSerializer.SerializeJson(new EnumerationRequest
                         {
@@ -8692,7 +8692,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tag/get", new
+                    () => CallMcpToolAsync<string>("tag_get", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         tagGuid = tagB.GUID.ToString()
@@ -8709,7 +8709,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/get", new
+                    () => CallMcpToolAsync<string>("vector_get", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         vectorGuid = vectorB.GUID.ToString()
@@ -8728,7 +8728,7 @@
                 // v8.1: tag/getmany proxies the tenant-level GET /tags?guids= route, which carries no graph
                 // GUID; graph allow-list credentials are permitted tenant-level reads, so the call succeeds
                 // and returns the enumeration envelope.
-                string tagGetManyScopedBody = await CallMcpToolAsync<string>("tag/getmany", new
+                string tagGetManyScopedBody = await CallMcpToolAsync<string>("tag_getmany", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     tagGuids = new[] { tagB.GUID.ToString() }
@@ -8737,7 +8737,7 @@
                 AssertEqual(1, tagGetManyScoped.Objects.Count, "MCP graph allow-list tag getmany returns the requested tag via the tenant-level route");
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tag/exists", new
+                    () => CallMcpToolAsync<string>("tag_exists", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         tagGuid = tagB.GUID.ToString()
@@ -8754,7 +8754,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tag/readallingraph", new
+                    () => CallMcpToolAsync<string>("tag_readallingraph", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString()
@@ -8771,7 +8771,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tag/readmanygraph", new
+                    () => CallMcpToolAsync<string>("tag_readmanygraph", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString()
@@ -8788,7 +8788,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tag/readmanynode", new
+                    () => CallMcpToolAsync<string>("tag_readmanynode", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8806,7 +8806,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tag/readmanyedge", new
+                    () => CallMcpToolAsync<string>("tag_readmanyedge", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8824,7 +8824,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("tag/enumerate", new
+                    () => CallMcpToolAsync<string>("tag_enumerate", new
                     {
                         query = _McpSerializer.SerializeJson(new EnumerationRequest
                         {
@@ -8847,7 +8847,7 @@
                 // v8.1: vector/getmany proxies the tenant-level GET /vectors?guids= route, which carries no
                 // graph GUID; graph allow-list credentials are permitted tenant-level reads, so the call
                 // succeeds and returns the enumeration envelope.
-                string vectorGetManyScopedBody = await CallMcpToolAsync<string>("vector/getmany", new
+                string vectorGetManyScopedBody = await CallMcpToolAsync<string>("vector_getmany", new
                 {
                     tenantGuid = tenant.GUID.ToString(),
                     vectorGuids = new[] { vectorB.GUID.ToString() }
@@ -8856,7 +8856,7 @@
                 AssertEqual(1, vectorGetManyScoped.Objects.Count, "MCP graph allow-list vector getmany returns the requested vector via the tenant-level route");
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/exists", new
+                    () => CallMcpToolAsync<string>("vector_exists", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         vectorGuid = vectorB.GUID.ToString()
@@ -8873,7 +8873,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/readallingraph", new
+                    () => CallMcpToolAsync<string>("vector_readallingraph", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString()
@@ -8890,7 +8890,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/readmanygraph", new
+                    () => CallMcpToolAsync<string>("vector_readmanygraph", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString()
@@ -8907,7 +8907,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/readmanynode", new
+                    () => CallMcpToolAsync<string>("vector_readmanynode", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8925,7 +8925,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/readmanyedge", new
+                    () => CallMcpToolAsync<string>("vector_readmanyedge", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8943,7 +8943,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/enumerate", new
+                    () => CallMcpToolAsync<string>("vector_enumerate", new
                     {
                         query = _McpSerializer.SerializeJson(new EnumerationRequest
                         {
@@ -8964,7 +8964,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("vector/search", new
+                    () => CallMcpToolAsync<string>("vector_search", new
                     {
                         tenantGuid = tenant.GUID.ToString(),
                         graphGuid = graphB.GUID.ToString(),
@@ -8988,7 +8988,7 @@
                     cancellationToken).ConfigureAwait(false);
 
                 await AssertMcpCallDenied(
-                    () => CallMcpToolAsync<string>("admin/flush", new { }),
+                    () => CallMcpToolAsync<string>("admin_flush", new { }),
                     "MCP read-scoped credential cannot use admin tools").ConfigureAwait(false);
                 await AssertMcpAuthorizationAudit(
                     credential.GUID,

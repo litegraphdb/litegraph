@@ -315,7 +315,7 @@ Treat the vector index rebuild as a **required, timed step** of any restore or m
 2. For every graph whose `VectorIndexType` is not `None` (i.e., `HnswRam` or `HnswSqlite`), rebuild the index from the persisted vectors:
    - REST: `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/vectorindex/rebuild` (also available at `/v2.0/...`)
    - C# SDK: `client.Graph.RebuildVectorIndex(tenantGuid, graphGuid)` or `client.VectorIndex.RebuildVectorIndex(tenantGuid, graphGuid)`
-   - MCP: `graph/rebuildvectorindex`
+   - MCP: `graph_rebuildvectorindex`
    Enumerate the graphs to rebuild by listing each tenant's graphs and selecting those with `VectorIndexType != None`.
 3. Only rely on indexed search results after the rebuild completes for every indexed graph.
 

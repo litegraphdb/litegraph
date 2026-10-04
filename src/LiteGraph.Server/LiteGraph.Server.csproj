@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
-		<Version>10.0.0</Version>
+		<Version>10.1.0</Version>
 		<Description>LiteGraph standalone REST server.</Description>
 	</PropertyGroup>
 
@@ -15,9 +15,9 @@
 		<PackageReference Include="Clutch.Sdk" Version="0.2.0" />
 		<PackageReference Include="OpenTelemetry" Version="1.19.1" />
 		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.19.1" />
-		<PackageReference Include="PolyPrompt" Version="2.6.0" />
+		<PackageReference Include="PolyPrompt" Version="3.1.0" />
 		<PackageReference Include="StackExchange.Redis" Version="3.3.1" />
-		<PackageReference Include="Watson" Version="7.2.0" />
+		<PackageReference Include="Watson" Version="7.2.2" />
 	</ItemGroup>
 
 	<ItemGroup>

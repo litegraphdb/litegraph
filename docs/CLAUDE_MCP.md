@@ -122,7 +122,7 @@ Run `claude --agent litegraph` and ask Claude what tools are available for a ful
 
 ## Exporting And Importing JSONL
 
-Three tools move a graph as newline-delimited JSON. `graph/exportjsonl` renders a whole graph, `graph/exportsubgraphjsonl` renders a slice starting from one or more nodes, and `graph/importjsonl` reads a JSONL body back into an existing graph or a brand-new one. A round trip that copies a graph into a fresh one looks like this: export, then import the result with `regenerate` so the copy gets its own GUIDs.
+Three tools move a graph as newline-delimited JSON. `graph_exportjsonl` renders a whole graph, `graph_exportsubgraphjsonl` renders a slice starting from one or more nodes, and `graph_importjsonl` reads a JSONL body back into an existing graph or a brand-new one. A round trip that copies a graph into a fresh one looks like this: export, then import the result with `regenerate` so the copy gets its own GUIDs.
 
 Export:
 
@@ -151,7 +151,7 @@ The import returns a `GraphImportResult` with per-type counters, the target grap
 
 ## Graph Transactions
 
-The MCP `graph/transaction` tool forwards to the REST transaction endpoint. It accepts either a full `request` object or direct `operations`, `maxOperations`, `timeoutSeconds`, and `isolationLevel` arguments.
+The MCP `graph_transaction` tool forwards to the REST transaction endpoint. It accepts either a full `request` object or direct `operations`, `maxOperations`, `timeoutSeconds`, and `isolationLevel` arguments.
 
 ```json
 {

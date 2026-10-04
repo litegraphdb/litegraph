@@ -24,7 +24,7 @@ namespace LiteGraph.McpServer.Registrations
         public static void RegisterHttpTools(McpHttpServer server, LiteGraphSdk sdk)
         {
             server.RegisterLiteGraphTool(
-                "credential/create",
+                "credential_create",
                 "Creates a new credential in LiteGraph",
                 new
                 {
@@ -46,7 +46,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "credential/get",
+                "credential_get",
                 "Reads a credential by GUID",
                 new
                 {
@@ -69,7 +69,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "credential/all",
+                "credential_all",
                 "Lists all credentials in a tenant. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
@@ -96,7 +96,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "credential/enumerate",
+                "credential_enumerate",
                 "Enumerates credentials with pagination and filtering",
                 new
                 {
@@ -122,7 +122,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "credential/update",
+                "credential_update",
                 "Updates a credential",
                 new
                 {
@@ -144,7 +144,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "credential/delete",
+                "credential_delete",
                 "Deletes a credential by GUID",
                 new
                 {
@@ -167,7 +167,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "credential/exists",
+                "credential_exists",
                 "Checks if a credential exists by GUID",
                 new
                 {
@@ -189,7 +189,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "credential/getmany",
+                "credential_getmany",
                 "Reads multiple credentials by their GUIDs. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
@@ -215,7 +215,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "credential/getbybearertoken",
+                "credential_getbybearertoken",
                 "Reads a credential by bearer token",
                 new
                 {
@@ -237,7 +237,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "credential/deleteallintenant",
+                "credential_deleteallintenant",
                 "Deletes all credentials in a tenant",
                 new
                 {
@@ -258,7 +258,7 @@ namespace LiteGraph.McpServer.Registrations
                 });
 
             server.RegisterLiteGraphTool(
-                "credential/deletebyuser",
+                "credential_deletebyuser",
                 "Deletes all credentials for a user",
                 new
                 {
@@ -292,7 +292,7 @@ namespace LiteGraph.McpServer.Registrations
         /// <param name="sdk">LiteGraph SDK instance.</param>
         public static void RegisterTcpMethods(McpTcpServer server, LiteGraphSdk sdk)
         {
-            server.RegisterLiteGraphMethod("credential/create", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_create", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("credential", out JsonElement credentialProp))
@@ -302,7 +302,7 @@ namespace LiteGraph.McpServer.Registrations
                 return CreateCredential(sdk, credential);
             });
 
-            server.RegisterLiteGraphMethod("credential/get", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_get", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -312,7 +312,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadCredential(sdk, tenantGuid, credentialGuid);
             });
 
-            server.RegisterLiteGraphMethod("credential/all", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_all", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
@@ -322,7 +322,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadCredentials(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
             });
 
-            server.RegisterLiteGraphMethod("credential/enumerate", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_enumerate", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("query", out JsonElement queryProp))
@@ -336,7 +336,7 @@ namespace LiteGraph.McpServer.Registrations
                 return EnumerateCredentials(sdk, query);
             });
 
-            server.RegisterLiteGraphMethod("credential/update", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_update", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("credential", out JsonElement credentialProp))
@@ -346,7 +346,7 @@ namespace LiteGraph.McpServer.Registrations
                 return UpdateCredential(sdk, credential);
             });
 
-            server.RegisterLiteGraphMethod("credential/delete", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_delete", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -356,7 +356,7 @@ namespace LiteGraph.McpServer.Registrations
                 return true;
             });
 
-            server.RegisterLiteGraphMethod("credential/exists", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_exists", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -365,7 +365,7 @@ namespace LiteGraph.McpServer.Registrations
                 return CredentialExists(sdk, tenantGuid, credentialGuid);
             });
 
-            server.RegisterLiteGraphMethod("credential/getmany", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_getmany", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -377,7 +377,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadCredentialsByGuids(sdk, tenantGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
-            server.RegisterLiteGraphMethod("credential/getbybearertoken", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_getbybearertoken", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("bearerToken", out JsonElement bearerTokenProp))
@@ -387,7 +387,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadCredentialByBearerToken(sdk, bearerToken);
             });
 
-            server.RegisterLiteGraphMethod("credential/deleteallintenant", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_deleteallintenant", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -396,7 +396,7 @@ namespace LiteGraph.McpServer.Registrations
                 return true;
             });
 
-            server.RegisterLiteGraphMethod("credential/deletebyuser", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_deletebyuser", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -418,7 +418,7 @@ namespace LiteGraph.McpServer.Registrations
         /// <param name="sdk">LiteGraph SDK instance.</param>
         public static void RegisterWebSocketMethods(McpWebsocketsServer server, LiteGraphSdk sdk)
         {
-            server.RegisterLiteGraphMethod("credential/create", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_create", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("credential", out JsonElement credentialProp))
@@ -428,7 +428,7 @@ namespace LiteGraph.McpServer.Registrations
                 return CreateCredential(sdk, credential);
             });
 
-            server.RegisterLiteGraphMethod("credential/get", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_get", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -438,7 +438,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadCredential(sdk, tenantGuid, credentialGuid);
             });
 
-            server.RegisterLiteGraphMethod("credential/all", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_all", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("tenantGuid", out JsonElement tenantGuidProp))
@@ -448,7 +448,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadCredentials(sdk, tenantGuid, order, skip, LiteGraphMcpServerHelpers.GetMaxResults(args), LiteGraphMcpServerHelpers.GetContinuationToken(args));
             });
 
-            server.RegisterLiteGraphMethod("credential/enumerate", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_enumerate", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("query", out JsonElement queryProp))
@@ -462,7 +462,7 @@ namespace LiteGraph.McpServer.Registrations
                 return EnumerateCredentials(sdk, query);
             });
 
-            server.RegisterLiteGraphMethod("credential/update", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_update", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("credential", out JsonElement credentialProp))
@@ -472,7 +472,7 @@ namespace LiteGraph.McpServer.Registrations
                 return UpdateCredential(sdk, credential);
             });
 
-            server.RegisterLiteGraphMethod("credential/delete", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_delete", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -482,7 +482,7 @@ namespace LiteGraph.McpServer.Registrations
                 return "{\"success\": true}";
             });
 
-            server.RegisterLiteGraphMethod("credential/exists", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_exists", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -491,7 +491,7 @@ namespace LiteGraph.McpServer.Registrations
                 return CredentialExists(sdk, tenantGuid, credentialGuid);
             });
 
-            server.RegisterLiteGraphMethod("credential/getmany", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_getmany", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -503,7 +503,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadCredentialsByGuids(sdk, tenantGuid, guids, LiteGraphMcpServerHelpers.GetMaxResults(args));
             });
 
-            server.RegisterLiteGraphMethod("credential/getbybearertoken", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_getbybearertoken", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue || !args.Value.TryGetProperty("bearerToken", out JsonElement bearerTokenProp))
@@ -513,7 +513,7 @@ namespace LiteGraph.McpServer.Registrations
                 return ReadCredentialByBearerToken(sdk, bearerToken);
             });
 
-            server.RegisterLiteGraphMethod("credential/deleteallintenant", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_deleteallintenant", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");
@@ -522,7 +522,7 @@ namespace LiteGraph.McpServer.Registrations
                 return true;
             });
 
-            server.RegisterLiteGraphMethod("credential/deletebyuser", (rpcArgs) =>
+            server.RegisterLiteGraphMethod("credential_deletebyuser", (rpcArgs) =>
             {
                 JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
                 if (!args.HasValue) throw new ArgumentException("Parameters required");

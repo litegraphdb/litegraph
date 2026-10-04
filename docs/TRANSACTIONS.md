@@ -10,7 +10,7 @@ Transactions execute through:
 
 - C# SDK: `client.Transaction.Execute(tenantGuid, graphGuid, request)`
 - REST: `POST /v1.0/tenants/{tenantGuid}/graphs/{graphGuid}/transaction`
-- MCP: `graph/transaction` tool over HTTP, TCP, and WebSocket transports
+- MCP: `graph_transaction` tool over HTTP, TCP, and WebSocket transports
 
 ## C# Request Builder
 

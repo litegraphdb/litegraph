@@ -21,7 +21,7 @@ namespace LiteGraph.Indexing.Vector
         /// <summary>
         /// HnswLite package version used when the index state was written.
         /// </summary>
-        public string HnswLiteVersion { get; set; } = "2.0.1";
+        public string HnswLiteVersion { get; set; } = "2.1.0";
 
         /// <summary>
         /// The entry point node GUID for the HNSW index.

@@ -24,7 +24,7 @@ namespace LiteGraph.McpServer.Registrations
         public static void RegisterHttpTools(McpHttpServer server, LiteGraphSdk sdk)
         {
             server.RegisterLiteGraphTool(
-                "chat/endpoint/create",
+                "chat_endpoint_create",
                 "Creates a chat endpoint (an upstream completion or embedding provider) in a tenant",
                 new
                 {
@@ -39,7 +39,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => EndpointCreate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "chat/endpoint/get",
+                "chat_endpoint_get",
                 "Reads a chat endpoint by GUID; the API key is redacted to its last four characters",
                 new
                 {
@@ -54,7 +54,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => EndpointGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "chat/endpoint/all",
+                "chat_endpoint_all",
                 "Lists chat endpoints in a tenant, optionally filtered by endpoint type. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
@@ -72,7 +72,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => EndpointAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "chat/endpoint/update",
+                "chat_endpoint_update",
                 "Updates a chat endpoint; sending back a redacted API key value preserves the stored key",
                 new
                 {
@@ -87,7 +87,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => EndpointUpdate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "chat/endpoint/delete",
+                "chat_endpoint_delete",
                 "Deletes a chat endpoint by GUID",
                 new
                 {
@@ -102,7 +102,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => EndpointDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "chat/endpoint/test",
+                "chat_endpoint_test",
                 "Tests connectivity from the LiteGraph server to a chat endpoint's upstream provider and reports reachability, advertised models, and whether the configured model exists",
                 new
                 {
@@ -117,7 +117,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => EndpointTest(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "chat/endpoint/health",
+                "chat_endpoint_health",
                 "Reads background health-check status for one chat endpoint",
                 new
                 {
@@ -132,7 +132,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => EndpointHealth(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "chat/endpoint/healthall",
+                "chat_endpoint_healthall",
                 "Reads background health-check status for every chat endpoint in a tenant. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
@@ -149,7 +149,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => EndpointHealthAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "chat/completions",
+                "chat_completions",
                 "Executes a non-streaming chat completion against a tenant's graph data; streaming is unavailable over MCP. Omitting threadGuid creates a new thread, optionally bound to graphGuid. Requires a user principal; the admin break-glass token is rejected.",
                 new
                 {
@@ -170,7 +170,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => Completions(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "chat/thread/all",
+                "chat_thread_all",
                 "Lists chat threads in a tenant; the caller's own threads by default, or every user's threads with allUsers (admin only). Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
@@ -188,7 +188,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => ThreadAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "chat/thread/get",
+                "chat_thread_get",
                 "Reads a chat thread by GUID",
                 new
                 {
@@ -203,7 +203,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => ThreadGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "chat/thread/delete",
+                "chat_thread_delete",
                 "Deletes a chat thread along with its turns and feedback",
                 new
                 {
@@ -218,7 +218,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => ThreadDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "chat/thread/turns",
+                "chat_thread_turns",
                 "Reads the turns of a chat thread ascending by sequence, including metrics and tool transcripts. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
@@ -236,7 +236,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => ThreadTurns(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "chat/feedback/create",
+                "chat_feedback_create",
                 "Submits feedback on a chat turn. Requires a user principal; the admin break-glass token is rejected.",
                 new
                 {
@@ -253,7 +253,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => FeedbackCreate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "chat/feedback/all",
+                "chat_feedback_all",
                 "Lists all chat feedback in a tenant (admin only). Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
                 new
                 {
@@ -270,7 +270,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => FeedbackAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "chat/feedback/delete",
+                "chat_feedback_delete",
                 "Deletes a chat feedback record by GUID (admin only)",
                 new
                 {
@@ -285,7 +285,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => FeedbackDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "chat/settings/get",
+                "chat_settings_get",
                 "Reads a tenant's chat settings; defaults are returned when no record exists",
                 new
                 {
@@ -299,7 +299,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => SettingsGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "chat/settings/update",
+                "chat_settings_update",
                 "Upserts a tenant's chat settings (admin only)",
                 new
                 {
@@ -325,24 +325,24 @@ namespace LiteGraph.McpServer.Registrations
         /// <param name="sdk">LiteGraph SDK instance.</param>
         public static void RegisterTcpMethods(McpTcpServer server, LiteGraphSdk sdk)
         {
-            server.RegisterLiteGraphMethod("chat/endpoint/create", (args) => EndpointCreate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/endpoint/get", (args) => EndpointGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/endpoint/all", (args) => EndpointAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/endpoint/update", (args) => EndpointUpdate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/endpoint/delete", (args) => EndpointDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/endpoint/test", (args) => EndpointTest(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/endpoint/health", (args) => EndpointHealth(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/endpoint/healthall", (args) => EndpointHealthAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/completions", (args) => Completions(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/thread/all", (args) => ThreadAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/thread/get", (args) => ThreadGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/thread/delete", (args) => ThreadDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/thread/turns", (args) => ThreadTurns(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/feedback/create", (args) => FeedbackCreate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/feedback/all", (args) => FeedbackAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/feedback/delete", (args) => FeedbackDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/settings/get", (args) => SettingsGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/settings/update", (args) => SettingsUpdate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_endpoint_create", (args) => EndpointCreate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_endpoint_get", (args) => EndpointGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_endpoint_all", (args) => EndpointAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_endpoint_update", (args) => EndpointUpdate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_endpoint_delete", (args) => EndpointDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_endpoint_test", (args) => EndpointTest(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_endpoint_health", (args) => EndpointHealth(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_endpoint_healthall", (args) => EndpointHealthAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_completions", (args) => Completions(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_thread_all", (args) => ThreadAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_thread_get", (args) => ThreadGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_thread_delete", (args) => ThreadDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_thread_turns", (args) => ThreadTurns(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_feedback_create", (args) => FeedbackCreate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_feedback_all", (args) => FeedbackAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_feedback_delete", (args) => FeedbackDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_settings_get", (args) => SettingsGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_settings_update", (args) => SettingsUpdate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
         }
 
         #endregion
@@ -356,24 +356,24 @@ namespace LiteGraph.McpServer.Registrations
         /// <param name="sdk">LiteGraph SDK instance.</param>
         public static void RegisterWebSocketMethods(McpWebsocketsServer server, LiteGraphSdk sdk)
         {
-            server.RegisterLiteGraphMethod("chat/endpoint/create", (args) => EndpointCreate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/endpoint/get", (args) => EndpointGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/endpoint/all", (args) => EndpointAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/endpoint/update", (args) => EndpointUpdate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/endpoint/delete", (args) => EndpointDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/endpoint/test", (args) => EndpointTest(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/endpoint/health", (args) => EndpointHealth(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/endpoint/healthall", (args) => EndpointHealthAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/completions", (args) => Completions(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/thread/all", (args) => ThreadAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/thread/get", (args) => ThreadGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/thread/delete", (args) => ThreadDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/thread/turns", (args) => ThreadTurns(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/feedback/create", (args) => FeedbackCreate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/feedback/all", (args) => FeedbackAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/feedback/delete", (args) => FeedbackDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/settings/get", (args) => SettingsGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("chat/settings/update", (args) => SettingsUpdate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_endpoint_create", (args) => EndpointCreate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_endpoint_get", (args) => EndpointGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_endpoint_all", (args) => EndpointAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_endpoint_update", (args) => EndpointUpdate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_endpoint_delete", (args) => EndpointDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_endpoint_test", (args) => EndpointTest(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_endpoint_health", (args) => EndpointHealth(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_endpoint_healthall", (args) => EndpointHealthAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_completions", (args) => Completions(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_thread_all", (args) => ThreadAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_thread_get", (args) => ThreadGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_thread_delete", (args) => ThreadDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_thread_turns", (args) => ThreadTurns(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_feedback_create", (args) => FeedbackCreate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_feedback_all", (args) => FeedbackAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_feedback_delete", (args) => FeedbackDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_settings_get", (args) => SettingsGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("chat_settings_update", (args) => SettingsUpdate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
         }
 
         #endregion

@@ -79,7 +79,7 @@ A new `Algorithm` authorization resource type governs these routes. Compute (`PO
 
 ## MCP tools
 
-`algorithm/run`, `algorithm/export`, and `algorithm/import` are exposed over HTTP, TCP, and WebSocket. They proxy the REST endpoints under the caller's RBAC. See [MCP_API.md](MCP_API.md).
+`algorithm_run`, `algorithm_export`, and `algorithm_import` are exposed over HTTP, TCP, and WebSocket. They proxy the REST endpoints under the caller's RBAC. See [MCP_API.md](MCP_API.md).
 
 ## Graph projection export / import (external compute)
 

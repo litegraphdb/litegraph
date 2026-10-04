@@ -25,7 +25,7 @@ namespace LiteGraph.McpServer.Registrations
             if (sdk == null) throw new ArgumentNullException(nameof(sdk));
 
             server.RegisterLiteGraphTool(
-                "graph/exportjsonl",
+                "graph_exportjsonl",
                 "Exports an entire graph as JSONL (also usable as a provider-agnostic backup)",
                 new
                 {
@@ -42,7 +42,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => ExportJsonl(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "graph/exportsubgraphjsonl",
+                "graph_exportsubgraphjsonl",
                 "Exports a filtered, directional subgraph as JSONL",
                 new
                 {
@@ -58,7 +58,7 @@ namespace LiteGraph.McpServer.Registrations
                 (args) => ExportSubgraphJsonl(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
-                "graph/importjsonl",
+                "graph_importjsonl",
                 "Imports JSONL into a new graph (omit graphGuid) or merges into an existing graph",
                 new
                 {
@@ -91,9 +91,9 @@ namespace LiteGraph.McpServer.Registrations
             if (server == null) throw new ArgumentNullException(nameof(server));
             if (sdk == null) throw new ArgumentNullException(nameof(sdk));
 
-            server.RegisterLiteGraphMethod("graph/exportjsonl", (args) => ExportJsonl(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("graph/exportsubgraphjsonl", (args) => ExportSubgraphJsonl(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("graph/importjsonl", (args) => ImportJsonl(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("graph_exportjsonl", (args) => ExportJsonl(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("graph_exportsubgraphjsonl", (args) => ExportSubgraphJsonl(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("graph_importjsonl", (args) => ImportJsonl(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
         }
 
         #endregion
@@ -110,9 +110,9 @@ namespace LiteGraph.McpServer.Registrations
             if (server == null) throw new ArgumentNullException(nameof(server));
             if (sdk == null) throw new ArgumentNullException(nameof(sdk));
 
-            server.RegisterLiteGraphMethod("graph/exportjsonl", (args) => ExportJsonl(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("graph/exportsubgraphjsonl", (args) => ExportSubgraphJsonl(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
-            server.RegisterLiteGraphMethod("graph/importjsonl", (args) => ImportJsonl(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("graph_exportjsonl", (args) => ExportJsonl(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("graph_exportsubgraphjsonl", (args) => ExportSubgraphJsonl(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
+            server.RegisterLiteGraphMethod("graph_importjsonl", (args) => ImportJsonl(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
         }
 
         #endregion

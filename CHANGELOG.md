@@ -2,6 +2,19 @@
 
 ## Current Version
 
+v10.1.0
+
+v10.1 updates dependencies. **This is a breaking release for MCP clients**: tool names use underscores instead of slashes. Storage is unchanged; SQLite and PostgreSQL deployments upgrade in place.
+
+- **MCP tool names**: every MCP tool is renamed from `area/action` to `area_action` (for example `graph/get` is now `graph_get` and `chat/endpoint/all` is now `chat_endpoint_all`) on the HTTP, TCP, and WebSocket transports. The MCP specification allows only letters, digits, `_`, `-`, and `.` in tool names, and Voltaic 2.2 rejects other names at registration, so the MCP server would not start with the old names. Arguments and results are unchanged. The chat assistant's tool catalog uses the same names, which OpenAI and Anthropic function-name rules also accept.
+- **Voltaic 2.2 MCP behavior**: a bare TCP or WebSocket method call returns a tool result object (`{"content":[{"type":"text","text":...}]}`) instead of a bare string or boolean, since every JSON-RPC result must now be an object. Arguments that fail a tool's input schema return a tool result with `isError: true` instead of a `-32602` error. Stateless (`2026-07-28`) `ping` returns `-32601`; use `server/discover`. Voltaic's new per-client tool-call rate limit (100 per second by default) is off unless `ToolCallsPerSecond` is set in `litegraph-mcp.json`.
+- **PolyPrompt 3.1**: chat uses PolyPrompt's per-capability clients. A completion endpoint gets a completion client, an embedding endpoint an embedding client, and the connectivity test lists models through a model client (none for VoyageAI). Temperature and max output tokens are passed through `ToolChatRequest.Options`.
+- **HnswLite 2.1**: SQLite HNSW index files record `HnswLiteVersion` `2.1.0`. The file format version is unchanged, so existing index files load as before.
+- Package updates: PolyPrompt 2.6.0 → 3.1.0, Voltaic 2.0.0 → 2.2.1, HnswLite 2.0.1 → 2.1.0, Caching 5.0.1 → 5.1.2, Padlock 1.1.0 → 1.2.0, RestWrapper 3.3.0 → 3.3.1 (core and C# SDK), SyslogLogging 2.2.2 → 2.3.1, Timestamps 1.0.12 → 1.0.13, Watson 7.2.0 → 7.2.2; tests use Touchstone 0.1.12 → 0.2.0, NUnit 4.6.1 → 5.0.0, coverlet.collector 10.0.1 → 10.1.0.
+- MCP protocol tests follow the Voltaic 2.2 rules. New test `Chat.Rest.EmbeddingEndpointClients` covers an embedding endpoint's connectivity test, model inventory, and node embedding generation through the PolyPrompt embedding client.
+
+## Previous Versions
+
 v10.0.0
 
 v10.0 lets LiteGraph run as several identical nodes behind a load balancer, all sharing one PostgreSQL database. The nodes hold no state of their own, so any node can answer any request and a node can stop at any time without losing anything. **This is a breaking release for PostgreSQL deployments**: PostgreSQL now requires the pgvector extension, and existing vectors are converted to pgvector on first start with no way back to 9.x afterward. Back up before upgrading; see [UPGRADE.md](docs/UPGRADE.md). SQLite deployments upgrade in place.

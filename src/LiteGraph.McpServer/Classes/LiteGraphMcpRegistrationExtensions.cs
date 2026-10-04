@@ -1,12 +1,16 @@
 namespace LiteGraph.McpServer.Classes
 {
     using System;
+    using System.Text.Json;
     using Voltaic.Core;
     using Voltaic.Mcp;
 
     /// <summary>
     /// Registration helpers that wrap LiteGraph MCP handlers so any exception they raise is translated by
     /// <see cref="LiteGraphMcpErrors"/> into a specific MCP protocol error rather than a generic internal error.
+    /// Methods registered on the TCP and WebSocket servers return their value as a tool call result
+    /// (<c>{"content":[{"type":"text","text":...}]}</c>), the same shape <c>tools/call</c> returns over HTTP,
+    /// because every JSON-RPC result must be a JSON object.
     /// Registration is not thread-safe; register tools before starting the servers.
     /// </summary>
     public static class LiteGraphMcpRegistrationExtensions
@@ -50,7 +54,7 @@ namespace LiteGraph.McpServer.Classes
         public static void RegisterLiteGraphMethod(this McpTcpServer server, string name, Func<RpcParameters?, object> handler)
         {
             ArgumentNullException.ThrowIfNull(server);
-            server.RegisterMethod(name, Wrap(handler));
+            server.RegisterMethod(name, WrapMethod(handler));
         }
 
         /// <summary>
@@ -63,7 +67,7 @@ namespace LiteGraph.McpServer.Classes
         public static void RegisterLiteGraphMethod(this McpWebsocketsServer server, string name, Func<RpcParameters?, object> handler)
         {
             ArgumentNullException.ThrowIfNull(server);
-            server.RegisterMethod(name, Wrap(handler));
+            server.RegisterMethod(name, WrapMethod(handler));
         }
 
         #endregion
@@ -84,6 +88,19 @@ namespace LiteGraph.McpServer.Classes
                 {
                     throw LiteGraphMcpErrors.Translate(e);
                 }
+            };
+        }
+
+        private static Func<RpcParameters?, object> WrapMethod(Func<RpcParameters?, object> handler)
+        {
+            Func<RpcParameters?, object> wrapped = Wrap(handler);
+
+            return args =>
+            {
+                object result = wrapped(args);
+                if (result is McpToolCallResult toolResult) return toolResult;
+                if (result is string text) return McpToolCallResult.FromText(text);
+                return McpToolCallResult.FromText(JsonSerializer.Serialize(result));
             };
         }
 

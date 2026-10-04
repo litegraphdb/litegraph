@@ -68,7 +68,7 @@ namespace LiteGraph.McpServer.Registrations
             return new List<ToolDefinition>
             {
                 new ToolDefinition(
-                    "authorization/role/create",
+                    "authorization_role_create",
                     "Creates an authorization role in a tenant",
                     JsonBodySchema("role", "AuthorizationRole object serialized as JSON string using Serializer"),
                     (sdk, args) =>
@@ -80,7 +80,7 @@ namespace LiteGraph.McpServer.Registrations
                     }),
 
                 new ToolDefinition(
-                    "authorization/role/get",
+                    "authorization_role_get",
                     "Reads an authorization role by GUID",
                     TenantRoleSchema(),
                     (sdk, args) =>
@@ -92,7 +92,7 @@ namespace LiteGraph.McpServer.Registrations
                     }),
 
                 new ToolDefinition(
-                    "authorization/role/all",
+                    "authorization_role_all",
                     "Lists authorization roles visible to a tenant",
                     RoleListSchema(),
                     (sdk, args) =>
@@ -116,7 +116,7 @@ namespace LiteGraph.McpServer.Registrations
                     }),
 
                 new ToolDefinition(
-                    "authorization/role/update",
+                    "authorization_role_update",
                     "Updates an authorization role",
                     JsonBodySchema("role", "AuthorizationRole object serialized as JSON string using Serializer", "roleGuid", "Role GUID"),
                     (sdk, args) =>
@@ -129,7 +129,7 @@ namespace LiteGraph.McpServer.Registrations
                     }),
 
                 new ToolDefinition(
-                    "authorization/role/delete",
+                    "authorization_role_delete",
                     "Deletes an authorization role",
                     TenantRoleSchema(),
                     (sdk, args) =>
@@ -142,7 +142,7 @@ namespace LiteGraph.McpServer.Registrations
                     }),
 
                 new ToolDefinition(
-                    "authorization/userrole/create",
+                    "authorization_userrole_create",
                     "Assigns a role to a user",
                     JsonBodySchema("assignment", "UserRoleAssignment object serialized as JSON string using Serializer", "userGuid", "User GUID"),
                     (sdk, args) =>
@@ -155,7 +155,7 @@ namespace LiteGraph.McpServer.Registrations
                     }),
 
                 new ToolDefinition(
-                    "authorization/userrole/all",
+                    "authorization_userrole_all",
                     "Lists role assignments for a user",
                     UserRoleListSchema(),
                     (sdk, args) =>
@@ -168,7 +168,7 @@ namespace LiteGraph.McpServer.Registrations
                     }),
 
                 new ToolDefinition(
-                    "authorization/userrole/get",
+                    "authorization_userrole_get",
                     "Reads a user role assignment by GUID",
                     AssignmentSchema("userGuid", "User GUID"),
                     (sdk, args) =>
@@ -181,7 +181,7 @@ namespace LiteGraph.McpServer.Registrations
                     }),
 
                 new ToolDefinition(
-                    "authorization/userrole/update",
+                    "authorization_userrole_update",
                     "Updates a user role assignment",
                     JsonBodySchema("assignment", "UserRoleAssignment object serialized as JSON string using Serializer", "userGuid", "User GUID", "assignmentGuid", "Assignment GUID"),
                     (sdk, args) =>
@@ -195,7 +195,7 @@ namespace LiteGraph.McpServer.Registrations
                     }),
 
                 new ToolDefinition(
-                    "authorization/userrole/delete",
+                    "authorization_userrole_delete",
                     "Revokes a user role assignment",
                     AssignmentSchema("userGuid", "User GUID"),
                     (sdk, args) =>
@@ -209,7 +209,7 @@ namespace LiteGraph.McpServer.Registrations
                     }),
 
                 new ToolDefinition(
-                    "authorization/user/permissions",
+                    "authorization_user_permissions",
                     "Lists effective permissions for a user",
                     EffectivePermissionsSchema("userGuid", "User GUID"),
                     (sdk, args) =>
@@ -222,7 +222,7 @@ namespace LiteGraph.McpServer.Registrations
                     }),
 
                 new ToolDefinition(
-                    "authorization/credentialscope/create",
+                    "authorization_credentialscope_create",
                     "Assigns an authorization scope to a credential",
                     JsonBodySchema("assignment", "CredentialScopeAssignment object serialized as JSON string using Serializer", "credentialGuid", "Credential GUID"),
                     (sdk, args) =>
@@ -235,7 +235,7 @@ namespace LiteGraph.McpServer.Registrations
                     }),
 
                 new ToolDefinition(
-                    "authorization/credentialscope/all",
+                    "authorization_credentialscope_all",
                     "Lists authorization scope assignments for a credential",
                     CredentialScopeListSchema(),
                     (sdk, args) =>
@@ -248,7 +248,7 @@ namespace LiteGraph.McpServer.Registrations
                     }),
 
                 new ToolDefinition(
-                    "authorization/credentialscope/get",
+                    "authorization_credentialscope_get",
                     "Reads a credential scope assignment by GUID",
                     AssignmentSchema("credentialGuid", "Credential GUID"),
                     (sdk, args) =>
@@ -261,7 +261,7 @@ namespace LiteGraph.McpServer.Registrations
                     }),
 
                 new ToolDefinition(
-                    "authorization/credentialscope/update",
+                    "authorization_credentialscope_update",
                     "Updates a credential scope assignment",
                     JsonBodySchema("assignment", "CredentialScopeAssignment object serialized as JSON string using Serializer", "credentialGuid", "Credential GUID", "assignmentGuid", "Assignment GUID"),
                     (sdk, args) =>
@@ -275,7 +275,7 @@ namespace LiteGraph.McpServer.Registrations
                     }),
 
                 new ToolDefinition(
-                    "authorization/credentialscope/delete",
+                    "authorization_credentialscope_delete",
                     "Revokes a credential scope assignment",
                     AssignmentSchema("credentialGuid", "Credential GUID"),
                     (sdk, args) =>
@@ -289,7 +289,7 @@ namespace LiteGraph.McpServer.Registrations
                     }),
 
                 new ToolDefinition(
-                    "authorization/credential/permissions",
+                    "authorization_credential_permissions",
                     "Lists effective permissions for a credential",
                     EffectivePermissionsSchema("credentialGuid", "Credential GUID"),
                     (sdk, args) =>
