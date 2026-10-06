@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<gexf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:schemaLocation="http://www.gexf.net/1.3 http://www.gexf.net/1.3/gexf.xsd" version="1.3" xmlns="http://www.gexf.net/1.3">
+  <meta lastmodifieddate="MASKED">
+    <creator>LiteGraph</creator>
+    <description>Graph from LiteGraph https://github.com/jchristn/litegraph</description>
+  </meta>
+  <graph defaultedgetype="directed">
+    <attributes class="node">
+      <attribute id="0" title="props" type="string" />
+    </attributes>
+    <nodes>
+      <node id="f4b86a29-225e-59f7-65f7-eedcd0f9c9c1" label="">
+        <attvalues />
+      </node>
+      <node id="47f41da3-19ec-5231-76d9-83bc66fd4f16" label="Second">
+        <attvalues>
+          <attvalue for="Name" value="Second" />
+        </attvalues>
+      </node>
+      <node id="5e3a0334-b27e-7d7c-cd22-8d469d277939" label="First &lt;&amp;&gt; &quot;node&quot;">
+        <attvalues>
+          <attvalue for="Name" value="First &lt;&amp;&gt; &quot;node&quot;" />
+          <attvalue for="employee" value="" />
+          <attvalue for="person" value="" />
+          <attvalue for="size" value="large" />
+          <attvalue for="color" value="red" />
+          <attvalue for="Data" value="{&quot;name&quot;:&quot;sample&quot;,&quot;count&quot;:3,&quot;ratio&quot;:0.25,&quot;enabled&quot;:true,&quot;missing&quot;:null,&quot;items&quot;:[1,&quot;two&quot;,{&quot;three&quot;:3}],&quot;nested&quot;:{&quot;deep&quot;:{&quot;value&quot;:&quot;x&quot;}}}" />
+        </attvalues>
+      </node>
+    </nodes>
+    <edges>
+      <edge id="f2b1c97d-926d-583e-4b6f-8155f6c8763d" source="47f41da3-19ec-5231-76d9-83bc66fd4f16" target="f4b86a29-225e-59f7-65f7-eedcd0f9c9c1">
+        <attvalues>
+          <attvalue for="Cost" value="0" />
+        </attvalues>
+      </edge>
+      <edge id="db6be3ec-fadb-2df2-f3f4-2a62ac59e4cb" source="5e3a0334-b27e-7d7c-cd22-8d469d277939" target="47f41da3-19ec-5231-76d9-83bc66fd4f16">
+        <attvalues>
+          <attvalue for="Name" value="knows" />
+          <attvalue for="Cost" value="7" />
+          <attvalue for="relationship" value="" />
+          <attvalue for="size" value="large" />
+          <attvalue for="color" value="red" />
+          <attvalue for="Data" value="{&quot;since&quot;:2020}" />
+        </attvalues>
+      </edge>
+    </edges>
+  </graph>
+</gexf>
+<!-- without data -->
+<?xml version="1.0" encoding="utf-8"?>
+<gexf xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:schemaLocation="http://www.gexf.net/1.3 http://www.gexf.net/1.3/gexf.xsd" version="1.3" xmlns="http://www.gexf.net/1.3">
+  <meta lastmodifieddate="MASKED">
+    <creator>LiteGraph</creator>
+    <description>Graph from LiteGraph https://github.com/jchristn/litegraph</description>
+  </meta>
+  <graph defaultedgetype="directed">
+    <attributes class="node">
+      <attribute id="0" title="props" type="string" />
+    </attributes>
+    <nodes>
+      <node id="f4b86a29-225e-59f7-65f7-eedcd0f9c9c1" label="">
+        <attvalues />
+      </node>
+      <node id="47f41da3-19ec-5231-76d9-83bc66fd4f16" label="Second">
+        <attvalues>
+          <attvalue for="Name" value="Second" />
+        </attvalues>
+      </node>
+      <node id="5e3a0334-b27e-7d7c-cd22-8d469d277939" label="First &lt;&amp;&gt; &quot;node&quot;">
+        <attvalues>
+          <attvalue for="Name" value="First &lt;&amp;&gt; &quot;node&quot;" />
+        </attvalues>
+      </node>
+    </nodes>
+    <edges>
+      <edge id="f2b1c97d-926d-583e-4b6f-8155f6c8763d" source="47f41da3-19ec-5231-76d9-83bc66fd4f16" target="f4b86a29-225e-59f7-65f7-eedcd0f9c9c1">
+        <attvalues>
+          <attvalue for="Cost" value="0" />
+        </attvalues>
+      </edge>
+      <edge id="db6be3ec-fadb-2df2-f3f4-2a62ac59e4cb" source="5e3a0334-b27e-7d7c-cd22-8d469d277939" target="47f41da3-19ec-5231-76d9-83bc66fd4f16">
+        <attvalues>
+          <attvalue for="Name" value="knows" />
+          <attvalue for="Cost" value="7" />
+        </attvalues>
+      </edge>
+    </edges>
+  </graph>
+</gexf>

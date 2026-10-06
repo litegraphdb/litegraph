@@ -1,4 +1,4 @@
-namespace Test.Shared
+﻿namespace Test.Shared
 {
     using System;
     using System.Collections.Generic;
@@ -396,7 +396,8 @@ namespace Test.Shared
                     CreateChatRestSuite(),
                     CreateMcpProtocolSuite(),
                     CreateOnboardingSuite(),
-                    CreateScaleOutSuite()
+                    CreateScaleOutSuite(),
+                    CreateAotSerializationSuite()
                 };
 
                 if (!String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(PostgresqlTestConnectionStringEnvironmentVariable)))
