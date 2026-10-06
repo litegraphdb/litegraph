@@ -5,7 +5,7 @@ namespace LiteGraph.Coordination
     /// <summary>
     /// Lock mode.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter<LockModeEnum>))]
     public enum LockModeEnum
     {
         /// <summary>

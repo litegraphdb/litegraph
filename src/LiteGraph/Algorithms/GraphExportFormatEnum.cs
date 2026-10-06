@@ -6,7 +6,7 @@ namespace LiteGraph.Algorithms
     /// <summary>
     /// Graph projection export format for external computation (for example rustworkx or NetworkX).
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter<GraphExportFormatEnum>))]
     public enum GraphExportFormatEnum
     {
         /// <summary>

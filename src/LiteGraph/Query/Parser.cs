@@ -1,10 +1,11 @@
-namespace LiteGraph.Query
+﻿namespace LiteGraph.Query
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text.Json;
     using LiteGraph.Query.Ast;
+    using LiteGraph.Serialization;
 
     /// <summary>
     /// Parser for the supported LiteGraph native graph query profile.
@@ -1127,7 +1128,7 @@ namespace LiteGraph.Query
                 Expect(GraphQueryTokenTypeEnum.RightBracket, "']' expected");
             }
 
-            return ListExpressionPrefix + JsonSerializer.Serialize(values);
+            return ListExpressionPrefix + JsonSerializer.Serialize(values, LiteGraphJsonContext.Default.ListString);
         }
 
         private static bool IsNativeCreateObject(string text)

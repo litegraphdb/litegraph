@@ -677,7 +677,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
                             cmd.Transaction = _Transaction;
                             using (SqliteDataReader rdr = cmd.ExecuteReader())
                             {
-                                result.Load(rdr);
+                                DataTableLoader.Load(result, rdr);
                             }
                         }
                     }
@@ -703,7 +703,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
                         {
                             using (SqliteDataReader rdr = cmd.ExecuteReader())
                             {
-                                result.Load(rdr);
+                                DataTableLoader.Load(result, rdr);
                             }
                         }
                     }
@@ -733,7 +733,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
                         {
                             using (SqliteDataReader rdr = cmd.ExecuteReader())
                             {
-                                result.Load(rdr);
+                                DataTableLoader.Load(result, rdr);
                             }
                         }
 
@@ -809,7 +809,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
                             token.ThrowIfCancellationRequested();
                             using (SqliteDataReader rdr = cmd.ExecuteReader())
                             {
-                                result.Load(rdr);
+                                DataTableLoader.Load(result, rdr);
                             }
                         }
                     }
@@ -835,7 +835,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
                         token.ThrowIfCancellationRequested();
                         using (SqliteDataReader rdr = await cmd.ExecuteReaderAsync(token).ConfigureAwait(false))
                         {
-                            result.Load(rdr);
+                            DataTableLoader.Load(result, rdr);
                         }
                     }
                 }
@@ -865,7 +865,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
                             token.ThrowIfCancellationRequested();
                             using (SqliteDataReader rdr = await cmd.ExecuteReaderAsync(token).ConfigureAwait(false))
                             {
-                                result.Load(rdr);
+                                DataTableLoader.Load(result, rdr);
                             }
                         }
 
@@ -942,7 +942,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
                                 using (SqliteDataReader rdr = cmd.ExecuteReader())
                                 {
                                     lastResult = new DataTable();
-                                    lastResult.Load(rdr);
+                                    DataTableLoader.Load(lastResult, rdr);
                                 }
 
                                 if (lastResult != null && lastResult.Rows.Count > 0)
@@ -996,7 +996,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
                                 using (SqliteDataReader rdr = cmd.ExecuteReader())
                                 {
                                     lastResult = new DataTable();
-                                    lastResult.Load(rdr);
+                                    DataTableLoader.Load(lastResult, rdr);
                                 }
 
                                 if (lastResult != null && lastResult.Rows.Count > 0)
@@ -1056,7 +1056,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
                                 using (SqliteDataReader rdr = cmd.ExecuteReader())
                                 {
                                     lastResult = new DataTable();
-                                    lastResult.Load(rdr);
+                                    DataTableLoader.Load(lastResult, rdr);
                                 }
 
                                 if (lastResult != null && lastResult.Rows.Count > 0)
@@ -1368,7 +1368,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
                     {
                         using (SqliteDataReader rdr = cmd.ExecuteReader())
                         {
-                            result.Load(rdr);
+                            DataTableLoader.Load(result, rdr);
                         }
                     }
                 }
@@ -1428,7 +1428,7 @@ namespace LiteGraph.GraphRepositories.Sqlite
                             using (SqliteDataReader rdr = cmd.ExecuteReader())
                             {
                                 lastResult = new DataTable();
-                                lastResult.Load(rdr);
+                                DataTableLoader.Load(lastResult, rdr);
                             }
 
                             if (lastResult != null && lastResult.Rows.Count > 0)

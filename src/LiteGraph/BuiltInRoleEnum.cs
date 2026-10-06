@@ -6,7 +6,7 @@ namespace LiteGraph
     /// <summary>
     /// Built-in role.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter<BuiltInRoleEnum>))]
     public enum BuiltInRoleEnum
     {
         /// <summary>

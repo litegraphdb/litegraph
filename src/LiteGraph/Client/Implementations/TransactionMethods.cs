@@ -1,13 +1,18 @@
-namespace LiteGraph.Client.Implementations
+﻿namespace LiteGraph.Client.Implementations
 {
     using System;
+    using System.Data.Common;
     using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
     using System.Runtime.CompilerServices;
     using System.Text.Json;
+    using System.Text.Json.Serialization.Metadata;
     using System.Threading;
     using System.Threading.Tasks;
     using LiteGraph.Client.Interfaces;
     using LiteGraph.GraphRepositories;
+    using LiteGraph.Serialization;
+    using Microsoft.Data.Sqlite;
 
     /// <summary>
     /// Graph-scoped transaction methods.
@@ -19,9 +24,14 @@ namespace LiteGraph.Client.Implementations
         private readonly GraphRepositoryBase _Repo;
         private readonly SemaphoreSlim _TransactionGate;
         private static readonly ConditionalWeakTable<GraphRepositoryBase, SemaphoreSlim> TransactionGates = new ConditionalWeakTable<GraphRepositoryBase, SemaphoreSlim>();
+        private const string _ProviderPropertyJustification =
+            "Best-effort lookup for exception types other than DbException and SqliteException, which are handled without "
+            + "reflection. When trimming removes the property, the lookup returns null and no provider code is reported.";
+
         private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
         {
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
+            TypeInfoResolver = Serializer.CreateResolver(null)
         };
 
         #endregion
@@ -565,11 +575,17 @@ namespace LiteGraph.Client.Implementations
             if (payload == null) throw new ArgumentNullException(nameof(payload));
             if (payload is T typed) return typed;
 
-            if (payload is JsonElement element)
-                return JsonSerializer.Deserialize<T>(element.GetRawText(), JsonOptions);
+            JsonTypeInfo<T> typeInfo = (JsonTypeInfo<T>)JsonOptions.GetTypeInfo(typeof(T));
 
-            string json = JsonSerializer.Serialize(payload, JsonOptions);
-            return JsonSerializer.Deserialize<T>(json, JsonOptions);
+            if (payload is JsonElement element)
+                return JsonSerializer.Deserialize(element.GetRawText(), typeInfo);
+
+            return JsonSerializer.Deserialize(SerializePayload(payload), typeInfo);
+        }
+
+        private static string SerializePayload(object payload)
+        {
+            return JsonSerializer.Serialize(payload, JsonOptions.GetTypeInfo(payload.GetType()));
         }
 
         private static string ResolveProviderName(GraphRepositoryBase repo)
@@ -601,7 +617,7 @@ namespace LiteGraph.Client.Implementations
             while (current != null)
             {
                 string typeName = current.GetType().FullName;
-                string providerCode = ReadStringProperty(current, "SqlState") ?? ReadIntProperty(current, "SqliteErrorCode");
+                string providerCode = ReadProviderCode(current);
                 if (!String.IsNullOrEmpty(providerCode))
                 {
                     result.ProviderErrorCode = providerCode;
@@ -618,12 +634,27 @@ namespace LiteGraph.Client.Implementations
             }
         }
 
+        private static string ReadProviderCode(Exception exception)
+        {
+            // PostgreSQL (Npgsql) reports SQLSTATE through DbException.SqlState; SQLite reports its error code instead.
+            string sqlState = (exception as DbException)?.SqlState;
+            if (sqlState != null) return sqlState;
+
+            if (exception is SqliteException sqliteException)
+                return sqliteException.SqliteErrorCode.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+            // Other exception types that expose the same property names.
+            return ReadStringProperty(exception, "SqlState") ?? ReadIntProperty(exception, "SqliteErrorCode");
+        }
+
+        [UnconditionalSuppressMessage("Trimming", "IL2075:DynamicallyAccessedMembers", Justification = _ProviderPropertyJustification)]
         private static string ReadStringProperty(Exception exception, string propertyName)
         {
             object value = exception.GetType().GetProperty(propertyName)?.GetValue(exception);
             return value as string;
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2075:DynamicallyAccessedMembers", Justification = _ProviderPropertyJustification)]
         private static string ReadIntProperty(Exception exception, string propertyName)
         {
             object value = exception.GetType().GetProperty(propertyName)?.GetValue(exception);
@@ -674,7 +705,7 @@ namespace LiteGraph.Client.Implementations
                 return TryExtractGuidFromJson(element, out guid);
             }
 
-            string json = JsonSerializer.Serialize(payload, JsonOptions);
+            string json = SerializePayload(payload);
             using (JsonDocument doc = JsonDocument.Parse(json))
             {
                 return TryExtractGuidFromJson(doc.RootElement, out guid);

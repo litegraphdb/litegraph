@@ -261,7 +261,7 @@ namespace LiteGraph.GraphRepositories.Postgresql
             do
             {
                 DataTable current = new DataTable();
-                current.Load(rdr);
+                DataTableLoader.Load(current, rdr);
                 if (current.Rows.Count > 0 || current.Columns.Count > 0)
                     result = current;
             }

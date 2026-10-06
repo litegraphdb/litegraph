@@ -160,6 +160,16 @@ namespace Test.Shared
                         executeAsync: TestAotSerializationParityRoundTrip),
                     new TestCaseDescriptor(
                         suiteId: _AotSuiteId,
+                        caseId: "Aot.ContextCoverage",
+                        displayName: "LiteGraphJsonContext supplies metadata for every model type without reflection",
+                        executeAsync: TestAotContextCoverage),
+                    new TestCaseDescriptor(
+                        suiteId: _AotSuiteId,
+                        caseId: "Aot.JitCompatibility",
+                        displayName: "Under the JIT, exceptions and unregistered types serialize as they did before",
+                        executeAsync: TestAotJitCompatibility),
+                    new TestCaseDescriptor(
+                        suiteId: _AotSuiteId,
                         caseId: "Aot.GexfParity",
                         displayName: "GEXF export matches the XmlSerializer baseline",
                         executeAsync: TestAotGexfParity)
@@ -265,7 +275,9 @@ namespace Test.Shared
             string compact = serializer.SerializeJson(instance, false);
             string pretty = serializer.SerializeJson(instance, true);
 
-            MethodInfo deserialize = typeof(Serializer).GetMethod(nameof(Serializer.DeserializeJson))!.MakeGenericMethod(type);
+            MethodInfo deserialize = typeof(Serializer).GetMethods()
+                .Single(m => m.Name == nameof(Serializer.DeserializeJson) && m.GetParameters().Length == 1)
+                .MakeGenericMethod(type);
             object? roundTripped = deserialize.Invoke(serializer, new object[] { compact });
             string roundTrip = MaskAotClockValues(serializer.SerializeJson(roundTripped!, false));
 
@@ -509,6 +521,49 @@ namespace Test.Shared
             return hash;
         }
 
+        private static Task TestAotContextCoverage(CancellationToken token)
+        {
+            List<string> missing = new List<string>();
+            foreach (Type type in _AotParityTypes)
+            {
+                if (LiteGraphJsonContext.Default.GetTypeInfo(type) == null) missing.Add(AotTypeKey(type));
+            }
+
+            AssertTrue(missing.Count == 0, "LiteGraphJsonContext is missing: " + String.Join(", ", missing));
+            return Task.CompletedTask;
+        }
+
+        private static Task TestAotJitCompatibility(CancellationToken token)
+        {
+            AssertTrue(JsonSerializer.IsReflectionEnabledByDefault, "Test.Automated runs with reflection-based serialization enabled");
+
+            Serializer serializer = new Serializer();
+
+            // Captured from the reflection-based ExceptionConverter before the AOT work.
+            AssertEqual(
+                "{\"Message\":\"plain\",\"Data\":{},\"HResult\":-2146233088}",
+                serializer.SerializeJson(new Exception("plain"), false),
+                "Plain exception JSON");
+            AssertEqual(
+                "{\"Error\":{\"Message\":\"wrapped\",\"Data\":{},\"HResult\":-2146233088}}",
+                serializer.SerializeJson(new { Error = new Exception("wrapped") }, false),
+                "Exception inside an anonymous object");
+
+            string argumentJson = serializer.SerializeJson(new ArgumentException("outer message", "paramX", new InvalidOperationException("inner")), false);
+            AssertEqual(
+                "{\"Message\":\"outer message (Parameter \\u0027paramX\\u0027)\",\"ParamName\":\"paramX\",\"Data\":{},\"InnerException\":{\"Message\":\"inner\",\"Data\":{},\"HResult\":-2146233079},\"HResult\":-2147024809}",
+                argumentJson,
+                "Argument exception JSON");
+
+            Node node = new Node { Name = "anonymous", Data = new { Level = SeverityEnum.Warn, Values = new[] { 1, 2 } } };
+            string nodeJson = serializer.SerializeJson(node, false);
+            AssertTrue(nodeJson.Contains("\"Data\":{\"Level\":\"Warn\",\"Values\":[1,2]}"), "Anonymous data with an enum serializes through reflection: " + nodeJson);
+
+            TagMetadata copy = serializer.CopyObject(new TagMetadata { Key = "k", Value = "v" });
+            AssertTrue(copy != null && copy.Key == "k", "CopyObject of a model type");
+            return Task.CompletedTask;
+        }
+
         private static async Task TestAotGexfParity(CancellationToken token)
         {
             string filename = Path.Combine(Path.GetTempPath(), "litegraph-aot-gexf-" + Guid.NewGuid().ToString("N") + ".db");
@@ -521,9 +576,9 @@ namespace Test.Shared
                     TenantMetadata tenant = await client.Tenant.Create(new TenantMetadata { GUID = AotGuid("gexf-tenant"), Name = "Gexf" }, token).ConfigureAwait(false);
                     Graph graph = await client.Graph.Create(new Graph { TenantGUID = tenant.GUID, GUID = AotGuid("gexf-graph"), Name = "Gexf" }, token).ConfigureAwait(false);
 
+                    // One label and one tag per object: SQLite returns several in no fixed order.
                     NameValueCollection tags = new NameValueCollection();
                     tags.Add("color", "red");
-                    tags.Add("size", "large");
 
                     Node first = await client.Node.Create(new Node
                     {
@@ -531,7 +586,7 @@ namespace Test.Shared
                         GraphGUID = graph.GUID,
                         GUID = AotGuid("gexf-node-1"),
                         Name = "First <&> \"node\"",
-                        Labels = new List<string> { "person", "employee" },
+                        Labels = new List<string> { "person" },
                         Tags = tags,
                         Data = JsonDocument.Parse(_AotSampleDataJson).RootElement.Clone(),
                         CreatedUtc = _AotSampleTimestamp,

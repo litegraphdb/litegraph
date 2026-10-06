@@ -20,9 +20,7 @@
       <node id="5e3a0334-b27e-7d7c-cd22-8d469d277939" label="First &lt;&amp;&gt; &quot;node&quot;">
         <attvalues>
           <attvalue for="Name" value="First &lt;&amp;&gt; &quot;node&quot;" />
-          <attvalue for="employee" value="" />
           <attvalue for="person" value="" />
-          <attvalue for="size" value="large" />
           <attvalue for="color" value="red" />
           <attvalue for="Data" value="{&quot;name&quot;:&quot;sample&quot;,&quot;count&quot;:3,&quot;ratio&quot;:0.25,&quot;enabled&quot;:true,&quot;missing&quot;:null,&quot;items&quot;:[1,&quot;two&quot;,{&quot;three&quot;:3}],&quot;nested&quot;:{&quot;deep&quot;:{&quot;value&quot;:&quot;x&quot;}}}" />
         </attvalues>
@@ -39,7 +37,6 @@
           <attvalue for="Name" value="knows" />
           <attvalue for="Cost" value="7" />
           <attvalue for="relationship" value="" />
-          <attvalue for="size" value="large" />
           <attvalue for="color" value="red" />
           <attvalue for="Data" value="{&quot;since&quot;:2020}" />
         </attvalues>

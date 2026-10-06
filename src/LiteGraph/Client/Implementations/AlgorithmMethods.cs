@@ -1,4 +1,4 @@
-namespace LiteGraph.Client.Implementations
+﻿namespace LiteGraph.Client.Implementations
 {
     using System;
     using System.Collections.Generic;
@@ -9,6 +9,7 @@ namespace LiteGraph.Client.Implementations
     using System.Threading.Tasks;
     using LiteGraph.Algorithms;
     using LiteGraph.GraphRepositories;
+    using LiteGraph.Serialization;
 
     /// <summary>
     /// Graph algorithm methods implementation for the client.
@@ -34,6 +35,11 @@ namespace LiteGraph.Client.Implementations
         #endregion
 
         #region Private-Members
+
+        private static readonly JsonSerializerOptions _DataJsonOptions = new JsonSerializerOptions
+        {
+            TypeInfoResolver = Serializer.CreateResolver(null)
+        };
 
         private readonly LiteGraphClient _Client;
         private GraphRepositoryBase _Repo = null;
@@ -230,7 +236,7 @@ namespace LiteGraph.Client.Implementations
 
             try
             {
-                JsonNode node = JsonSerializer.SerializeToNode(data);
+                JsonNode node = JsonSerializer.SerializeToNode(data, _DataJsonOptions.GetTypeInfo(data.GetType()));
                 if (node is JsonObject existing) return existing;
             }
             catch (JsonException)

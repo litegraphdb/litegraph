@@ -6,7 +6,7 @@ namespace LiteGraph
     /// <summary>
     /// Authorization resource scope.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter<AuthorizationResourceScopeEnum>))]
     public enum AuthorizationResourceScopeEnum
     {
         /// <summary>

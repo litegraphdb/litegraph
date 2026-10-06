@@ -1,4 +1,4 @@
-namespace LiteGraph.Client.Implementations
+﻿namespace LiteGraph.Client.Implementations
 {
     using System;
     using System.Collections;
@@ -16,6 +16,7 @@ namespace LiteGraph.Client.Implementations
     using LiteGraph.GraphRepositories;
     using LiteGraph.Query;
     using LiteGraph.Query.Ast;
+    using LiteGraph.Serialization;
 
     /// <summary>
     /// Native graph query execution engine.
@@ -3099,7 +3100,7 @@ namespace LiteGraph.Client.Implementations
             if (expression.StartsWith(Parser.ListExpressionPrefix, StringComparison.Ordinal))
             {
                 string listJson = expression.Substring(Parser.ListExpressionPrefix.Length);
-                List<string> itemExpressions = JsonSerializer.Deserialize<List<string>>(listJson) ?? new List<string>();
+                List<string> itemExpressions = JsonSerializer.Deserialize(listJson, LiteGraphJsonContext.Default.ListString) ?? new List<string>();
                 return itemExpressions.Select(item => ResolveValue(item, parameters)).ToList();
             }
 
@@ -3139,9 +3140,12 @@ namespace LiteGraph.Client.Implementations
                     case JsonValueKind.Array:
                         return element.EnumerateArray().Select(e => NormalizeJsonValue(e)).ToList();
                     case JsonValueKind.Object:
-                        return JsonSerializer.Deserialize<Dictionary<string, object>>(element.GetRawText());
+                        Dictionary<string, object> properties = new Dictionary<string, object>();
+                        foreach (JsonProperty property in element.EnumerateObject())
+                            properties[property.Name] = property.Value.Clone();
+                        return properties;
                     default:
-                        return JsonSerializer.Deserialize<object>(element.GetRawText());
+                        return element.Clone();
                 }
             }
 

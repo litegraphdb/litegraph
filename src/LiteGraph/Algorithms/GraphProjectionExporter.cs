@@ -1,4 +1,4 @@
-namespace LiteGraph.Algorithms
+﻿namespace LiteGraph.Algorithms
 {
     using System;
     using System.Collections.Generic;
@@ -9,6 +9,7 @@ namespace LiteGraph.Algorithms
     using System.Threading;
     using System.Threading.Tasks;
     using System.Xml;
+    using LiteGraph.Serialization;
 
     /// <summary>
     /// Streams a graph out as a portable projection (node-link JSON, edge list, or GraphML) for computation in external engines such as rustworkx or NetworkX.
@@ -21,6 +22,11 @@ namespace LiteGraph.Algorithms
         #endregion
 
         #region Private-Members
+
+        private static readonly JsonSerializerOptions _DataJsonOptions = new JsonSerializerOptions
+        {
+            TypeInfoResolver = Serializer.CreateResolver(null)
+        };
 
         #endregion
 
@@ -172,7 +178,7 @@ namespace LiteGraph.Algorithms
         {
             try
             {
-                byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(data);
+                byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(data, _DataJsonOptions.GetTypeInfo(data.GetType()));
                 writer.WritePropertyName(propertyName);
                 writer.WriteRawValue(bytes);
             }

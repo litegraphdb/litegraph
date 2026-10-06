@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Native AOT verification for the LiteGraph library. Publish and run:
+      dotnet publish src/Test.Aot/Test.Aot.csproj -c Release -f net10.0 -r <rid> -o <dir>
+      <dir>/Test.Aot
+    Set LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING to also run the PostgreSQL scenario.
+    The whole LiteGraph assembly is rooted so the compiler analyzes every code path, and any trim or AOT warning
+    fails the publish.
+  -->
+
+  <PropertyGroup>
+    <Version>10.2.0</Version>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);IL2026;IL2046;IL2057;IL2067;IL2070;IL2072;IL2075;IL2087;IL2091;IL2104;IL3050;IL3051;IL3053</WarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\LiteGraph\LiteGraph.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TrimmerRootAssembly Include="LiteGraph" />
+  </ItemGroup>
+
+</Project>

@@ -6,7 +6,7 @@ namespace LiteGraph.Algorithms
     /// <summary>
     /// Level of node/edge attribute detail included in a graph projection export.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter<GraphExportAttributeLevelEnum>))]
     public enum GraphExportAttributeLevelEnum
     {
         /// <summary>

@@ -6,7 +6,7 @@ namespace LiteGraph
     /// <summary>
     /// Authorization resource type.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter<AuthorizationResourceTypeEnum>))]
     public enum AuthorizationResourceTypeEnum
     {
         /// <summary>

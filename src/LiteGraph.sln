@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.PerformanceAndScalabil
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoadGenerator", "LoadGenerator\LoadGenerator.csproj", "{8A3B0C5C-49AE-4F1E-BC14-E67A2DC64262}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Aot", "Test.Aot\Test.Aot.csproj", "{375D4DA2-F776-4333-BB75-90443330016C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -181,6 +183,18 @@ Global
 		{8A3B0C5C-49AE-4F1E-BC14-E67A2DC64262}.Release|x64.Build.0 = Release|Any CPU
 		{8A3B0C5C-49AE-4F1E-BC14-E67A2DC64262}.Release|x86.ActiveCfg = Release|Any CPU
 		{8A3B0C5C-49AE-4F1E-BC14-E67A2DC64262}.Release|x86.Build.0 = Release|Any CPU
+		{375D4DA2-F776-4333-BB75-90443330016C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{375D4DA2-F776-4333-BB75-90443330016C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{375D4DA2-F776-4333-BB75-90443330016C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{375D4DA2-F776-4333-BB75-90443330016C}.Debug|x64.Build.0 = Debug|Any CPU
+		{375D4DA2-F776-4333-BB75-90443330016C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{375D4DA2-F776-4333-BB75-90443330016C}.Debug|x86.Build.0 = Debug|Any CPU
+		{375D4DA2-F776-4333-BB75-90443330016C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{375D4DA2-F776-4333-BB75-90443330016C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{375D4DA2-F776-4333-BB75-90443330016C}.Release|x64.ActiveCfg = Release|Any CPU
+		{375D4DA2-F776-4333-BB75-90443330016C}.Release|x64.Build.0 = Release|Any CPU
+		{375D4DA2-F776-4333-BB75-90443330016C}.Release|x86.ActiveCfg = Release|Any CPU
+		{375D4DA2-F776-4333-BB75-90443330016C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

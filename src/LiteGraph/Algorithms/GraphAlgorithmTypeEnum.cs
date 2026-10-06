@@ -6,7 +6,7 @@ namespace LiteGraph.Algorithms
     /// <summary>
     /// Graph algorithm type.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter<GraphAlgorithmTypeEnum>))]
     public enum GraphAlgorithmTypeEnum
     {
         /// <summary>

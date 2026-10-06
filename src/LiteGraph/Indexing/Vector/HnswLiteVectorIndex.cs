@@ -32,6 +32,17 @@ namespace LiteGraph.Indexing.Vector
         private bool _Disposed = false;
         private string _LoadCompatibilityIssue = null;
 
+        private static readonly System.Text.Json.JsonSerializerOptions _IndexJsonOptions = new System.Text.Json.JsonSerializerOptions
+        {
+            TypeInfoResolver = Serializer.CreateResolver(null)
+        };
+
+        private static readonly System.Text.Json.JsonSerializerOptions _IndentedIndexJsonOptions = new System.Text.Json.JsonSerializerOptions
+        {
+            WriteIndented = true,
+            TypeInfoResolver = Serializer.CreateResolver(null)
+        };
+
         #endregion
 
         #region Constructors-and-Factories
@@ -257,7 +268,7 @@ namespace LiteGraph.Indexing.Vector
                 // For RAM storage, provide basic statistics rather than full state export
                 // The HnswLite library doesn't provide a public HnswState export method
                 VectorIndexStatistics stats = GetStatistics();
-                string json = System.Text.Json.JsonSerializer.Serialize(stats);
+                string json = System.Text.Json.JsonSerializer.Serialize(stats, Serializer.GetTypeInfo<VectorIndexStatistics>(_IndexJsonOptions));
                 await File.WriteAllTextAsync(_Graph.VectorIndexFile, json, cancellationToken);
             }
         }
@@ -790,7 +801,7 @@ namespace LiteGraph.Indexing.Vector
                             Node = nodes
                         };
 
-                        string json = System.Text.Json.JsonSerializer.Serialize(data, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                        string json = System.Text.Json.JsonSerializer.Serialize(data, Serializer.GetTypeInfo<HnswIndexState>(_IndentedIndexJsonOptions));
 
                         // Ensure directory exists
                         string directory = Path.GetDirectoryName(_FilePath);
@@ -823,7 +834,7 @@ namespace LiteGraph.Indexing.Vector
                             return;
                         }
 
-                        HnswIndexState indexState = System.Text.Json.JsonSerializer.Deserialize<HnswIndexState>(json);
+                        HnswIndexState indexState = System.Text.Json.JsonSerializer.Deserialize(json, Serializer.GetTypeInfo<HnswIndexState>(_IndexJsonOptions));
 
                         if (indexState == null) return;
 

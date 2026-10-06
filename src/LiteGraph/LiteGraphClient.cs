@@ -437,6 +437,23 @@
         }
 
         /// <summary>
+        /// Convert data associated with a graph, node, or edge to a specific type using explicit type metadata, for example
+        /// <c>MyJsonContext.Default.MyType</c>. Works under Native AOT without registering a resolver with
+        /// <see cref="LiteGraph.Serialization.Serializer.AddTypeInfoResolver(System.Text.Json.Serialization.Metadata.IJsonTypeInfoResolver)"/>.
+        /// </summary>
+        /// <typeparam name="T">Type.</typeparam>
+        /// <param name="data">Data.</param>
+        /// <param name="typeInfo">Type metadata.</param>
+        /// <returns>Instance, or null when data is null.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when typeInfo is null.</exception>
+        public T ConvertData<T>(object data, System.Text.Json.Serialization.Metadata.JsonTypeInfo<T> typeInfo) where T : class, new()
+        {
+            ArgumentNullException.ThrowIfNull(typeInfo);
+            if (data == null) return null;
+            return Serializer.DeserializeJson(data.ToString(), typeInfo);
+        }
+
+        /// <summary>
         /// Export graph to GEXF.
         /// </summary>
         /// <param name="tenantGuid">Tenant GUID.</param>
