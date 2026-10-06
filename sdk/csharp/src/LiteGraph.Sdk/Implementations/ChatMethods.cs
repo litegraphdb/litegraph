@@ -99,14 +99,14 @@ namespace LiteGraph.Sdk.Implementations
         public async Task<ChatEndpointTestResult> TestEndpoint(Guid tenantGuid, Guid endpointGuid, CancellationToken token = default)
         {
             string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/endpoints/" + endpointGuid + "/test";
-            return await _Sdk.Post<object, ChatEndpointTestResult>(url, new { }, token).ConfigureAwait(false);
+            return await _Sdk.Post<object, ChatEndpointTestResult>(url, new Dictionary<string, object>(), token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
         public async Task<ChatEndpointPreloadResult> PreloadEndpoint(Guid tenantGuid, Guid endpointGuid, CancellationToken token = default)
         {
             string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/endpoints/" + endpointGuid + "/preload";
-            return await _Sdk.Post<object, ChatEndpointPreloadResult>(url, new { }, token).ConfigureAwait(false);
+            return await _Sdk.Post<object, ChatEndpointPreloadResult>(url, new Dictionary<string, object>(), token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />
@@ -247,7 +247,11 @@ namespace LiteGraph.Sdk.Implementations
         public async Task<ChatFeedback> SubmitFeedback(Guid tenantGuid, Guid turnGuid, ChatFeedbackRatingEnum rating, string feedbackText = null, CancellationToken token = default)
         {
             string url = _Sdk.Endpoint + "v1.0/tenants/" + tenantGuid + "/chat/turns/" + turnGuid + "/feedback";
-            return await _Sdk.Post<object, ChatFeedback>(url, new { Rating = rating.ToString(), FeedbackText = feedbackText }, token).ConfigureAwait(false);
+            // A dictionary rather than an anonymous object, so the body serializes under Native AOT. FeedbackText is
+            // omitted when null, as the serializer omits null properties unless IncludeNullProperties is set.
+            Dictionary<string, object> body = new Dictionary<string, object> { { "Rating", rating.ToString() } };
+            if (feedbackText != null || Serializer.IncludeNullProperties) body.Add("FeedbackText", feedbackText);
+            return await _Sdk.Post<object, ChatFeedback>(url, body, token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

@@ -5,7 +5,7 @@ namespace LiteGraph.Sdk
     /// <summary>
     /// Chat endpoint type.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter<ChatEndpointTypeEnum>))]
     public enum ChatEndpointTypeEnum
     {
         /// <summary>

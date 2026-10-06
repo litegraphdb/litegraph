@@ -401,7 +401,7 @@ namespace Test.Automated
 					TenantGUID = _TenantGuid,
 					GraphGUID = _GraphGuid,
 					Name = $"{namePrefix}-{UniqueName("node-delete")}",
-					Data = new { description = "node delete helper" }
+					Data = new Dictionary<string, object> { { "description", "node delete helper" } }
 				};
 
 				Node? created = await sdk.Node.Create(node).ConfigureAwait(false);
@@ -502,7 +502,7 @@ namespace Test.Automated
 			{
 				TenantGUID = _TenantGuid,
 				Name = UniqueName("sdk-graph-recreated"),
-				Data = new { description = "recreated graph" }
+				Data = new Dictionary<string, object> { { "description", "recreated graph" } }
 			};
 
 			Graph? created = await sdk.Graph.Create(graph).ConfigureAwait(false);
@@ -941,7 +941,7 @@ namespace Test.Automated
 			{
 				TenantGUID = _TenantGuid,
 				Name = UniqueName("sdk-graph"),
-				Data = new { description = "sdk automated test graph" }
+				Data = new Dictionary<string, object> { { "description", "sdk automated test graph" } }
 			};
 
 			Graph? created = await sdk.Graph.Create(graph).ConfigureAwait(false);
@@ -989,7 +989,7 @@ namespace Test.Automated
 
 			string updatedName = UniqueName("sdk-graph-updated");
 			graph!.Name = updatedName;
-			graph.Data = new { description = "updated graph data" };
+			graph.Data = new Dictionary<string, object> { { "description", "updated graph data" } };
 
 			Graph? updated = await sdk.Graph.Update(graph).ConfigureAwait(false);
 			AssertNotNull(updated, "Updated graph");
@@ -1199,7 +1199,7 @@ namespace Test.Automated
 				To = _EdgeNode2Guid,
 				Name = edgeName,
 				Cost = 1,
-				Data = new { description = "primary edge" }
+				Data = new Dictionary<string, object> { { "description", "primary edge" } }
 			};
 
 			Edge? created = await sdk.Edge.Create(edge).ConfigureAwait(false);
@@ -1231,7 +1231,7 @@ namespace Test.Automated
 					To = _EdgeNode3Guid,
 					Name = UniqueName("sdk-edge-secondary"),
 					Cost = 2,
-					Data = new { description = "secondary edge" }
+					Data = new Dictionary<string, object> { { "description", "secondary edge" } }
 				},
 				new Edge
 				{
@@ -1241,7 +1241,7 @@ namespace Test.Automated
 					To = _EdgeNode1Guid,
 					Name = UniqueName("sdk-edge-tertiary"),
 					Cost = 3,
-					Data = new { description = "tertiary edge" }
+					Data = new Dictionary<string, object> { { "description", "tertiary edge" } }
 				}
 			};
 
@@ -1328,7 +1328,7 @@ namespace Test.Automated
 			string updatedName = UniqueName("sdk-edge-updated");
 			edge!.Name = updatedName;
 			edge.Cost = 5;
-			edge.Data = new { description = "updated edge" };
+			edge.Data = new Dictionary<string, object> { { "description", "updated edge" } };
 
 			Edge? updated = await sdk.Edge.Update(edge).ConfigureAwait(false);
 
@@ -2686,7 +2686,7 @@ namespace Test.Automated
                     GraphGUID = _GraphGuid,
                     GUID = fromNodeGuid,
                     Name = UniqueName("sdk-transaction-from"),
-                    Data = new { scenario = "transaction-success", role = "from" }
+                    Data = new Dictionary<string, object> { { "scenario", "transaction-success" }, { "role", "from" } }
                 })
                 .CreateNode(new Node
                 {
@@ -2694,7 +2694,7 @@ namespace Test.Automated
                     GraphGUID = _GraphGuid,
                     GUID = toNodeGuid,
                     Name = UniqueName("sdk-transaction-to"),
-                    Data = new { scenario = "transaction-success", role = "to" }
+                    Data = new Dictionary<string, object> { { "scenario", "transaction-success" }, { "role", "to" } }
                 })
                 .CreateEdge(new Edge
                 {
@@ -2734,7 +2734,7 @@ namespace Test.Automated
                     GraphGUID = _GraphGuid,
                     GUID = rolledBackNodeGuid,
                     Name = UniqueName("sdk-transaction-rollback"),
-                    Data = new { scenario = "transaction-rollback" }
+                    Data = new Dictionary<string, object> { { "scenario", "transaction-rollback" } }
                 })
                 .AttachLabel(new LabelMetadata
                 {
@@ -2777,7 +2777,7 @@ namespace Test.Automated
                 TenantGUID = _TenantGuid,
                 GraphGUID = _GraphGuid,
                 Name = UniqueName("sdk-node-primary"),
-                Data = new { description = "primary node" }
+                Data = new Dictionary<string, object> { { "description", "primary node" } }
             };
 
             Node? created = await sdk.Node.Create(node).ConfigureAwait(false);
@@ -2805,14 +2805,14 @@ namespace Test.Automated
                     TenantGUID = _TenantGuid,
                     GraphGUID = _GraphGuid,
                     Name = UniqueName("sdk-node-secondary"),
-                    Data = new { description = "secondary node" }
+                    Data = new Dictionary<string, object> { { "description", "secondary node" } }
                 },
                 new Node
                 {
                     TenantGUID = _TenantGuid,
                     GraphGUID = _GraphGuid,
                     Name = UniqueName("sdk-node-tertiary"),
-                    Data = new { description = "tertiary node" }
+                    Data = new Dictionary<string, object> { { "description", "tertiary node" } }
                 }
             };
 
@@ -2898,7 +2898,7 @@ namespace Test.Automated
 
             string updatedName = UniqueName("sdk-node-primary-updated");
             node!.Name = updatedName;
-            node.Data = new { description = "updated node" };
+            node.Data = new Dictionary<string, object> { { "description", "updated node" } };
 
             Node? updated = await sdk.Node.Update(node).ConfigureAwait(false);
 
@@ -3491,7 +3491,7 @@ namespace Test.Automated
 				TenantGUID = _TenantGuid,
 				GraphGUID = _GraphGuid,
 				Name = "Node A (Root)",
-				Data = new { Type = "Root", Level = 0 }
+				Data = new Dictionary<string, object> { { "Type", "Root" }, { "Level", 0 } }
 			}).ConfigureAwait(false);
 			_SubgraphNodeGuids.Add(nodeA.GUID);
 
@@ -3500,7 +3500,7 @@ namespace Test.Automated
 				TenantGUID = _TenantGuid,
 				GraphGUID = _GraphGuid,
 				Name = "Node B (Layer 1)",
-				Data = new { Type = "Layer1", Level = 1 }
+				Data = new Dictionary<string, object> { { "Type", "Layer1" }, { "Level", 1 } }
 			}).ConfigureAwait(false);
 			_SubgraphNodeGuids.Add(nodeB.GUID);
 
@@ -3509,7 +3509,7 @@ namespace Test.Automated
 				TenantGUID = _TenantGuid,
 				GraphGUID = _GraphGuid,
 				Name = "Node C (Layer 1)",
-				Data = new { Type = "Layer1", Level = 1 }
+				Data = new Dictionary<string, object> { { "Type", "Layer1" }, { "Level", 1 } }
 			}).ConfigureAwait(false);
 			_SubgraphNodeGuids.Add(nodeC.GUID);
 
@@ -3518,7 +3518,7 @@ namespace Test.Automated
 				TenantGUID = _TenantGuid,
 				GraphGUID = _GraphGuid,
 				Name = "Node D (Layer 2)",
-				Data = new { Type = "Layer2", Level = 2 }
+				Data = new Dictionary<string, object> { { "Type", "Layer2" }, { "Level", 2 } }
 			}).ConfigureAwait(false);
 			_SubgraphNodeGuids.Add(nodeD.GUID);
 
@@ -3527,7 +3527,7 @@ namespace Test.Automated
 				TenantGUID = _TenantGuid,
 				GraphGUID = _GraphGuid,
 				Name = "Node E (Layer 2)",
-				Data = new { Type = "Layer2", Level = 2 }
+				Data = new Dictionary<string, object> { { "Type", "Layer2" }, { "Level", 2 } }
 			}).ConfigureAwait(false);
 			_SubgraphNodeGuids.Add(nodeE.GUID);
 
@@ -3536,7 +3536,7 @@ namespace Test.Automated
 				TenantGUID = _TenantGuid,
 				GraphGUID = _GraphGuid,
 				Name = "Node F (Layer 2)",
-				Data = new { Type = "Layer2", Level = 2 }
+				Data = new Dictionary<string, object> { { "Type", "Layer2" }, { "Level", 2 } }
 			}).ConfigureAwait(false);
 			_SubgraphNodeGuids.Add(nodeF.GUID);
 
@@ -3545,7 +3545,7 @@ namespace Test.Automated
 				TenantGUID = _TenantGuid,
 				GraphGUID = _GraphGuid,
 				Name = "Node G (Layer 3)",
-				Data = new { Type = "Layer3", Level = 3 }
+				Data = new Dictionary<string, object> { { "Type", "Layer3" }, { "Level", 3 } }
 			}).ConfigureAwait(false);
 			_SubgraphNodeGuids.Add(nodeG.GUID);
 
@@ -3755,7 +3755,7 @@ namespace Test.Automated
 					TenantGUID = _TenantGuid,
 					GraphGUID = _GraphGuid,
 					Name = UniqueName("sdk-node-primary-helper"),
-					Data = new { description = "helper primary node" }
+					Data = new Dictionary<string, object> { { "description", "helper primary node" } }
 				};
 
 				Node? created = await sdk.Node.Create(node).ConfigureAwait(false);
@@ -3774,7 +3774,7 @@ namespace Test.Automated
 					TenantGUID = _TenantGuid,
 					GraphGUID = _GraphGuid,
 					Name = UniqueName("sdk-node-secondary-helper"),
-					Data = new { description = "helper secondary node" }
+					Data = new Dictionary<string, object> { { "description", "helper secondary node" } }
 				});
 			}
 
@@ -3785,7 +3785,7 @@ namespace Test.Automated
 					TenantGUID = _TenantGuid,
 					GraphGUID = _GraphGuid,
 					Name = UniqueName("sdk-node-tertiary-helper"),
-					Data = new { description = "helper tertiary node" }
+					Data = new Dictionary<string, object> { { "description", "helper tertiary node" } }
 				});
 			}
 
@@ -4023,7 +4023,7 @@ namespace Test.Automated
 					TenantGUID = _TenantGuid,
 					GraphGUID = _GraphGuid,
 					Name = UniqueName("edge-node-1"),
-					Data = new { type = "edge-test", role = "source" }
+					Data = new Dictionary<string, object> { { "type", "edge-test" }, { "role", "source" } }
 				}).ConfigureAwait(false);
 				_EdgeNode1Guid = node.GUID;
 			}
@@ -4035,7 +4035,7 @@ namespace Test.Automated
 					TenantGUID = _TenantGuid,
 					GraphGUID = _GraphGuid,
 					Name = UniqueName("edge-node-2"),
-					Data = new { type = "edge-test", role = "target" }
+					Data = new Dictionary<string, object> { { "type", "edge-test" }, { "role", "target" } }
 				}).ConfigureAwait(false);
 				_EdgeNode2Guid = node.GUID;
 			}
@@ -4047,7 +4047,7 @@ namespace Test.Automated
 					TenantGUID = _TenantGuid,
 					GraphGUID = _GraphGuid,
 					Name = UniqueName("edge-node-3"),
-					Data = new { type = "edge-test", role = "aux" }
+					Data = new Dictionary<string, object> { { "type", "edge-test" }, { "role", "aux" } }
 				}).ConfigureAwait(false);
 				_EdgeNode3Guid = node.GUID;
 			}
@@ -4073,7 +4073,7 @@ namespace Test.Automated
 				To = _EdgeNode2Guid,
 				Name = edgeName,
 				Cost = 1,
-				Data = new { description = "helper edge" }
+				Data = new Dictionary<string, object> { { "description", "helper edge" } }
 			};
 
 			Edge? created = await sdk.Edge.Create(edge).ConfigureAwait(false);

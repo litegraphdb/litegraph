@@ -5,7 +5,7 @@ namespace LiteGraph.Sdk
     /// <summary>
     /// State of a cluster node as reported in the node registry.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter<ClusterNodeStateEnum>))]
     public enum ClusterNodeStateEnum
     {
         /// <summary>

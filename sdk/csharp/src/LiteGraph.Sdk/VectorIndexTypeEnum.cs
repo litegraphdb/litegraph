@@ -5,7 +5,7 @@ namespace LiteGraph.Sdk
     /// <summary>
     /// Vector index type.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter<VectorIndexTypeEnum>))]
     public enum VectorIndexTypeEnum
     {
         /// <summary>

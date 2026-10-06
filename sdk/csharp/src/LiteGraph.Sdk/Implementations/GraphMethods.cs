@@ -154,7 +154,7 @@
         public async Task RebuildVectorIndex(Guid tenantGuid, Guid graphGuid, CancellationToken token = default)
         {
             string url = _Sdk.Endpoint + "v2.0/tenants/" + tenantGuid + "/graphs/" + graphGuid + "/vectorindex/rebuild";
-            await _Sdk.Post<object, object>(url, new { }, token).ConfigureAwait(false);
+            await _Sdk.Post<object, object>(url, new Dictionary<string, object>(), token).ConfigureAwait(false);
         }
 
         /// <inheritdoc />

@@ -5,7 +5,7 @@ namespace LiteGraph.Sdk
     /// <summary>
     /// Chat feedback rating.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter<ChatFeedbackRatingEnum>))]
     public enum ChatFeedbackRatingEnum
     {
         /// <summary>

@@ -1529,6 +1529,27 @@
             Instantiate.
             </summary>
         </member>
+        <member name="T:LiteGraph.Sdk.ConverterTypeInfoResolver">
+            <summary>
+            Supplies JSON metadata for root-level values that the SDK handles entirely with a custom converter
+            (exceptions, name-value collections, IP addresses), so they serialize without reflection.
+            The converter is taken from the options the metadata is requested for.
+            Thread safety: stateless and safe to use from multiple threads.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ConverterTypeInfoResolver.#ctor">
+            <summary>
+            Instantiate.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.ConverterTypeInfoResolver.GetTypeInfo(System.Type,System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Get metadata for a type, or null when the type is not one this resolver handles.
+            </summary>
+            <param name="type">Type.</param>
+            <param name="options">Options that hold the converters.</param>
+            <returns>Type metadata, or null.</returns>
+        </member>
         <member name="T:LiteGraph.Sdk.Credential">
             <summary>
             Credentials.
@@ -6264,6 +6285,986 @@
             <exception cref="T:System.ArgumentNullException">Thrown when the email or endpoint is null or empty.</exception>
             <exception cref="T:System.InvalidOperationException">Thrown when the server returns a non-success status code or no response.</exception>
         </member>
+        <member name="T:LiteGraph.Sdk.LiteGraphSdkJsonContext">
+            <summary>
+            Source-generated JSON metadata for every type the LiteGraph SDK sends or receives.
+            <see cref="T:LiteGraph.Sdk.Serializer"/> uses it first, so the SDK works under Native AOT and trimming, where reflection-based
+            System.Text.Json serialization is disabled.
+            Applications can add it to their own options, for example
+            <c>options.TypeInfoResolverChain.Add(LiteGraphSdkJsonContext.Default)</c>.
+            Enums are written as strings.
+            Thread safety: the generated metadata is immutable and safe to use from multiple threads.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Boolean">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.NullableBoolean">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Byte">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ByteArray">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Char">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Decimal">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Double">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.NullableDouble">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.DoubleArray">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Single">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.NullableSingle">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.SingleArray">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Expr">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.OperatorEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.AuthenticationToken">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.BackupFile">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.BackupRequest">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.BulkCreateReturnModeEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ChatCompletionRequest">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ChatCompletionResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ChatEndpoint">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ChatEndpointHealth">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ChatEndpointHealthSample">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ChatEndpointPreloadResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ChatEndpointTestResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ChatEndpointTypeEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ChatFeedback">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ChatFeedbackRatingEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ChatModelSummary">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ChatProviderTypeEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ChatSettings">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ChatStreamEvent">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ChatThread">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ChatTurn">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ClusterJobList">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ClusterJobRun">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ClusterLock">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ClusterLockList">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ClusterNode">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ClusterNodeChecks">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ClusterNodeStateEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ClusterRestartResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ClusterStatus">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Credential">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Edge">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EdgeBetween">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationOrderEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationRequest">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultBackupFile">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultChatEndpoint">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultChatEndpointHealth">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultChatFeedback">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultChatModelSummary">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultChatThread">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultChatTurn">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultCredential">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultEdge">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultGraph">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultLabelMetadata">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultNode">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultRequestHistoryEntry">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultTagMetadata">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultTenantMetadata">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultUserMaster">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultVectorMetadata">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.EnumerationResultVectorSearchResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ExistenceRequest">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ExistenceResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.GenerateEmbeddingsRequest">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.GenerateEmbeddingsResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Graph">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.GraphAlgorithmImportRequest">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.GraphAlgorithmImportResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.GraphAlgorithmNodeResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.GraphAlgorithmRequest">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.GraphAlgorithmResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.GraphAlgorithmTypeEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.GraphImportErrorPolicyEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.GraphImportGuidStrategyEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.GraphImportModeEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.GraphImportRequest">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.GraphImportResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.GraphStatistics">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.GraphTraversalDirectionEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.HealthResponse">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.LabelMetadata">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Node">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.RequestHistoryDeleteResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.RequestHistoryDetail">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.RequestHistoryEntry">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.RequestHistorySearchRequest">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.RequestHistorySummary">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.RequestHistorySummaryBucket">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.RouteDetail">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.RouteRequest">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.RouteResponse">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.RouteResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.SearchRequest">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.SearchResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.SettingsUpdateResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.SubgraphExtractionRequest">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.TagMetadata">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.TenantMetadata">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.TenantStatistics">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.TransactionIsolationLevelEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.TransactionObjectTypeEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.TransactionOperation">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.TransactionOperationResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.TransactionOperationTypeEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.TransactionRequest">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.TransactionResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.UserMaster">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.VectorIndexConfiguration">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.VectorIndexStatistics">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.VectorIndexTypeEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.VectorMetadata">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.VectorSearchDomainEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.VectorSearchRequest">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.VectorSearchResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.VectorSearchTypeEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.DictionaryDateTimeString">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.DictionaryGuidGraphStatistics">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.DictionaryGuidTenantStatistics">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.DictionaryGuidDictionaryStringDouble">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.DictionaryGuidGuid">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.DictionaryStringDouble">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.DictionaryStringObject">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.DictionaryStringString">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListSingle">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListOperatorEnum">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListBackupFile">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListChatEndpoint">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListChatEndpointHealth">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListChatEndpointHealthSample">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListChatFeedback">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListChatModelSummary">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListChatThread">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListChatTurn">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListClusterJobRun">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListClusterLock">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListClusterNode">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListCredential">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListEdge">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListEdgeBetween">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListGraph">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListGraphAlgorithmNodeResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListLabelMetadata">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListNode">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListRequestHistoryEntry">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListRequestHistorySummaryBucket">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListRouteDetail">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListTagMetadata">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListTenantMetadata">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListTransactionOperation">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListTransactionOperationResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListUserMaster">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListVectorMetadata">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListVectorSearchResult">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListGuid">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListType">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListObject">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ListString">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.NameValueCollection">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.DateTime">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.NullableDateTime">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.DateTimeOffset">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Guid">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.NullableGuid">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.JsonDocument">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.JsonElement">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.JsonArray">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.JsonNode">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.JsonObject">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.JsonValue">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.TimeSpan">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Type">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Timestamp">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Int32">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.NullableInt32">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Int64">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.NullableInt64">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Object">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.ObjectArray">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.SByte">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Int16">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.String">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.StringArray">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.UInt32">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.UInt64">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.UInt16">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.Default">
+            <summary>
+            The default <see cref="T:System.Text.Json.Serialization.JsonSerializerContext"/> associated with a default <see cref="T:System.Text.Json.JsonSerializerOptions"/> instance.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Sdk.LiteGraphSdkJsonContext.GeneratedSerializerOptions">
+            <summary>
+            The source-generated options associated with this context.
+            </summary>
+        </member>
+        <member name="M:LiteGraph.Sdk.LiteGraphSdkJsonContext.#ctor">
+            <inheritdoc/>
+        </member>
+        <member name="M:LiteGraph.Sdk.LiteGraphSdkJsonContext.#ctor(System.Text.Json.JsonSerializerOptions)">
+            <inheritdoc/>
+        </member>
+        <member name="M:LiteGraph.Sdk.LiteGraphSdkJsonContext.GetTypeInfo(System.Type)">
+            <inheritdoc/>
+        </member>
         <member name="T:LiteGraph.Sdk.Node">
             <summary>
             Node in the graph.
@@ -7140,6 +8141,11 @@
         <member name="T:LiteGraph.Sdk.Serializer">
             <summary>
             JSON serializer.
+            Type metadata comes from <see cref="T:LiteGraph.Sdk.LiteGraphSdkJsonContext"/> first, then from any resolvers added through
+            <see cref="M:LiteGraph.Sdk.Serializer.AddTypeInfoResolver(System.Text.Json.Serialization.Metadata.IJsonTypeInfoResolver)"/>, and finally, only when reflection-based serialization is
+            enabled (always under the JIT, never under Native AOT by default), from reflection.
+            Under Native AOT, serializing or deserializing a type that no resolver knows throws <see cref="T:System.NotSupportedException"/>.
+            Thread safety: safe to use from multiple threads.
             </summary>
         </member>
         <member name="P:LiteGraph.Sdk.Serializer.DateTimeFormat">
@@ -7152,6 +8158,18 @@
             True to include null properties when serializing, false to not include null properties when serializing.
             </summary>
         </member>
+        <member name="M:LiteGraph.Sdk.Serializer.AddTypeInfoResolver(System.Text.Json.Serialization.Metadata.IJsonTypeInfoResolver)">
+            <summary>
+            Add a resolver that supplies JSON metadata for application types, such as a source-generated
+            <see cref="T:System.Text.Json.Serialization.JsonSerializerContext"/>. Needed under Native AOT for types the SDK does not know about, for example
+            application classes stored in <see cref="P:LiteGraph.Sdk.Node.Data"/>.
+            Resolvers are consulted after <see cref="T:LiteGraph.Sdk.LiteGraphSdkJsonContext"/> and in the order they were added.
+            Adding the same resolver instance again has no effect.
+            Thread safety: safe to call from multiple threads, also while serialization is in progress.
+            </summary>
+            <param name="resolver">Resolver, for example <c>MyJsonContext.Default</c>.</param>
+            <exception cref="T:System.ArgumentNullException">Thrown when resolver is null.</exception>
+        </member>
         <member name="M:LiteGraph.Sdk.Serializer.DeserializeJson``1(System.Byte[])">
             <summary>
             Deserialize JSON to an instance.
@@ -7159,6 +8177,7 @@
             <typeparam name="T">Type.</typeparam>
             <param name="json">JSON bytes.</param>
             <returns>Instance.</returns>
+            <exception cref="T:System.NotSupportedException">Thrown when no JSON metadata is available for <typeparamref name="T"/>.</exception>
         </member>
         <member name="M:LiteGraph.Sdk.Serializer.DeserializeJson``1(System.String)">
             <summary>
@@ -7167,6 +8186,18 @@
             <typeparam name="T">Type.</typeparam>
             <param name="json">JSON string.</param>
             <returns>Instance.</returns>
+            <exception cref="T:System.NotSupportedException">Thrown when no JSON metadata is available for <typeparamref name="T"/>.</exception>
+        </member>
+        <member name="M:LiteGraph.Sdk.Serializer.DeserializeJson``1(System.String,System.Text.Json.Serialization.Metadata.JsonTypeInfo{``0})">
+            <summary>
+            Deserialize JSON using explicit type metadata, for example <c>MyJsonContext.Default.MyType</c>.
+            Works under Native AOT without registering a resolver.
+            </summary>
+            <typeparam name="T">Type.</typeparam>
+            <param name="json">JSON string.</param>
+            <param name="typeInfo">Type metadata.</param>
+            <returns>Instance.</returns>
+            <exception cref="T:System.ArgumentNullException">Thrown when typeInfo is null.</exception>
         </member>
         <member name="M:LiteGraph.Sdk.Serializer.SerializeJson(System.Object,System.Boolean)">
             <summary>
@@ -7175,6 +8206,7 @@
             <param name="obj">Object.</param>
             <param name="pretty">Pretty print.</param>
             <returns>JSON.</returns>
+            <exception cref="T:System.NotSupportedException">Thrown when no JSON metadata is available for the run-time type of obj.</exception>
         </member>
         <member name="M:LiteGraph.Sdk.Serializer.TrySerializeJson(System.Object,System.Boolean,System.String@)">
             <summary>
