@@ -84,6 +84,36 @@ jobs:
           LITEGRAPH_TEST_REDIS_CONNECTION_STRING: 127.0.0.1:6379
         run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --suite ScaleOut
 
+      - name: Serialization parity suite (JSON pinned to the 10.1 baselines)
+        env:
+          TZ: UTC
+        run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --suite Aot.Serialization
+
+      - name: Native AOT prerequisites
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+
+      - name: Native AOT library verification (net10.0 and net8.0, SQLite and PostgreSQL)
+        env:
+          LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING: Host=127.0.0.1;Port=5432;Database=litegraph_ci;Username=litegraph;Password=litegraph;Timeout=15;Command Timeout=60
+        run: |
+          for framework in net10.0 net8.0; do
+            dotnet publish src/Test.Aot/Test.Aot.csproj -c Release -f "$framework" -r linux-x64 -o "artifacts/aot/$framework"
+            "artifacts/aot/$framework/Test.Aot"
+          done
+
+      - name: Native AOT C# SDK verification (SDK suite against a live server)
+        run: |
+          dotnet build src/LiteGraph.Server/LiteGraph.Server.csproj -c Debug -f net10.0
+          server_dir="$(mktemp -d)"
+          (cd "$server_dir" && dotnet "$GITHUB_WORKSPACE/src/LiteGraph.Server/bin/Debug/net10.0/LiteGraph.Server.dll" > "$server_dir/server.log" 2>&1 &)
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8701/v1.0/health/ready > /dev/null; then break; fi
+            sleep 1
+          done
+          curl -sf http://localhost:8701/v1.0/health/ready > /dev/null || { cat "$server_dir/server.log"; exit 1; }
+          dotnet publish sdk/csharp/src/Test.Automated/Test.Automated.csproj -c Release -r linux-x64 -p:PublishAot=true -o artifacts/sdk-aot
+          LITEGRAPH_ENDPOINT=http://localhost:8701 artifacts/sdk-aot/Test.Automated
+
       - name: Upload test server logs
         if: failure()
         uses: actions/upload-artifact@v7

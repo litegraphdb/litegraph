@@ -2,6 +2,22 @@
 
 ## Current Version
 
+v10.2.0
+
+v10.2 makes the `LiteGraph` library and the `LiteGraph.Sdk` C# SDK compatible with Native AOT and trimming. It is an additive release: JSON output, storage, and the public API are unchanged, and SQLite and PostgreSQL deployments upgrade in place. See [docs/AOT.md](docs/AOT.md).
+
+- **Source-generated JSON**: `LiteGraphJsonContext` (core) and `LiteGraphSdkJsonContext` (SDK) hold metadata for every model type, enumeration result, collection, and untyped data shape the packages serialize. `Serializer` resolves types from the context first, then from resolvers added with the new `Serializer.AddTypeInfoResolver`, and from reflection only when reflection-based serialization is enabled, so JIT applications behave exactly as before.
+- **New APIs**: `Serializer.AddTypeInfoResolver(IJsonTypeInfoResolver)` and `Serializer.DeserializeJson<T>(string, JsonTypeInfo<T>)` in both packages; `LiteGraphClient.ConvertData<T>(object, JsonTypeInfo<T>)`. Under Native AOT, a type no resolver knows fails with a `NotSupportedException` that names it.
+- **Serializer internals**: enum attributes use `JsonStringEnumConverter<TEnum>`; the name-value collection and expression converters no longer call back into reflection; the exception converter keeps its 10.1 output under the JIT and writes a fixed set of fields (`Message`, `ParamName`, `Data`, `InnerException`, `HelpLink`, `Source`, `HResult`, `StackTrace`) under Native AOT. `CopyObject` no longer turns missing metadata into a `null` result.
+- **Library call sites**: transaction payloads, HNSW index files, the query engine and parser, algorithm write-back, and projection export use the same resolver chain. Transaction provider error codes are read from `DbException.SqlState` and `SqliteException.SqliteErrorCode` directly, with the previous name-based lookup kept for other exception types.
+- **GEXF export** writes XML with `XmlWriter` instead of `XmlSerializer`, which cannot run under Native AOT. Output is unchanged.
+- **Query results** go through `DataTableLoader`, which keeps `DataTable.Load` (and its key-merging and result-set semantics) and documents why it is safe under trimming: LiteGraph result tables never have expression columns.
+- **SDK request bodies**: `TestEndpoint`, `PreloadEndpoint`, `RebuildVectorIndex`, and `SubmitFeedback` sent anonymous objects, which cannot be serialized under Native AOT; they now send dictionaries with the same JSON. SDK serializer options are cached instead of rebuilt on every call.
+- **Tests**: new `src/Test.Aot` project, a Native AOT end-to-end run on SQLite and PostgreSQL (trim and AOT warnings are errors at publish); new `Aot.Serialization` Touchstone suite (JSON for every model type compared byte for byte with baselines captured from 10.1, context coverage, JIT compatibility, and GEXF output); the C# SDK suite uses dictionaries instead of anonymous objects for test data so it can run as a Native AOT binary.
+- CI publishes and runs `Test.Aot` on Linux against SQLite and PostgreSQL.
+
+## Previous Versions
+
 v10.1.0
 
 v10.1 updates dependencies. **This is a breaking release for MCP clients**: tool names use underscores instead of slashes. Storage is unchanged; SQLite and PostgreSQL deployments upgrade in place.
@@ -12,8 +28,6 @@ v10.1 updates dependencies. **This is a breaking release for MCP clients**: tool
 - **HnswLite 2.1**: SQLite HNSW index files record `HnswLiteVersion` `2.1.0`. The file format version is unchanged, so existing index files load as before.
 - Package updates: PolyPrompt 2.6.0 → 3.1.0, Voltaic 2.0.0 → 2.2.1, HnswLite 2.0.1 → 2.1.0, Caching 5.0.1 → 5.1.2, Padlock 1.1.0 → 1.2.0, RestWrapper 3.3.0 → 3.3.1 (core and C# SDK), SyslogLogging 2.2.2 → 2.3.1, Timestamps 1.0.12 → 1.0.13, Watson 7.2.0 → 7.2.2; tests use Touchstone 0.1.12 → 0.2.0, NUnit 4.6.1 → 5.0.0, coverlet.collector 10.0.1 → 10.1.0.
 - MCP protocol tests follow the Voltaic 2.2 rules. New test `Chat.Rest.EmbeddingEndpointClients` covers an embedding endpoint's connectivity test, model inventory, and node embedding generation through the PolyPrompt embedding client.
-
-## Previous Versions
 
 v10.0.0
 

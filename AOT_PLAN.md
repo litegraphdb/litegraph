@@ -1,11 +1,62 @@
 # AOT Readiness Plan for LiteGraph
 
-Status: proposal. Scope: the `LiteGraph` library (the NuGet package) first. `LiteGraph.McpServer` and
-`LiteGraph.Server` come after it as optional follow-ups.
+Status: **implemented in v10.2.0** (branch `feature/aot`). The library and the C# SDK are AOT-compatible; see
+[docs/AOT.md](docs/AOT.md) for the user-facing guide and §0 below for how the implementation differs from the plan.
+`LiteGraph.McpServer` and `LiteGraph.Server` (Phase 6) were not attempted and still run on the JIT.
 
 Goal: an application that references LiteGraph and publishes with `PublishAot=true` builds with **zero trim or AOT
 warnings that come from LiteGraph** and runs correctly on SQLite and PostgreSQL. Behavior under the JIT (all current
 users) does not change, and the public API has no breaking changes.
+
+---
+
+## 0. Implementation Notes (v10.2.0)
+
+Results:
+- `IsAotCompatible=true` on `LiteGraph` (net8.0, net10.0) and `LiteGraph.Sdk` (net8.0), zero IL warnings.
+- `src/Test.Aot` publishes as Native AOT with trim and AOT warnings treated as errors, and passes 29/29 checks on
+  SQLite and PostgreSQL for both net8.0 and net10.0.
+- The C# SDK suite (157 cases) passes as a Native AOT binary against a live server.
+- `Aot.Serialization` confirms byte-identical JSON for 98 model and data shapes against baselines captured before any
+  change.
+- The full Touchstone run (SQLite and PostgreSQL) passes. The only skips are the three Redis cluster cases, which need
+  Redis.
+
+Departures from the plan, and why:
+
+1. **`DataTable.Load` was kept, not replaced (§4 Phase 3).** `DataTable.Load` uses `MissingSchemaAction.AddWithKey`:
+   for single-table results it adds primary-key and unique constraints from the reader's schema, and merges rows that
+   share a key. A JOIN that selects only `nodes.*` reports one base table, so a hand-written loader would return
+   duplicate rows (or skip a unique-constraint failure) where `Load` does not. Copying rows by hand would therefore
+   change behavior. Instead, every call goes through `GraphRepositories/DataTableLoader.cs`, which suppresses IL2026
+   with a justification: the annotation exists for DataColumn expressions, which LiteGraph never creates. Native AOT
+   runs on both providers confirm it works.
+2. **`LiteGraphJsonContext` is public, not internal (§3.1).** Consumers, the server, and Durable.LiteGraph can add it
+   to their own option chains, which they could not do with an internal type.
+3. **The exception converter keeps its reflection output under the JIT (§4 Phase 1.4).** The plan accepted a shape
+   change for everyone. Instead, the explicit-field writer runs only when reflection-based serialization is disabled,
+   so JIT output is unchanged (pinned by `Aot.JitCompatibility`). The fixed shape applies only under Native AOT.
+4. **Provider error codes keep a reflection fallback (§4 Phase 2).** `DbException.SqlState` and
+   `SqliteException.SqliteErrorCode` are read directly. The full test run showed that callers rely on any exception with
+   a `SqlState` property being recognized, so the original name-based lookup remains as a best-effort fallback
+   (suppressed, documented) for other types.
+5. **The C# SDK was included.** It had the same reflection-based serializer (15 warnings). It also sent anonymous
+   objects as request bodies in `TestEndpoint`, `PreloadEndpoint`, `RebuildVectorIndex`, and `SubmitFeedback`, which
+   only showed up when its suite ran as a Native AOT binary.
+6. **The Phase 0 baselines were captured as planned, before the serializer changed.** Two refinements came out of
+   making them stable:
+   - Freshly constructed `Timestamp` values are masked in the round-trip output.
+   - The GEXF fixture uses one label and one tag per object, because SQLite returns several in no fixed order.
+   The SDK had no baseline commit, so its parity was checked by running one snapshot program against the 10.1.0 SDK
+   (git worktree) and the new SDK: 2,126 of 2,127 lines are identical, and the remaining line deliberately uses random
+   GUIDs.
+7. **More shapes registered for untyped data.** `T[]` and `List<T>` of common primitives are registered in both
+   contexts, so `Dictionary<string, object>` values built from them work under Native AOT.
+
+Found but not changed (pre-existing, unrelated to AOT): `Serializer`'s `DateTimeConverter` reads `...Z` timestamps
+with `DateTime.TryParse`, which converts them to local time; writing that value back appends `Z` to a local time.
+Round trips through JSON are therefore off by the machine's UTC offset unless the process runs in UTC. The parity suite
+compares round trips only under UTC for this reason.
 
 ---
 

@@ -170,6 +170,18 @@ namespace LiteGraph.Serialization
     [JsonSerializable(typeof(double[]))]
     [JsonSerializable(typeof(string[]))]
     [JsonSerializable(typeof(object[]))]
+    [JsonSerializable(typeof(int[]))]
+    [JsonSerializable(typeof(long[]))]
+    [JsonSerializable(typeof(bool[]))]
+    [JsonSerializable(typeof(decimal[]))]
+    [JsonSerializable(typeof(Guid[]))]
+    [JsonSerializable(typeof(DateTime[]))]
+    [JsonSerializable(typeof(List<int>))]
+    [JsonSerializable(typeof(List<long>))]
+    [JsonSerializable(typeof(List<double>))]
+    [JsonSerializable(typeof(List<bool>))]
+    [JsonSerializable(typeof(List<decimal>))]
+    [JsonSerializable(typeof(List<DateTime>))]
     public partial class LiteGraphJsonContext : JsonSerializerContext
     {
         #region Public-Members

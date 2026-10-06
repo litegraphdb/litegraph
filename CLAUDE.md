@@ -18,6 +18,9 @@ dotnet run --project src/Test.Automated/Test.Automated.csproj --framework net10.
 LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING="Host=127.0.0.1;Port=5432;Username=...;Password=...;Database=..." \
   dotnet run --project src/Test.Automated/Test.Automated.csproj --framework net10.0 -- --suite ScaleOut
 
+# Native AOT check of the library (trim/AOT warnings are errors; runs SQLite, plus PostgreSQL when the variable is set)
+dotnet publish src/Test.Aot/Test.Aot.csproj -c Release -f net10.0 -r osx-arm64 -o out/aot && out/aot/Test.Aot
+
 # Run the server (single node, SQLite, creates litegraph.json and litegraph.db in the current directory)
 dotnet run --project src/LiteGraph.Server/LiteGraph.Server.csproj --framework net10.0
 
@@ -78,6 +81,17 @@ Tenant → Graph → Nodes/Edges → Labels/Tags/Vectors
 - The settings API reads and writes the shared settings file through `Services/SettingsFileService.cs`, which keeps
   values that came from environment variables (node identity, secrets) out of the file.
 - See `docs/CLUSTERING.md`.
+
+#### Native AOT And Trimming (v10.2)
+- `LiteGraph` and `LiteGraph.Sdk` set `IsAotCompatible`; builds must stay free of IL warnings.
+- In the library and the SDK, all JSON goes through `Serializer` (or options built with `Serializer.CreateResolver`, or a
+  `JsonTypeInfo<T>`). Never call `JsonSerializer` with plain options there, and do not add reflection, `XmlSerializer`,
+  anonymous types in serialized values, or the non-generic `JsonStringEnumConverter`. The server, MCP server, and console
+  still run on the JIT and are not held to this.
+- A new serialized type needs a `[JsonSerializable]` entry in `Serialization/LiteGraphJsonContext.cs` (or
+  `LiteGraphSdkJsonContext.cs`) and in the parity list in `Test.Shared/LiteGraphTouchstoneAotSuites.cs`.
+- JSON output is pinned by baselines in `Test.Shared/Baselines`; run `--suite Aot.Serialization` with `TZ=UTC`.
+- See `docs/AOT.md`.
 
 ### Data Model Key Points
 

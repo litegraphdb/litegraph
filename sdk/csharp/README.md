@@ -8,7 +8,15 @@ This SDK is part of the [LiteGraph monorepo](../../README.md). For other languag
 
 LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.  LiteGraph is intended to be a unified database for providing persistence and retrieval for knowledge and artificial intelligence applications.
 
-Current release: v10.1.0.
+Current release: v10.2.0.
+
+## New in v10.2.0
+
+- Native AOT and trimming support. Applications that call LiteGraph through this SDK can be published with `PublishAot=true`; the package builds with no trim or AOT warnings, and the SDK's test suite passes as a Native AOT binary.
+- Under Native AOT, application classes stored in `Data` need source-generated metadata: register a `JsonSerializerContext` once with `Serializer.AddTypeInfoResolver(MyJsonContext.Default)`, or use `JsonElement`, `JsonNode`, primitives, dictionaries, or lists. Anonymous objects cannot be serialized under Native AOT. Under the JIT nothing changes.
+- `LiteGraphSdkJsonContext` exposes the SDK's metadata for use in your own `JsonSerializerOptions`.
+
+See [Native AOT and trimming](../../docs/AOT.md).
 
 ## New in v10.0.0
 

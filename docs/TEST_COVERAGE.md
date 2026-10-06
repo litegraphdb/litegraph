@@ -336,6 +336,17 @@ The bulk of the 205 MCP tools are covered inside the domain tables above: the `M
 | Metrics (`GET /metrics`, unauthenticated) | Obs:RestMetricLabels, McpMetricLabels; Imp:Observability.MetricsEndpoint; ChatR:Metrics (chat counters, no tenant-GUID leak) | Obs:RestErrorCounter / McpErrorCounter (error counters increment) | |
 | Route/auth-bucket parity | RouteAuth:ParitySnapshot (asserts exactly 4 public routes, 207 authenticated, no overlap, ~24 sensitive routes pinned to the authenticated bucket) | inherent (the case fails on any drift in either direction) | |
 
+## Native AOT (v10.2)
+
+| Surface | Positive | Negative | Gap? |
+|---|---|---|---|
+| JSON output of every model type (compact, indented, round trip) | `Aot.Serialization`: `Aot.SerializationParity.Compact`, `.Pretty`, `.RoundTrip` (byte-for-byte against baselines captured from 10.1) | — | Round trip compares only when the process time zone is UTC |
+| Source-generated metadata covers every model type | `Aot.ContextCoverage` | — | — |
+| JIT behavior for exceptions and unregistered types | `Aot.JitCompatibility` | — | — |
+| GEXF export output | `Aot.GexfParity` (against the `XmlSerializer` baseline) | — | — |
+| Library under Native AOT (SQLite and PostgreSQL) | `src/Test.Aot`, published with `PublishAot` and run in CI | Unregistered application type fails with `NotSupportedException`; failing transaction rolls back with a provider error code | Server, MCP server, and console are not published with Native AOT |
+| C# SDK under Native AOT | `SDK-C#` suite published with `PublishAot=true` against a live server (157 cases), run in CI | Same negatives as the JIT run | — |
+
 ## SDK client coverage (summary)
 
 The three shipped SDKs carry their own test trees, which validate the clients rather than the server. `sdk/csharp/src/Test.Automated` is a live-server regression suite spanning every domain except chat and JSONL import/export; it is almost entirely happy-path (its one explicit negative is the unsupported-backup-provider case). `sdk/python/tests` runs against a mocked transport with strong negative coverage (~79 `pytest.raises`), covering CRUD generically through mixin tests plus dedicated chat, import/export, authorization, transaction, and query modules; its admin tests cover server settings only, not backups or flush. `sdk/js/test` (Jest + MSW) has a dedicated per-domain file for every surface including chat and JSONL import/export, with error-path assertions throughout except in the authorization, query, and traversal test files. Cross-SDK: chat and JSONL import/export are missing from the C# SDK tests; admin backups/flush are missing from Python and JS.

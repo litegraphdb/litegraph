@@ -1,5 +1,13 @@
 # LiteGraph Upgrade Guide
 
+## Upgrading From v10.1 To v10.2 (In-Place)
+
+v10.2 makes the `LiteGraph` library and the `LiteGraph.Sdk` C# SDK compatible with Native AOT and trimming. Storage, JSON output, REST and MCP behavior, and the public API are unchanged, so this is a routine in-place upgrade on SQLite and PostgreSQL: deploy the new binaries or bump the Docker image tags to `v10.2.0`. No migration runs, and rolling back to 10.1 is a matter of restoring the previous binaries.
+
+Applications that embed LiteGraph or use the C# SDK need no changes under the JIT. To publish them with Native AOT, see [Native AOT and trimming](AOT.md): classes the application stores in `Data` must be registered with `Serializer.AddTypeInfoResolver`, and anonymous objects in `Data` must become dictionaries or named classes.
+
+---
+
 ## Upgrading From v9.x To v10.0 (Breaking On PostgreSQL)
 
 **Back up first. There is no rollback to 9.x on PostgreSQL.** On its first start, 10.0 converts the `vectors.embeddings` column from raw bytes to a pgvector `vector` column and records the conversion in a new `schemamigrations` table. A 9.x server cannot read the converted column, so the only way back is restoring the backup. On PostgreSQL, take a `pg_dump` (or a volume snapshot) before anything else. On SQLite, copy the database file.

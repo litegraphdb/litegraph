@@ -16785,6 +16785,11 @@
             Defines the source generated JSON serialization contract metadata for a given type.
             </summary>
         </member>
+        <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.BooleanArray">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
         <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.Byte">
             <summary>
             Defines the source generated JSON serialization contract metadata for a given type.
@@ -16801,6 +16806,11 @@
             </summary>
         </member>
         <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.Decimal">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.DecimalArray">
             <summary>
             Defines the source generated JSON serialization contract metadata for a given type.
             </summary>
@@ -17525,6 +17535,21 @@
             Defines the source generated JSON serialization contract metadata for a given type.
             </summary>
         </member>
+        <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.ListBoolean">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.ListDecimal">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.ListDouble">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
         <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.ListSingle">
             <summary>
             Defines the source generated JSON serialization contract metadata for a given type.
@@ -17690,12 +17715,27 @@
             Defines the source generated JSON serialization contract metadata for a given type.
             </summary>
         </member>
+        <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.ListDateTime">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
         <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.ListGuid">
             <summary>
             Defines the source generated JSON serialization contract metadata for a given type.
             </summary>
         </member>
         <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.ListType">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.ListInt32">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.ListInt64">
             <summary>
             Defines the source generated JSON serialization contract metadata for a given type.
             </summary>
@@ -17725,6 +17765,11 @@
             Defines the source generated JSON serialization contract metadata for a given type.
             </summary>
         </member>
+        <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.DateTimeArray">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
         <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.DateTimeOffset">
             <summary>
             Defines the source generated JSON serialization contract metadata for a given type.
@@ -17736,6 +17781,11 @@
             </summary>
         </member>
         <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.NullableGuid">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.GuidArray">
             <summary>
             Defines the source generated JSON serialization contract metadata for a given type.
             </summary>
@@ -17795,12 +17845,22 @@
             Defines the source generated JSON serialization contract metadata for a given type.
             </summary>
         </member>
+        <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.Int32Array">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
         <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.Int64">
             <summary>
             Defines the source generated JSON serialization contract metadata for a given type.
             </summary>
         </member>
         <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.NullableInt64">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.Int64Array">
             <summary>
             Defines the source generated JSON serialization contract metadata for a given type.
             </summary>

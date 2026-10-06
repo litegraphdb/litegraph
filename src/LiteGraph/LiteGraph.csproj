@@ -3,9 +3,9 @@
 	<PropertyGroup>
 		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
 		<IsAotCompatible>true</IsAotCompatible>
-		<Version>10.1.0</Version>
+		<Version>10.2.0</Version>
 		<Description>LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
-		<PackageReleaseNotes>v10.1.0: MCP tool names use underscores (graph_get instead of graph/get) for MCP spec compliance; dependency updates (PolyPrompt 3.1, HnswLite 2.1, Caching 5.1, Padlock 1.2, Watson 7.2.2, and others).</PackageReleaseNotes>
+		<PackageReleaseNotes>v10.2.0: Native AOT and trimming support (IsAotCompatible). Source-generated JSON metadata (LiteGraphJsonContext), Serializer.AddTypeInfoResolver for application types stored in Data, DeserializeJson and ConvertData overloads that take JsonTypeInfo, and GEXF export without XmlSerializer. JSON output and storage are unchanged; no breaking changes.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Joel Christner</Authors>
 		<Company>Joel Christner</Company>

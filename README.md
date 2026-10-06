@@ -4,7 +4,7 @@
 
 [![NuGet Version](https://img.shields.io/nuget/v/LiteGraph.svg?style=flat)](https://www.nuget.org/packages/LiteGraph/) [![NuGet](https://img.shields.io/nuget/dt/LiteGraph.svg)](https://www.nuget.org/packages/LiteGraph) [![Documentation](https://img.shields.io/badge/docs-litegraph.readme.io-blue)](https://litegraph.readme.io/)
 
-Current release: `v10.1.0`.
+Current release: `v10.2.0`.
 
 LiteGraph is a property graph database for applications that need graph relationships, tags, labels, JSON data, and vector search in one persistence layer. It can be embedded in a .NET process with `LiteGraphClient`, run as a standalone REST server, used through official SDKs, managed through the dashboard, or controlled by AI agents through the Model Context Protocol (MCP).
 
@@ -12,7 +12,7 @@ The `v7.0.0` transaction-scaling work is now merged into `main`. Historical plan
 
 ## What Is Included
 
-- Core .NET graph library targeting `net8.0` and `net10.0`
+- Core .NET graph library targeting `net8.0` and `net10.0`, compatible with Native AOT and trimming
 - SQLite provider for embedded, local, and test use, with in-process HNSW vector indexing through `HnswLite`
 - PostgreSQL provider with pgvector for production, including multi-node clusters behind a load balancer
 - Native LiteGraph graph query language for reads, traversals, vector search, and graph mutations
@@ -64,6 +64,17 @@ Authorization — built-in and custom roles (including the delegable Chat Admin)
 ![3D graph view](assets/ss6.png)
 
 </details>
+
+## New In v10.2
+
+v10.2 makes the `LiteGraph` library and the `LiteGraph.Sdk` C# SDK compatible with Native AOT and trimming. Applications that embed LiteGraph or call a LiteGraph server through the SDK can now be published with `PublishAot=true`. Additive release: JSON output, storage, and the public API are unchanged, so every deployment upgrades in place.
+
+- Both packages set `IsAotCompatible` and build with no trim or AOT warnings. Every type they serialize has source-generated metadata (`LiteGraphJsonContext`, `LiteGraphSdkJsonContext`), which applications can also add to their own `JsonSerializerOptions`.
+- Applications that store their own classes in `Data` register a `JsonSerializerContext` once with `Serializer.AddTypeInfoResolver`, or pass type metadata to the new `ConvertData` and `DeserializeJson` overloads. `JsonElement`, `JsonNode`, primitives, dictionaries, and lists need no registration. Under the JIT nothing changes: any serializable object still works.
+- GEXF export writes XML directly instead of through `XmlSerializer`, with identical output.
+- Verified by `src/Test.Aot`, a Native AOT end-to-end run on SQLite and PostgreSQL, by the SDK's test suite published as a Native AOT binary, and by a new Touchstone suite that checks every model type's JSON byte for byte against 10.1.
+
+See [Native AOT and trimming](docs/AOT.md).
 
 ## New In v10.1
 
@@ -134,6 +145,7 @@ See [Chat](docs/CHAT.md) for the chat architecture and [REST API](docs/REST_API.
 ## Documentation
 
 - [Storage configuration](docs/STORAGE.md)
+- [Native AOT and trimming](docs/AOT.md)
 - [Clustering and multi-node deployment](docs/CLUSTERING.md)
 - [Docker deployments](docker/README.md)
 - [Native graph query language](docs/DSL.md)

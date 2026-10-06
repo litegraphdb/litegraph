@@ -2,11 +2,20 @@
 
 ## Current Version
 
+v10.2.0
+
+- Native AOT and trimming support: the package sets `IsAotCompatible` and builds with no trim or AOT warnings. See [Native AOT and trimming](../../docs/AOT.md).
+- Added `LiteGraphSdkJsonContext`, source-generated metadata for every SDK model type, enumeration result, and list. `Serializer` resolves types from it first, then from resolvers added with the new `Serializer.AddTypeInfoResolver`, then from reflection only when reflection-based serialization is enabled, so JIT applications behave exactly as before.
+- Added `Serializer.DeserializeJson<T>(string, JsonTypeInfo<T>)`.
+- `TestEndpoint`, `PreloadEndpoint`, `RebuildVectorIndex`, and `SubmitFeedback` send dictionaries instead of anonymous objects (same JSON), so they work under Native AOT.
+- Serializer options are cached instead of rebuilt on every call; `IncludeNullProperties` and `DateTimeFormat` behave as before.
+- Serialized JSON for every model type is unchanged from 10.1.0.
+
+## Previous Versions
+
 v10.1.0
 
 - RestWrapper 3.3.0 → 3.3.1. No API changes.
-
-## Previous Versions
 
 v10.0.0
 

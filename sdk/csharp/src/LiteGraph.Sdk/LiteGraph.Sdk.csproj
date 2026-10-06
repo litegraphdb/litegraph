@@ -3,9 +3,9 @@
 	<PropertyGroup>
 		<TargetFrameworks>net8.0</TargetFrameworks>
 		<IsAotCompatible>true</IsAotCompatible>
-		<Version>10.1.0</Version>
+		<Version>10.2.0</Version>
 		<Description>SDK for LiteGraph, a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
-		<PackageReleaseNotes>v10.1.0: RestWrapper 3.3.1.</PackageReleaseNotes>
+		<PackageReleaseNotes>v10.2.0: Native AOT and trimming support (IsAotCompatible). Source-generated JSON metadata (LiteGraphSdkJsonContext), Serializer.AddTypeInfoResolver, and a DeserializeJson overload that takes JsonTypeInfo. JSON output is unchanged; no breaking changes.</PackageReleaseNotes>
 		<ApplicationIcon>Assets\favicon.ico</ApplicationIcon>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 		<Title>LiteGraph.Sdk</Title>

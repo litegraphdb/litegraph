@@ -145,7 +145,13 @@ namespace Test.Aot
                     true,
                     Guid.NewGuid(),
                     DateTime.UtcNow,
-                    new List<object> { "a", 1L }
+                    new List<object> { "a", 1L },
+                    new int[] { 1, 2 },
+                    new List<long> { 3L, 4L },
+                    new Guid[] { Guid.NewGuid() },
+                    new List<double> { 0.5d },
+                    new Dictionary<string, string> { { "k", "v" } },
+                    new Dictionary<string, object> { { "nested", new List<object> { new Dictionary<string, object> { { "deep", new decimal[] { 1.5m } } } } } }
                 };
 
                 foreach (object variant in variants)

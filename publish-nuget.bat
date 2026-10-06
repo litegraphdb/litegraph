@@ -7,7 +7,7 @@ SET "NUGET_API_KEY=%~1"
 SET "ROOT=%~dp0"
 SET "OUTPUT=%ROOT%artifacts\nuget"
 SET "NUGET_SOURCE=https://api.nuget.org/v3/index.json"
-SET "PACKAGE_VERSION=10.1.0"
+SET "PACKAGE_VERSION=10.2.0"
 
 ECHO.
 ECHO Packing LiteGraph %PACKAGE_VERSION% packages...

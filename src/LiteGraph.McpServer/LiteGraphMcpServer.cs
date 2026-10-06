@@ -401,11 +401,11 @@
             _McpWebsocketServer = new McpWebsocketsServer(_Settings.WebSocket.Hostname, _Settings.WebSocket.Port, "/mcp");
 
             _McpHttpServer.ServerName = "LiteGraph.McpServer";
-            _McpHttpServer.ServerVersion = "10.1.0";
+            _McpHttpServer.ServerVersion = "10.2.0";
             _McpTcpServer.ServerName = "LiteGraph.McpServer";
-            _McpTcpServer.ServerVersion = "10.1.0";
+            _McpTcpServer.ServerVersion = "10.2.0";
             _McpWebsocketServer.ServerName = "LiteGraph.McpServer";
-            _McpWebsocketServer.ServerVersion = "10.1.0";
+            _McpWebsocketServer.ServerVersion = "10.2.0";
 
             _McpHttpServer.RateLimits.ToolCallsPerSecond = _Settings.ToolCallsPerSecond;
             _McpTcpServer.RateLimits.ToolCallsPerSecond = _Settings.ToolCallsPerSecond;
