@@ -546,7 +546,10 @@
                 string str = reader.GetString();
 
                 DateTime val;
-                if (DateTime.TryParse(str, out val)) return val;
+                // Timestamps are UTC. A "Z" or "+hh:mm" suffix is honored and the result converted to UTC; a value without
+                // one is taken as UTC. Without these styles, TryParse converts zoned values to the machine's local time,
+                // which the writer then labels "Z", shifting the timestamp by the local UTC offset on every round trip.
+                if (DateTime.TryParse(str, CultureInfo.CurrentCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out val)) return val;
 
                 throw new FormatException("The JSON value '" + str + "' could not be converted to System.DateTime.");
             }
@@ -559,6 +562,8 @@
             /// <param name="options">Options.</param>
             public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
             {
+                // Timestamps are UTC, so local times are converted before formatting.
+                if (value.Kind == DateTimeKind.Local) value = value.ToUniversalTime();
                 writer.WriteStringValue(value.ToString(_DateTimeFormat, CultureInfo.InvariantCulture));
             }
 

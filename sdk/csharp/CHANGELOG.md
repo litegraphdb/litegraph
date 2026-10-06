@@ -10,6 +10,7 @@ v10.2.0
 - `TestEndpoint`, `PreloadEndpoint`, `RebuildVectorIndex`, and `SubmitFeedback` send dictionaries instead of anonymous objects (same JSON), so they work under Native AOT.
 - Serializer options are cached instead of rebuilt on every call; `IncludeNullProperties` and `DateTimeFormat` behave as before.
 - Serialized JSON for every model type is unchanged from 10.1.0.
+- Fix: on machines not set to UTC, timestamps in responses were parsed into local time (with the local clock reading), so a value read from the server and sent back moved by the local UTC offset. Timestamps now parse as UTC, and local `DateTime` values are converted to UTC before they are sent.
 
 ## Previous Versions
 

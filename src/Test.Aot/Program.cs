@@ -209,6 +209,17 @@ namespace Test.Aot
                 return Task.CompletedTask;
             }).ConfigureAwait(false);
 
+            await Check("Serializer: timestamps keep their UTC value in any time zone", () =>
+            {
+                DateTime expected = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc).AddTicks(1234560);
+                Node node = serializer.DeserializeJson<Node>("{\"CreatedUtc\":\"2026-01-02T03:04:05.123456Z\",\"LastUpdateUtc\":\"2026-01-02T05:04:05.123456+02:00\"}");
+                Expect(node.CreatedUtc.Ticks == expected.Ticks && node.CreatedUtc.Kind == DateTimeKind.Utc, "Z timestamp: " + node.CreatedUtc.ToString("o"));
+                Expect(node.LastUpdateUtc.Ticks == expected.Ticks, "offset timestamp: " + node.LastUpdateUtc.ToString("o"));
+                string json = serializer.SerializeJson(new Node { CreatedUtc = expected.ToLocalTime() }, false);
+                Expect(json.Contains("\"CreatedUtc\":\"2026-01-02T03:04:05.123456Z\""), "local timestamp written as UTC: " + json);
+                return Task.CompletedTask;
+            }).ConfigureAwait(false);
+
             await Check("Serializer: application types need registration under AOT", () =>
             {
                 AotAppData data = new AotAppData { Name = "app", Score = 7, Status = AotAppStatusEnum.Retired, Keywords = new List<string> { "k" } };

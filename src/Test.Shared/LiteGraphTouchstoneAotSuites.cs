@@ -170,6 +170,11 @@ namespace Test.Shared
                         executeAsync: TestAotJitCompatibility),
                     new TestCaseDescriptor(
                         suiteId: _AotSuiteId,
+                        caseId: "Aot.DateTimeUtc",
+                        displayName: "Timestamps keep their UTC value through JSON in any machine time zone",
+                        executeAsync: TestAotDateTimeUtc),
+                    new TestCaseDescriptor(
+                        suiteId: _AotSuiteId,
                         caseId: "Aot.GexfParity",
                         displayName: "GEXF export matches the XmlSerializer baseline",
                         executeAsync: TestAotGexfParity)
@@ -188,14 +193,6 @@ namespace Test.Shared
 
         private static async Task TestAotSerializationParityRoundTrip(CancellationToken token)
         {
-            // The DateTime converter parses "...Z" timestamps into local time, so round-trip output depends on the
-            // machine's time zone. The baseline was captured in UTC; compare only when running in UTC (as CI does).
-            if (TimeZoneInfo.Local.GetUtcOffset(_AotSampleTimestamp) != TimeSpan.Zero)
-            {
-                Console.WriteLine("Aot.SerializationParity.RoundTrip: local time zone is not UTC, comparison skipped (run with TZ=UTC).");
-                return;
-            }
-
             await CompareAotSerializationBaseline("roundtrip", token).ConfigureAwait(false);
         }
 
@@ -561,6 +558,30 @@ namespace Test.Shared
 
             TagMetadata copy = serializer.CopyObject(new TagMetadata { Key = "k", Value = "v" });
             AssertTrue(copy != null && copy.Key == "k", "CopyObject of a model type");
+            return Task.CompletedTask;
+        }
+
+        private static Task TestAotDateTimeUtc(CancellationToken token)
+        {
+            Serializer serializer = new Serializer();
+            DateTime expected = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc).AddTicks(1234560);
+
+            Node zulu = serializer.DeserializeJson<Node>("{\"CreatedUtc\":\"2026-01-02T03:04:05.123456Z\"}");
+            AssertEqual(expected.Ticks, zulu.CreatedUtc.Ticks, "Z timestamp keeps its value");
+            AssertEqual(DateTimeKind.Utc, zulu.CreatedUtc.Kind, "Z timestamp is UTC");
+
+            Node offset = serializer.DeserializeJson<Node>("{\"CreatedUtc\":\"2026-01-02T05:04:05.123456+02:00\"}");
+            AssertEqual(expected.Ticks, offset.CreatedUtc.Ticks, "Offset timestamp is converted to UTC");
+
+            Node unzoned = serializer.DeserializeJson<Node>("{\"CreatedUtc\":\"2026-01-02 03:04:05.123456\"}");
+            AssertEqual(expected.Ticks, unzoned.CreatedUtc.Ticks, "Timestamp without a zone is taken as UTC");
+
+            string json = serializer.SerializeJson(new Node { CreatedUtc = expected, LastUpdateUtc = expected.ToLocalTime() }, false);
+            AssertTrue(json.Contains("\"CreatedUtc\":\"2026-01-02T03:04:05.123456Z\""), "UTC timestamp written unchanged: " + json);
+            AssertTrue(json.Contains("\"LastUpdateUtc\":\"2026-01-02T03:04:05.123456Z\""), "Local timestamp written as UTC: " + json);
+
+            Node roundTripped = serializer.DeserializeJson<Node>(serializer.SerializeJson(zulu, false));
+            AssertEqual(expected.Ticks, roundTripped.CreatedUtc.Ticks, "Round trip keeps the value");
             return Task.CompletedTask;
         }
 

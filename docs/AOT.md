@@ -133,6 +133,6 @@ code off for JIT runs of that project, so most problems show up without a full N
   `JsonTypeInfo<T>`; never with plain `JsonSerializerOptions`. Do not add reflection, `XmlSerializer`, or
   `JsonStringEnumConverter` without a type argument.
 - The build must stay free of IL warnings; `IsAotCompatible` turns the analyzers on for every build.
-- After changing serialization, run `Aot.Serialization` with `TZ=UTC` and `src/Test.Aot` as a Native AOT binary.
+- After changing serialization, run `Aot.Serialization` and `src/Test.Aot` as a Native AOT binary.
   If a model change intentionally changes JSON output, recapture the baselines with
   `LITEGRAPH_CAPTURE_AOT_BASELINES=<directory>` and review the diff before committing them.

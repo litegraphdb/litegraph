@@ -53,10 +53,13 @@ Departures from the plan, and why:
 7. **More shapes registered for untyped data.** `T[]` and `List<T>` of common primitives are registered in both
    contexts, so `Dictionary<string, object>` values built from them work under Native AOT.
 
-Found but not changed (pre-existing, unrelated to AOT): `Serializer`'s `DateTimeConverter` reads `...Z` timestamps
-with `DateTime.TryParse`, which converts them to local time; writing that value back appends `Z` to a local time.
-Round trips through JSON are therefore off by the machine's UTC offset unless the process runs in UTC. The parity suite
-compares round trips only under UTC for this reason.
+Fixed alongside (pre-existing, unrelated to AOT): the `DateTimeConverter` in both serializers read `...Z` timestamps
+with `DateTime.TryParse`, which converts them to local time; writing that value back appended `Z` to a local time, so
+JSON round trips were off by the machine's UTC offset unless the process ran in UTC. The converters now parse with
+`AdjustToUniversal | AssumeUniversal` (results are UTC; a value without a zone is taken as UTC) and convert local
+times to UTC before writing. The cluster registry's compensating `ToUniversalTime()` calls were removed. The parity
+suite now compares round trips in any time zone, `Aot.DateTimeUtc` covers the cases directly, and CI runs the suite
+outside UTC.
 
 ---
 

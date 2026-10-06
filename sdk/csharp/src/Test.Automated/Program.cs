@@ -568,6 +568,7 @@ namespace Test.Automated
 			Console.WriteLine("");
 
 			// Tenant tests (must run first to supply context for other modules)
+			await RunTest("Serializer.DateTimeUtc", TestSerializerDateTimeUtc).ConfigureAwait(false);
 			await RunTest("Tenant.Create", TestTenantCreate).ConfigureAwait(false);
 			await RunTest("Tenant.ReadByGuid", TestTenantReadByGuid).ConfigureAwait(false);
 			await RunTest("Tenant.ExistsByGuid", TestTenantExistsByGuid).ConfigureAwait(false);
@@ -761,6 +762,17 @@ namespace Test.Automated
 			await RunTest("Node.DeleteMethods", TestNodeDeleteMethods).ConfigureAwait(false);
 			await RunTest("Graph.DeleteMethods", TestGraphDeleteMethods).ConfigureAwait(false);
 			await RunTest("Tenant.DeleteMethods", TestTenantDeleteMethods).ConfigureAwait(false);
+		}
+
+		private static Task TestSerializerDateTimeUtc()
+		{
+			DateTime expected = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc).AddTicks(1234560);
+			Node node = Serializer.DeserializeJson<Node>("{\"CreatedUtc\":\"2026-01-02T03:04:05.123456Z\",\"LastUpdateUtc\":\"2026-01-02T05:04:05.123456+02:00\"}");
+			AssertTrue(node.CreatedUtc.Ticks == expected.Ticks && node.CreatedUtc.Kind == DateTimeKind.Utc, "Z timestamp keeps its UTC value");
+			AssertTrue(node.LastUpdateUtc.Ticks == expected.Ticks, "Offset timestamp is converted to UTC");
+			string json = Serializer.SerializeJson(new Node { CreatedUtc = expected.ToLocalTime() }, false);
+			AssertTrue(json.Contains("\"CreatedUtc\":\"2026-01-02T03:04:05.123456Z\""), "Local timestamp is written as UTC");
+			return Task.CompletedTask;
 		}
 
 		private static async Task RunTest(string name, Func<Task> testFunc)

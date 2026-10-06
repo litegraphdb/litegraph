@@ -4,6 +4,8 @@
 
 v10.2 makes the `LiteGraph` library and the `LiteGraph.Sdk` C# SDK compatible with Native AOT and trimming. Storage, JSON output, REST and MCP behavior, and the public API are unchanged, so this is a routine in-place upgrade on SQLite and PostgreSQL: deploy the new binaries or bump the Docker image tags to `v10.2.0`. No migration runs, and rolling back to 10.1 is a matter of restoring the previous binaries.
 
+One behavior fix applies to every deployment and client: on machines whose time zone is not UTC, timestamps that passed through JSON were shifted by the local UTC offset; they no longer are, and `DateTime` values read through the serializer now have `Kind` `Utc`. Code that compensated by calling `ToUniversalTime()` keeps working (the call is now a no-op). Code that compensated in the other direction, or that relied on `Kind` being `Local`, should be checked.
+
 Applications that embed LiteGraph or use the C# SDK need no changes under the JIT. To publish them with Native AOT, see [Native AOT and trimming](AOT.md): classes the application stores in `Data` must be registered with `Serializer.AddTypeInfoResolver`, and anonymous objects in `Data` must become dictionaries or named classes.
 
 ---

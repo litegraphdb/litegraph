@@ -340,7 +340,8 @@ The bulk of the 205 MCP tools are covered inside the domain tables above: the `M
 
 | Surface | Positive | Negative | Gap? |
 |---|---|---|---|
-| JSON output of every model type (compact, indented, round trip) | `Aot.Serialization`: `Aot.SerializationParity.Compact`, `.Pretty`, `.RoundTrip` (byte-for-byte against baselines captured from 10.1) | — | Round trip compares only when the process time zone is UTC |
+| JSON output of every model type (compact, indented, round trip) | `Aot.Serialization`: `Aot.SerializationParity.Compact`, `.Pretty`, `.RoundTrip` (byte-for-byte against baselines captured from 10.1) | — | — |
+| Timestamps keep their UTC value through JSON in any time zone | `Aot.DateTimeUtc`; `SDK-C#`: `Serializer.DateTimeUtc`; `Test.Aot` timestamp check | Offset and zone-less inputs | — |
 | Source-generated metadata covers every model type | `Aot.ContextCoverage` | — | — |
 | JIT behavior for exceptions and unregistered types | `Aot.JitCompatibility` | — | — |
 | GEXF export output | `Aot.GexfParity` (against the `XmlSerializer` baseline) | — | — |

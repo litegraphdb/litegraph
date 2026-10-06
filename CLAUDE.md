@@ -90,7 +90,7 @@ Tenant → Graph → Nodes/Edges → Labels/Tags/Vectors
   still run on the JIT and are not held to this.
 - A new serialized type needs a `[JsonSerializable]` entry in `Serialization/LiteGraphJsonContext.cs` (or
   `LiteGraphSdkJsonContext.cs`) and in the parity list in `Test.Shared/LiteGraphTouchstoneAotSuites.cs`.
-- JSON output is pinned by baselines in `Test.Shared/Baselines`; run `--suite Aot.Serialization` with `TZ=UTC`.
+- JSON output is pinned by baselines in `Test.Shared/Baselines`; run `--suite Aot.Serialization` (any time zone).
 - See `docs/AOT.md`.
 
 ### Data Model Key Points

@@ -84,9 +84,10 @@ jobs:
           LITEGRAPH_TEST_REDIS_CONNECTION_STRING: 127.0.0.1:6379
         run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --suite ScaleOut
 
-      - name: Serialization parity suite (JSON pinned to the 10.1 baselines)
+      - name: Serialization parity suite (JSON pinned to the 10.1 baselines, run outside UTC)
         env:
-          TZ: UTC
+          # A non-UTC zone with a half-hour offset, so time-zone bugs in timestamp handling cannot pass unnoticed.
+          TZ: Asia/Kolkata
         run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --suite Aot.Serialization
 
       - name: Native AOT prerequisites

@@ -233,8 +233,6 @@ namespace LiteGraph.Server.Services.Cluster
                 try
                 {
                     ClusterJobRun run = _Serializer.DeserializeJson<ClusterJobRun>(entry.Value.ToString());
-                    run.StartedUtc = run.StartedUtc.ToUniversalTime();
-                    run.CompletedUtc = run.CompletedUtc.ToUniversalTime();
                     runs.Add(run);
                 }
                 catch (Exception e)
@@ -303,10 +301,6 @@ namespace LiteGraph.Server.Services.Cluster
                     _Logging.Warn(_Header + "ignoring unreadable registry entry for " + entry.Name + ": " + e.Message);
                     continue;
                 }
-
-                // The serializer parses timestamps into local time; convert back so ages are computed in UTC.
-                node.StartedUtc = node.StartedUtc.ToUniversalTime();
-                node.LastHeartbeatUtc = node.LastHeartbeatUtc.ToUniversalTime();
 
                 long ageMs = (long)Math.Max(0, (now - node.LastHeartbeatUtc).TotalMilliseconds);
                 if (ageMs > _Settings.NodeRetentionMs)
