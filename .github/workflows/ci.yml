@@ -169,14 +169,26 @@ jobs:
           dotnet publish sdk/csharp/src/Test.Automated/Test.Automated.csproj -c Release -r ${{ matrix.rid }} -p:PublishAot=true -o artifacts/sdk-aot
           "artifacts/sdk-aot/Test.Automated${{ matrix.exe }}"
 
+      - name: Collect test logs
+        if: failure()
+        run: |
+          # upload-artifact only takes files under the workspace, so copy the server and Touchstone logs in first.
+          mkdir -p artifacts/logs
+          for dir in "$RUNNER_TEMP" /tmp/LiteGraph.Touchstone; do
+            [ -d "$dir" ] || continue
+            find "$dir" -name '*.log' -type f 2>/dev/null | while read -r f; do
+              rel="${f#$dir/}"
+              mkdir -p "artifacts/logs/$(basename "$dir")/$(dirname "$rel")"
+              cp "$f" "artifacts/logs/$(basename "$dir")/$rel" || true
+            done
+          done
+
       - name: Upload test logs
         if: failure()
         uses: actions/upload-artifact@v7
         with:
           name: dotnet-${{ matrix.os }}-logs
-          path: |
-            ${{ runner.temp }}/**/*.log
-            /tmp/LiteGraph.Touchstone/**/*.log
+          path: artifacts/logs/
           if-no-files-found: ignore
           retention-days: 14
 

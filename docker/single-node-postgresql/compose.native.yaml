@@ -12,8 +12,8 @@
 
 services:
   litegraph-init:
-    image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.0.0}-native'
+    image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.2.0}-native'
   litegraph:
-    image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.0.0}-native'
+    image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.2.0}-native'
   litegraph-mcp:
-    image: 'jchristn77/litegraph-mcp:${LITEGRAPH_IMAGE_TAG:-v10.0.0}-native'
+    image: 'jchristn77/litegraph-mcp:${LITEGRAPH_IMAGE_TAG:-v10.2.0}-native'

@@ -2006,7 +2006,9 @@ namespace Test.Automated
 		{
 			LiteGraphSdk sdk = RequireSdk();
 			await RecentRequestHistoryAsync(sdk).ConfigureAwait(false);
-			RequestHistorySearchRequest request = new RequestHistorySearchRequest { MaxKeys = 2 };
+			// Page over entries recorded before this test only: requests captured while paging (including the paging requests
+			// themselves) would otherwise shift the offset-based pages and repeat an entry.
+			RequestHistorySearchRequest request = new RequestHistorySearchRequest { MaxKeys = 2, ToUtc = DateTime.UtcNow.AddSeconds(-5) };
 			int count = 0;
 			HashSet<Guid> seen = new HashSet<Guid>();
 			await foreach (RequestHistoryEntry entry in sdk.RequestHistory.Enumerate(request).ConfigureAwait(false))

@@ -12,6 +12,8 @@ v10.2 makes all of LiteGraph available as Native AOT. The library and the C# SDK
 - The servers and tools serialize only through source-generated JSON metadata in every build: reflection-based System.Text.Json is turned off in their JIT builds too, so the default build runs exactly the code a native build runs, and a type without metadata fails the ordinary test run. Every project runs the trim and AOT analyzers on every build.
 - `Dockerfile.native` (server and MCP server) builds images that hold only the native executable on `runtime-deps`, about 65 MB compressed for the server against about 400 MB. Each deployment directory has a `compose.native.yaml` override that switches the server and MCP server to `<LITEGRAPH_IMAGE_TAG>-native` images. The default images, build scripts, and published tags are unchanged; native images are built from the repository.
 
+- The Compose deployments default to the `v10.2.0` images (`LITEGRAPH_IMAGE_TAG`), and `compose.native.yaml` to `v10.2.0-native`.
+
 ### REST server
 
 - `ServerJson.Register` adds `LiteGraphServerJsonContext` (every server type, Watson's `WebserverSettings` in `Settings.Rest`, and the `EnumerationResult<T>` and `List<T>` results the server builds from library types) to the LiteGraph serializer at startup.

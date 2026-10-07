@@ -10,9 +10,9 @@ LiteGraph is a property graph database for applications that need graph relation
 
 | Image | What it is | Ports |
 |---|---|---|
-| `jchristn77/litegraph:v10.0.0` | REST server, including chat, graph algorithms, the query language, and health endpoints | 8701 |
-| `jchristn77/litegraph-mcp:v10.0.0` | MCP server (HTTP, TCP, and WebSocket transports), a thin layer over the REST API | 8702, 8703, 8704, metrics 8705 |
-| `jchristn77/litegraph-ui:v10.0.0` | Next.js dashboard | 3000 |
+| `jchristn77/litegraph:v10.2.0` | REST server, including chat, graph algorithms, the query language, and health endpoints | 8701 |
+| `jchristn77/litegraph-mcp:v10.2.0` | MCP server (HTTP, TCP, and WebSocket transports), a thin layer over the REST API | 8702, 8703, 8704, metrics 8705 |
+| `jchristn77/litegraph-ui:v10.2.0` | Next.js dashboard | 3000 |
 
 Every image includes `curl` for health checks. Pin an exact version tag in production.
 
@@ -60,7 +60,7 @@ docker run -d --name litegraph -p 8701:8701 \
   -e LITEGRAPH_ENCRYPTION_KEY=64-hex-characters \
   -e LITEGRAPH_ENCRYPTION_IV=32-hex-characters \
   -e LITEGRAPH_CREATE_DEFAULT_RECORDS=true \
-  jchristn77/litegraph:v10.0.0
+  jchristn77/litegraph:v10.2.0
 ```
 
 ## Configuration

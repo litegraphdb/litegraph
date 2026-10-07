@@ -262,11 +262,11 @@ Everything the tool creates is marked (label `synthetic`, tag `generator=loadgen
 
 ## Docker Images
 
-The Compose deployments use these images, selected by `LITEGRAPH_IMAGE_TAG` (default `v10.0.0`):
+The Compose deployments use these images, selected by `LITEGRAPH_IMAGE_TAG` (default `v10.2.0`):
 
-- `jchristn77/litegraph:v10.0.0`
-- `jchristn77/litegraph-mcp:v10.0.0`
-- `jchristn77/litegraph-ui:v10.0.0`
+- `jchristn77/litegraph:v10.2.0`
+- `jchristn77/litegraph-mcp:v10.2.0`
+- `jchristn77/litegraph-ui:v10.2.0`
 
 These run the server and MCP server on the .NET runtime. Smaller Native AOT images can be built from `Dockerfile.native` and started with each deployment's `compose.native.yaml`; see [docker/README.md](docker/README.md#native-aot-images). Building a release tag (a plain `vMAJOR.MINOR.PATCH`) also moves `:latest`; any other tag leaves `:latest` alone. To run a build of your own, build and tag it with `build-all.bat <tag>` and start a deployment with `LITEGRAPH_IMAGE_TAG=<tag>`. PostgreSQL deployments use `pgvector/pgvector:0.8.6-pg17-trixie`; the cluster adds `jchristn77/clutch-server:v0.2.0`, `redis:7.4.9-alpine`, `nginx:1.27-alpine`, and optionally `jchristn77/switchboard:v5.2.2`.
 

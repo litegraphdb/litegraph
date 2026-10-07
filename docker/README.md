@@ -62,16 +62,16 @@ Every LiteGraph node answers `GET /v1.0/health/live` (the process is running) an
 Every compose file selects the LiteGraph images through `LITEGRAPH_IMAGE_TAG`, defaulting to the release tag. To run a build you made yourself:
 
 ```
-build-all.bat v10.0.0-rc1
-set LITEGRAPH_IMAGE_TAG=v10.0.0-rc1
+build-all.bat v10.2.0-rc1
+set LITEGRAPH_IMAGE_TAG=v10.2.0-rc1
 cd docker\multi-node
 docker compose up -d
 smoke.bat
 ```
 
-Or put `LITEGRAPH_IMAGE_TAG=v10.0.0-rc1` in the deployment's `.env`. `update.bat` pulls, recreates, and lists containers using the same variable.
+Or put `LITEGRAPH_IMAGE_TAG=v10.2.0-rc1` in the deployment's `.env`. `update.bat` pulls, recreates, and lists containers using the same variable.
 
-The build scripts push the tag you give them, and a release tag (a plain `vMAJOR.MINOR.PATCH` such as `v10.0.0`) also moves `:latest`. Any other tag, such as `v10.0.0-rc1` or a test tag, leaves `:latest` where it was, so testing a build never changes what users pulling `latest` get.
+The build scripts push the tag you give them, and a release tag (a plain `vMAJOR.MINOR.PATCH` such as `v10.2.0`) also moves `:latest`. Any other tag, such as `v10.2.0-rc1` or a test tag, leaves `:latest` where it was, so testing a build never changes what users pulling `latest` get.
 
 ## Native AOT images
 

@@ -19,7 +19,7 @@
 # variables listed in .env.example; this stack uses the same default ports as the other
 # deployments, so run one at a time.
 #
-# Image tags: LITEGRAPH_IMAGE_TAG selects the LiteGraph images (default v10.0.0).
+# Image tags: LITEGRAPH_IMAGE_TAG selects the LiteGraph images (default v10.2.0).
 #
 
 name: litegraph-sqlite
@@ -35,7 +35,7 @@ services:
   #
 
   litegraph:
-    image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.0.0}'
+    image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.2.0}'
     restart: 'unless-stopped'
     ports:
       - '${LITEGRAPH_REST_HOST_PORT:-8701}:8701'
@@ -64,7 +64,7 @@ services:
   #
 
   litegraph-mcp:
-    image: 'jchristn77/litegraph-mcp:${LITEGRAPH_IMAGE_TAG:-v10.0.0}'
+    image: 'jchristn77/litegraph-mcp:${LITEGRAPH_IMAGE_TAG:-v10.2.0}'
     restart: 'unless-stopped'
     ports:
       - '${LITEGRAPH_MCP_HOST_PORT:-8702}:8702'
@@ -95,7 +95,7 @@ services:
   #
 
   litegraph-ui:
-    image: 'jchristn77/litegraph-ui:${LITEGRAPH_IMAGE_TAG:-v10.0.0}'
+    image: 'jchristn77/litegraph-ui:${LITEGRAPH_IMAGE_TAG:-v10.2.0}'
     restart: 'unless-stopped'
     ports:
       - '${LITEGRAPH_UI_HOST_PORT:-3001}:3000'

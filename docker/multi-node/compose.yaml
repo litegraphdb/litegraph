@@ -33,7 +33,7 @@
 # and log directory), add it to nginx/litegraph.conf, prometheus.yaml (with its node label),
 # and the litegraph-lb depends_on list, then docker compose up -d.
 #
-# Image tags: LITEGRAPH_IMAGE_TAG selects the LiteGraph images (default v10.0.0).
+# Image tags: LITEGRAPH_IMAGE_TAG selects the LiteGraph images (default v10.2.0).
 #
 
 name: litegraph-cluster
@@ -59,7 +59,7 @@ x-litegraph-db-env: &litegraph-db-env
   LITEGRAPH_TRUSTED_PROXIES: '172.16.0.0/12,10.0.0.0/8,192.168.0.0/16'
 
 x-litegraph-node: &litegraph-node
-  image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.0.0}'
+  image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.2.0}'
   restart: 'unless-stopped'
   depends_on:
     litegraph-init:
@@ -193,7 +193,7 @@ services:
   #
 
   litegraph-init:
-    image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.0.0}'
+    image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.2.0}'
     depends_on:
       postgresql:
         condition: service_healthy
@@ -308,7 +308,7 @@ services:
   #
 
   litegraph-mcp:
-    image: 'jchristn77/litegraph-mcp:${LITEGRAPH_IMAGE_TAG:-v10.0.0}'
+    image: 'jchristn77/litegraph-mcp:${LITEGRAPH_IMAGE_TAG:-v10.2.0}'
     restart: 'unless-stopped'
     ports:
       - '${LITEGRAPH_MCP_HOST_PORT:-8702}:8702'
@@ -336,7 +336,7 @@ services:
       start_period: 30s
 
   litegraph-ui:
-    image: 'jchristn77/litegraph-ui:${LITEGRAPH_IMAGE_TAG:-v10.0.0}'
+    image: 'jchristn77/litegraph-ui:${LITEGRAPH_IMAGE_TAG:-v10.2.0}'
     restart: 'unless-stopped'
     ports:
       - '${LITEGRAPH_UI_HOST_PORT:-3001}:3000'
