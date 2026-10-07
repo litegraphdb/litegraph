@@ -211,6 +211,12 @@ namespace Test.Shared
         {
             SortedDictionary<string, Dictionary<string, string>> actual = BuildAotSerializationSnapshot();
 
+            // Indented JSON uses the platform's line ending (CRLF on Windows); baselines use LF.
+            foreach (Dictionary<string, string> entry in actual.Values)
+            {
+                foreach (string key in entry.Keys.ToList()) entry[key] = entry[key].Replace("\r\n", "\n");
+            }
+
             string? captureDirectory = Environment.GetEnvironmentVariable(_AotCaptureEnvironmentVariable);
             if (!String.IsNullOrEmpty(captureDirectory))
             {

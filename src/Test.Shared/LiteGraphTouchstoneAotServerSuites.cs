@@ -569,6 +569,9 @@ namespace Test.Shared
 
         private static async Task CompareAotServerBaseline(string file, SortedDictionary<string, string> actual, CancellationToken token)
         {
+            // Indented JSON uses the platform's line ending (CRLF on Windows); baselines use LF.
+            foreach (string key in actual.Keys.ToList()) actual[key] = actual[key].Replace("\r\n", "\n");
+
             string? captureDirectory = Environment.GetEnvironmentVariable(_AotCaptureEnvironmentVariable);
             if (!String.IsNullOrEmpty(captureDirectory))
             {
