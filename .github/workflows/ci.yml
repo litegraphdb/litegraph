@@ -14,9 +14,10 @@ on:
   schedule:
     - cron: '17 6 * * *'
 
+# A newer commit on a branch or pull request supersedes an older run; every commit to main runs to completion.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 env:
   DOTNET_NOLOGO: 'true'
