@@ -26,15 +26,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "admin_backup",
                 "Creates a database backup",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        outputFilename = new { type = "string", description = "Output filename for the backup" }
-                    },
-                    required = new[] { "outputFilename" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "outputFilename": { "type": "string", "description": "Output filename for the backup" }
+                        },
+                        "required": [ "outputFilename" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -52,16 +52,16 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "admin_backups",
                 "Lists all backup files. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
-                    },
-                    required = new string[] { }
-                },
+                        "type": "object",
+                        "properties": {
+                            "skip": { "type": "integer", "description": "Number of records to skip (default: 0)" },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" }
+                        },
+                        "required": []
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -72,15 +72,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "admin_backupread",
                 "Reads the contents of a backup file",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        backupFilename = new { type = "string", description = "Backup filename" }
-                    },
-                    required = new[] { "backupFilename" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "backupFilename": { "type": "string", "description": "Backup filename" }
+                        },
+                        "required": [ "backupFilename" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -98,15 +98,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "admin_backupexists",
                 "Checks if a backup file exists",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        backupFilename = new { type = "string", description = "Backup filename" }
-                    },
-                    required = new[] { "backupFilename" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "backupFilename": { "type": "string", "description": "Backup filename" }
+                        },
+                        "required": [ "backupFilename" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -124,15 +124,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "admin_backupdelete",
                 "Deletes a backup file",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        backupFilename = new { type = "string", description = "Backup filename" }
-                    },
-                    required = new[] { "backupFilename" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "backupFilename": { "type": "string", "description": "Backup filename" }
+                        },
+                        "required": [ "backupFilename" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -150,12 +150,13 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "admin_flush",
                 "Flushes an in-memory database to disk",
-                new
-                {
-                    type = "object",
-                    properties = new { },
-                    required = new string[] { }
-                },
+                LiteGraphMcpSchema.Parse("""
+                    {
+                        "type": "object",
+                        "properties": {},
+                        "required": []
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);

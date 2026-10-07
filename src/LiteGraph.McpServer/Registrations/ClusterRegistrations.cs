@@ -29,26 +29,30 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "cluster_status",
                 "Summarizes the LiteGraph deployment: whether it runs as a cluster, the cluster name, whether the node registry (Redis) is reachable, node counts by state, nodes waiting for a restart or behind the latest settings, and the settings and restart versions. Read-only; requires a system administrator token.",
-                new
-                {
-                    type = "object",
-                    properties = new { },
-                    required = new string[] { }
-                },
+                LiteGraphMcpSchema.Parse("""
+                    {
+                        "type": "object",
+                        "properties": {},
+                        "required": []
+                    }
+                    """),
                 (rpcArgs) => ClusterStatus(sdk));
 
             server.RegisterLiteGraphTool(
                 "cluster_nodes",
                 "Lists the nodes in the LiteGraph node registry with their state (Healthy, Degraded, Unavailable, Draining, Restarting, Stopped, Offline), health checks, version, start time, heartbeat age, settings version, and pending restart. On a single node the answering server is the only node. Read-only; requires a system administrator token.",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        state = new { type = "string", description = "Optional state filter, for example Healthy or Offline (case-insensitive)" }
-                    },
-                    required = new string[] { }
-                },
+                        "type": "object",
+                        "properties": {
+                            "state": {
+                                "type": "string",
+                                "description": "Optional state filter, for example Healthy or Offline (case-insensitive)"
+                            }
+                        },
+                        "required": []
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -58,15 +62,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "cluster_node",
                 "Reads one node from the LiteGraph node registry by node identifier. Returns null when the node is not registered. Read-only; requires a system administrator token.",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        nodeId = new { type = "string", description = "Node identifier, for example litegraph-1" }
-                    },
-                    required = new[] { "nodeId" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "nodeId": { "type": "string", "description": "Node identifier, for example litegraph-1" }
+                        },
+                        "required": [ "nodeId" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);

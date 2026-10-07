@@ -35,53 +35,56 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "algorithm_run",
                 "Runs a graph algorithm (DegreeCentrality, PageRank, WeaklyConnectedComponents, StronglyConnectedComponents, LabelPropagation) over a single graph. Set writeBack=true (requires write permission) to store per-node results into node data.",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        request = new { type = "object", description = "GraphAlgorithmRequest object; used when provided" },
-                        algorithmType = new { type = "string", description = "Algorithm name, used when request is omitted" },
-                        writeBack = new { type = "boolean", description = "Write per-node results back into node data" },
-                        maxResults = new { type = "integer", description = "Maximum per-node results to return" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "request": { "type": "object", "description": "GraphAlgorithmRequest object; used when provided" },
+                            "algorithmType": { "type": "string", "description": "Algorithm name, used when request is omitted" },
+                            "writeBack": { "type": "boolean", "description": "Write per-node results back into node data" },
+                            "maxResults": { "type": "integer", "description": "Maximum per-node results to return" }
+                        },
+                        "required": [ "tenantGuid", "graphGuid" ]
+                    }
+                    """),
                 (args) => ExecuteRun(LiteGraphMcpServerHelpers.ToJsonElement(args), sdk));
 
             server.RegisterLiteGraphTool(
                 "algorithm_export",
                 "Exports a graph as a portable projection (NodeLinkJson, EdgeList, or Graphml) for external computation in engines such as rustworkx or NetworkX.",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        format = new { type = "string", description = "NodeLinkJson (default), EdgeList, or Graphml" },
-                        attributes = new { type = "string", description = "None, Meta (default), or Full" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "format": { "type": "string", "description": "NodeLinkJson (default), EdgeList, or Graphml" },
+                            "attributes": { "type": "string", "description": "None, Meta (default), or Full" }
+                        },
+                        "required": [ "tenantGuid", "graphGuid" ]
+                    }
+                    """),
                 (args) => ExecuteExport(LiteGraphMcpServerHelpers.ToJsonElement(args), sdk));
 
             server.RegisterLiteGraphTool(
                 "algorithm_import",
                 "Imports externally computed per-node values back onto graph nodes, writing them into node data. Requires write permission.",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        request = new { type = "object", description = "GraphAlgorithmImportRequest object with a Values map of node GUID to property/value pairs" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid", "request" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "request": {
+                                "type": "object",
+                                "description": "GraphAlgorithmImportRequest object with a Values map of node GUID to property/value pairs"
+                            }
+                        },
+                        "required": [ "tenantGuid", "graphGuid", "request" ]
+                    }
+                    """),
                 (args) => ExecuteImport(LiteGraphMcpServerHelpers.ToJsonElement(args), sdk));
         }
 

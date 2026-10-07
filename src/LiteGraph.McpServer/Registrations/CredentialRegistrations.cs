@@ -26,15 +26,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "credential_create",
                 "Creates a new credential in LiteGraph",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        credential = new { type = "string", description = "Credential object serialized as JSON string using Serializer" }
-                    },
-                    required = new[] { "credential" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "credential": { "type": "string", "description": "Credential object serialized as JSON string using Serializer" }
+                        },
+                        "required": [ "credential" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -48,16 +48,16 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "credential_get",
                 "Reads a credential by GUID",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        credentialGuid = new { type = "string", description = "Credential GUID" }
-                    },
-                    required = new[] { "tenantGuid", "credentialGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "credentialGuid": { "type": "string", "description": "Credential GUID" }
+                        },
+                        "required": [ "tenantGuid", "credentialGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -71,19 +71,22 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "credential_all",
                 "Lists all credentials in a tenant. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
-                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
-                    },
-                    required = new[] { "tenantGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "order": { "type": "string", "description": "Enumeration order (default: CreatedDescending)" },
+                            "skip": { "type": "integer", "description": "Number of records to skip (default: 0)" },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" },
+                            "continuationToken": {
+                                "type": "string",
+                                "description": "Continuation token (GUID) from a previous response for marker-based pagination"
+                            }
+                        },
+                        "required": [ "tenantGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -98,15 +101,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "credential_enumerate",
                 "Enumerates credentials with pagination and filtering",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        query = new { type = "string", description = "Enumeration request serialized as JSON string using Serializer" }
-                    },
-                    required = new[] { "query" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "query": { "type": "string", "description": "Enumeration request serialized as JSON string using Serializer" }
+                        },
+                        "required": [ "query" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -124,15 +127,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "credential_update",
                 "Updates a credential",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        credential = new { type = "string", description = "Credential object serialized as JSON string using Serializer" }
-                    },
-                    required = new[] { "credential" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "credential": { "type": "string", "description": "Credential object serialized as JSON string using Serializer" }
+                        },
+                        "required": [ "credential" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -146,16 +149,16 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "credential_delete",
                 "Deletes a credential by GUID",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        credentialGuid = new { type = "string", description = "Credential GUID" }
-                    },
-                    required = new[] { "tenantGuid", "credentialGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "credentialGuid": { "type": "string", "description": "Credential GUID" }
+                        },
+                        "required": [ "tenantGuid", "credentialGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -169,16 +172,16 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "credential_exists",
                 "Checks if a credential exists by GUID",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        credentialGuid = new { type = "string", description = "Credential GUID" }
-                    },
-                    required = new[] { "tenantGuid", "credentialGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "credentialGuid": { "type": "string", "description": "Credential GUID" }
+                        },
+                        "required": [ "tenantGuid", "credentialGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -191,17 +194,21 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "credential_getmany",
                 "Reads multiple credentials by their GUIDs. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        credentialGuids = new { type = "array", items = new { type = "string" }, description = "Array of credential GUIDs" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
-                    },
-                    required = new[] { "tenantGuid", "credentialGuids" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "credentialGuids": {
+                                "type": "array",
+                                "items": { "type": "string" },
+                                "description": "Array of credential GUIDs"
+                            },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" }
+                        },
+                        "required": [ "tenantGuid", "credentialGuids" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -217,15 +224,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "credential_getbybearertoken",
                 "Reads a credential by bearer token",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        bearerToken = new { type = "string", description = "Bearer token" }
-                    },
-                    required = new[] { "bearerToken" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "bearerToken": { "type": "string", "description": "Bearer token" }
+                        },
+                        "required": [ "bearerToken" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -239,15 +246,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "credential_deleteallintenant",
                 "Deletes all credentials in a tenant",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" }
-                    },
-                    required = new[] { "tenantGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" }
+                        },
+                        "required": [ "tenantGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -260,16 +267,16 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "credential_deletebyuser",
                 "Deletes all credentials for a user",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        userGuid = new { type = "string", description = "User GUID" }
-                    },
-                    required = new[] { "tenantGuid", "userGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "userGuid": { "type": "string", "description": "User GUID" }
+                        },
+                        "required": [ "tenantGuid", "userGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);

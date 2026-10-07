@@ -34,22 +34,28 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "graph_transaction",
                 "Executes an atomic graph-scoped transaction against a single tenant and graph",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        request = new { type = "object", description = "TransactionRequest object with Operations, MaxOperations, and TimeoutSeconds" },
-                        transaction = new { type = "object", description = "Alias for request" },
-                        operations = new { type = "array", description = "Transaction operations, used when request is omitted" },
-                        maxOperations = new { type = "integer", description = "Maximum operations allowed for this request" },
-                        timeoutSeconds = new { type = "integer", description = "Transaction timeout in seconds" },
-                        isolationLevel = new { type = "string", description = "Transaction isolation level: Default, ReadCommitted, RepeatableRead, or Serializable" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "request": {
+                                "type": "object",
+                                "description": "TransactionRequest object with Operations, MaxOperations, and TimeoutSeconds"
+                            },
+                            "transaction": { "type": "object", "description": "Alias for request" },
+                            "operations": { "type": "array", "description": "Transaction operations, used when request is omitted" },
+                            "maxOperations": { "type": "integer", "description": "Maximum operations allowed for this request" },
+                            "timeoutSeconds": { "type": "integer", "description": "Transaction timeout in seconds" },
+                            "isolationLevel": {
+                                "type": "string",
+                                "description": "Transaction isolation level: Default, ReadCommitted, RepeatableRead, or Serializable"
+                            }
+                        },
+                        "required": [ "tenantGuid", "graphGuid" ]
+                    }
+                    """),
                 (args) => ExecuteTransaction(LiteGraphMcpServerHelpers.ToJsonElement(args), sdk));
         }
 

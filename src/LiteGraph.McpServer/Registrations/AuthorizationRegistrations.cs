@@ -378,14 +378,14 @@ namespace LiteGraph.McpServer.Registrations
         private static object JsonBodySchema(string bodyName, string bodyDescription, params string[] additionalRequiredNameDescriptionPairs)
         {
             Dictionary<string, object> properties = BaseTenantProperties();
-            properties[bodyName] = new { type = "string", description = bodyDescription };
+            properties[bodyName] = LiteGraphMcpSchema.Property("string", bodyDescription);
 
             List<string> required = new List<string> { "tenantGuid" };
             for (int i = 0; i < additionalRequiredNameDescriptionPairs.Length; i += 2)
             {
                 string name = additionalRequiredNameDescriptionPairs[i];
                 string description = additionalRequiredNameDescriptionPairs[i + 1];
-                properties[name] = new { type = "string", description = description };
+                properties[name] = LiteGraphMcpSchema.Property("string", description);
                 required.Add(name);
             }
             required.Add(bodyName);
@@ -396,36 +396,36 @@ namespace LiteGraph.McpServer.Registrations
         private static object TenantRoleSchema()
         {
             Dictionary<string, object> properties = BaseTenantProperties();
-            properties["roleGuid"] = new { type = "string", description = "Role GUID" };
+            properties["roleGuid"] = LiteGraphMcpSchema.Property("string", "Role GUID");
             return ObjectSchema(properties, new List<string> { "tenantGuid", "roleGuid" });
         }
 
         private static object AssignmentSchema(string ownerName, string ownerDescription)
         {
             Dictionary<string, object> properties = BaseTenantProperties();
-            properties[ownerName] = new { type = "string", description = ownerDescription };
-            properties["assignmentGuid"] = new { type = "string", description = "Assignment GUID" };
+            properties[ownerName] = LiteGraphMcpSchema.Property("string", ownerDescription);
+            properties["assignmentGuid"] = LiteGraphMcpSchema.Property("string", "Assignment GUID");
             return ObjectSchema(properties, new List<string> { "tenantGuid", ownerName, "assignmentGuid" });
         }
 
         private static object EffectivePermissionsSchema(string ownerName, string ownerDescription)
         {
             Dictionary<string, object> properties = BaseTenantProperties();
-            properties[ownerName] = new { type = "string", description = ownerDescription };
-            properties["graphGuid"] = new { type = "string", description = "Optional graph GUID filter" };
+            properties[ownerName] = LiteGraphMcpSchema.Property("string", ownerDescription);
+            properties["graphGuid"] = LiteGraphMcpSchema.Property("string", "Optional graph GUID filter");
             return ObjectSchema(properties, new List<string> { "tenantGuid", ownerName });
         }
 
         private static object RoleListSchema()
         {
             Dictionary<string, object> properties = BaseTenantProperties();
-            properties["includeBuiltIns"] = new { type = "boolean", description = "Include built-in roles (default true)" };
-            properties["name"] = new { type = "string", description = "Role name filter" };
-            properties["builtIn"] = new { type = "boolean", description = "Built-in role filter" };
-            properties["builtInRole"] = new { type = "string", description = "Built-in role kind" };
-            properties["resourceScope"] = new { type = "string", description = "Tenant or Graph" };
-            properties["permission"] = new { type = "string", description = "Read, Write, Delete, or Admin" };
-            properties["resourceType"] = new { type = "string", description = "Resource type filter" };
+            properties["includeBuiltIns"] = LiteGraphMcpSchema.Property("boolean", "Include built-in roles (default true)");
+            properties["name"] = LiteGraphMcpSchema.Property("string", "Role name filter");
+            properties["builtIn"] = LiteGraphMcpSchema.Property("boolean", "Built-in role filter");
+            properties["builtInRole"] = LiteGraphMcpSchema.Property("string", "Built-in role kind");
+            properties["resourceScope"] = LiteGraphMcpSchema.Property("string", "Tenant or Graph");
+            properties["permission"] = LiteGraphMcpSchema.Property("string", "Read, Write, Delete, or Admin");
+            properties["resourceType"] = LiteGraphMcpSchema.Property("string", "Resource type filter");
             AddCommonSearchProperties(properties);
             return ObjectSchema(properties, new List<string> { "tenantGuid" });
         }
@@ -433,11 +433,11 @@ namespace LiteGraph.McpServer.Registrations
         private static object UserRoleListSchema()
         {
             Dictionary<string, object> properties = BaseTenantProperties();
-            properties["userGuid"] = new { type = "string", description = "User GUID" };
-            properties["roleGuid"] = new { type = "string", description = "Role GUID filter" };
-            properties["roleName"] = new { type = "string", description = "Role name filter" };
-            properties["resourceScope"] = new { type = "string", description = "Tenant or Graph" };
-            properties["graphGuid"] = new { type = "string", description = "Graph GUID filter" };
+            properties["userGuid"] = LiteGraphMcpSchema.Property("string", "User GUID");
+            properties["roleGuid"] = LiteGraphMcpSchema.Property("string", "Role GUID filter");
+            properties["roleName"] = LiteGraphMcpSchema.Property("string", "Role name filter");
+            properties["resourceScope"] = LiteGraphMcpSchema.Property("string", "Tenant or Graph");
+            properties["graphGuid"] = LiteGraphMcpSchema.Property("string", "Graph GUID filter");
             AddCommonSearchProperties(properties);
             return ObjectSchema(properties, new List<string> { "tenantGuid", "userGuid" });
         }
@@ -445,13 +445,13 @@ namespace LiteGraph.McpServer.Registrations
         private static object CredentialScopeListSchema()
         {
             Dictionary<string, object> properties = BaseTenantProperties();
-            properties["credentialGuid"] = new { type = "string", description = "Credential GUID" };
-            properties["roleGuid"] = new { type = "string", description = "Role GUID filter" };
-            properties["roleName"] = new { type = "string", description = "Role name filter" };
-            properties["resourceScope"] = new { type = "string", description = "Tenant or Graph" };
-            properties["graphGuid"] = new { type = "string", description = "Graph GUID filter" };
-            properties["permission"] = new { type = "string", description = "Read, Write, Delete, or Admin" };
-            properties["resourceType"] = new { type = "string", description = "Resource type filter" };
+            properties["credentialGuid"] = LiteGraphMcpSchema.Property("string", "Credential GUID");
+            properties["roleGuid"] = LiteGraphMcpSchema.Property("string", "Role GUID filter");
+            properties["roleName"] = LiteGraphMcpSchema.Property("string", "Role name filter");
+            properties["resourceScope"] = LiteGraphMcpSchema.Property("string", "Tenant or Graph");
+            properties["graphGuid"] = LiteGraphMcpSchema.Property("string", "Graph GUID filter");
+            properties["permission"] = LiteGraphMcpSchema.Property("string", "Read, Write, Delete, or Admin");
+            properties["resourceType"] = LiteGraphMcpSchema.Property("string", "Resource type filter");
             AddCommonSearchProperties(properties);
             return ObjectSchema(properties, new List<string> { "tenantGuid", "credentialGuid" });
         }
@@ -460,26 +460,21 @@ namespace LiteGraph.McpServer.Registrations
         {
             return new Dictionary<string, object>
             {
-                { "tenantGuid", new { type = "string", description = "Tenant GUID" } }
+                { "tenantGuid", LiteGraphMcpSchema.Property("string", "Tenant GUID") }
             };
         }
 
         private static void AddCommonSearchProperties(Dictionary<string, object> properties)
         {
-            properties["fromUtc"] = new { type = "string", description = "Earliest creation timestamp, inclusive" };
-            properties["toUtc"] = new { type = "string", description = "Latest creation timestamp, exclusive" };
-            properties["page"] = new { type = "integer", description = "Page index, default 0" };
-            properties["pageSize"] = new { type = "integer", description = "Page size, default 100" };
+            properties["fromUtc"] = LiteGraphMcpSchema.Property("string", "Earliest creation timestamp, inclusive");
+            properties["toUtc"] = LiteGraphMcpSchema.Property("string", "Latest creation timestamp, exclusive");
+            properties["page"] = LiteGraphMcpSchema.Property("integer", "Page index, default 0");
+            properties["pageSize"] = LiteGraphMcpSchema.Property("integer", "Page size, default 100");
         }
 
         private static object ObjectSchema(Dictionary<string, object> properties, List<string> required)
         {
-            return new
-            {
-                type = "object",
-                properties = properties,
-                required = required.ToArray()
-            };
+            return LiteGraphMcpSchema.Object(properties, required);
         }
 
         #endregion

@@ -21,6 +21,13 @@ namespace LiteGraph.McpServer.Classes
 
         #region Private-Members
 
+        // Default options with Voltaic's metadata (and reflection only where reflection-based serialization is enabled),
+        // so method results are written as before and also under Native AOT.
+        private static readonly JsonSerializerOptions _ResultJsonOptions = new JsonSerializerOptions
+        {
+            TypeInfoResolver = VoltaicJson.TypeInfoResolver
+        };
+
         #endregion
 
         #region Constructors-and-Factories
@@ -100,7 +107,7 @@ namespace LiteGraph.McpServer.Classes
                 object result = wrapped(args);
                 if (result is McpToolCallResult toolResult) return toolResult;
                 if (result is string text) return McpToolCallResult.FromText(text);
-                return McpToolCallResult.FromText(JsonSerializer.Serialize(result));
+                return McpToolCallResult.FromText(JsonSerializer.Serialize(result, _ResultJsonOptions.GetTypeInfo(typeof(object))));
             };
         }
 

@@ -20,9 +20,12 @@ namespace LiteGraph.McpServer.Classes
         public static JsonElement? ToJsonElement(RpcParameters? parameters)
         {
             if (parameters == null || !parameters.HasValue) return null;
-            JsonElement element = JsonSerializer.Deserialize<JsonElement>(parameters.RawJson!);
-            if (element.ValueKind == JsonValueKind.Null || element.ValueKind == JsonValueKind.Undefined) return null;
-            return element;
+            using (JsonDocument document = JsonDocument.Parse(parameters.RawJson!))
+            {
+                JsonElement element = document.RootElement;
+                if (element.ValueKind == JsonValueKind.Null || element.ValueKind == JsonValueKind.Undefined) return null;
+                return element.Clone();
+            }
         }
 
         /// <summary>

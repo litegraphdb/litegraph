@@ -27,53 +27,56 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "graph_exportjsonl",
                 "Exports an entire graph as JSONL (also usable as a provider-agnostic backup)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        includeData = new { type = "boolean", description = "Include object data (default: false)" },
-                        includeSubordinates = new { type = "boolean", description = "Include labels, tags, and vectors (default: false)" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "includeData": { "type": "boolean", "description": "Include object data (default: false)" },
+                            "includeSubordinates": { "type": "boolean", "description": "Include labels, tags, and vectors (default: false)" }
+                        },
+                        "required": [ "tenantGuid", "graphGuid" ]
+                    }
+                    """),
                 (args) => ExportJsonl(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "graph_exportsubgraphjsonl",
                 "Exports a filtered, directional subgraph as JSONL",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        request = new { type = "string", description = "SubgraphExtractionRequest as a JSON string (StartNodeGUIDs, MaxDepth, Direction, filters, etc.)" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid", "request" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "request": {
+                                "type": "string",
+                                "description": "SubgraphExtractionRequest as a JSON string (StartNodeGUIDs, MaxDepth, Direction, filters, etc.)"
+                            }
+                        },
+                        "required": [ "tenantGuid", "graphGuid", "request" ]
+                    }
+                    """),
                 (args) => ExportSubgraphJsonl(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "graph_importjsonl",
                 "Imports JSONL into a new graph (omit graphGuid) or merges into an existing graph",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Target graph GUID for a merge; omit to import as a new graph" },
-                        jsonl = new { type = "string", description = "JSONL content" },
-                        guidStrategy = new { type = "string", description = "preserve | regenerate | skip | overwrite (default: regenerate)" },
-                        onError = new { type = "string", description = "abort | skip (default: abort)" },
-                        batchSize = new { type = "integer", description = "Batch size (default: 1000)" }
-                    },
-                    required = new[] { "tenantGuid", "jsonl" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Target graph GUID for a merge; omit to import as a new graph" },
+                            "jsonl": { "type": "string", "description": "JSONL content" },
+                            "guidStrategy": { "type": "string", "description": "preserve | regenerate | skip | overwrite (default: regenerate)" },
+                            "onError": { "type": "string", "description": "abort | skip (default: abort)" },
+                            "batchSize": { "type": "integer", "description": "Batch size (default: 1000)" }
+                        },
+                        "required": [ "tenantGuid", "jsonl" ]
+                    }
+                    """),
                 (args) => ImportJsonl(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
         }
 

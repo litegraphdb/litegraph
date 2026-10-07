@@ -59,6 +59,9 @@
         /// <param name="args">Arguments.</param>
         public static void Main(string[] args)
         {
+            // JSON metadata for the settings file; required under Native AOT, harmless under the JIT.
+            Serializer.AddTypeInfoResolver(LiteGraphMcpJsonContext.Default);
+
             Welcome();
             ParseArguments(args);
             InitializeSettings();

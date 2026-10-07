@@ -32,18 +32,18 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "userauthentication_gettenantsforemail",
                 "Gets all tenants associated with an email address. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        email = new { type = "string", description = "Email address" },
-                        endpoint = new { type = "string", description = "Endpoint URL (optional, uses SDK endpoint if not provided)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
-                    },
-                    required = new[] { "email" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "email": { "type": "string", "description": "Email address" },
+                            "endpoint": { "type": "string", "description": "Endpoint URL (optional, uses SDK endpoint if not provided)" },
+                            "skip": { "type": "integer", "description": "Number of records to skip (default: 0)" },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" }
+                        },
+                        "required": [ "email" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -67,19 +67,19 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "userauthentication_generatetoken",
                 "Generates an authentication token using email, password, and tenant GUID",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        email = new { type = "string", description = "User email address" },
-                        password = new { type = "string", description = "User password" },
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        endpoint = new { type = "string", description = "Endpoint URL (optional, uses SDK endpoint if not provided)" },
-                        bearerToken = new { type = "string", description = "Bearer token (optional, uses SDK bearer token if not provided)" }
-                    },
-                    required = new[] { "email", "password", "tenantGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "email": { "type": "string", "description": "User email address" },
+                            "password": { "type": "string", "description": "User password" },
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "endpoint": { "type": "string", "description": "Endpoint URL (optional, uses SDK endpoint if not provided)" },
+                            "bearerToken": { "type": "string", "description": "Bearer token (optional, uses SDK bearer token if not provided)" }
+                        },
+                        "required": [ "email", "password", "tenantGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -124,17 +124,17 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "userauthentication_gettokendetails",
                 "Gets details for an authentication token",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        authToken = new { type = "string", description = "Authentication token string" },
-                        endpoint = new { type = "string", description = "Endpoint URL (optional, uses SDK endpoint if not provided)" },
-                        bearerToken = new { type = "string", description = "Bearer token (optional, uses SDK bearer token if not provided)" }
-                    },
-                    required = new[] { "authToken" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "authToken": { "type": "string", "description": "Authentication token string" },
+                            "endpoint": { "type": "string", "description": "Endpoint URL (optional, uses SDK endpoint if not provided)" },
+                            "bearerToken": { "type": "string", "description": "Bearer token (optional, uses SDK bearer token if not provided)" }
+                        },
+                        "required": [ "authToken" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);

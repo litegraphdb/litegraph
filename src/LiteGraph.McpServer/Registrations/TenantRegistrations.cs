@@ -26,15 +26,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "tenant_create",
                 "Creates a new tenant in LiteGraph",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        name = new { type = "string", description = "Tenant name" }
-                    },
-                    required = new[] { "name" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "name": { "type": "string", "description": "Tenant name" }
+                        },
+                        "required": [ "name" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -49,15 +49,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "tenant_get",
                 "Reads a tenant by GUID",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" }
-                    },
-                    required = new[] { "tenantGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" }
+                        },
+                        "required": [ "tenantGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -71,18 +71,21 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "tenant_all",
                 "Lists all tenants. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
-                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
-                    },
-                    required = new string[] { }
-                },
+                        "type": "object",
+                        "properties": {
+                            "order": { "type": "string", "description": "Enumeration order (default: CreatedDescending)" },
+                            "skip": { "type": "integer", "description": "Number of records to skip (default: 0)" },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" },
+                            "continuationToken": {
+                                "type": "string",
+                                "description": "Continuation token (GUID) from a previous response for marker-based pagination"
+                            }
+                        },
+                        "required": []
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -96,15 +99,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "tenant_update",
                 "Updates a tenant",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenant = new { type = "string", description = "Tenant object serialized as JSON string using Serializer" }
-                    },
-                    required = new[] { "tenant" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenant": { "type": "string", "description": "Tenant object serialized as JSON string using Serializer" }
+                        },
+                        "required": [ "tenant" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -118,16 +121,16 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "tenant_delete",
                 "Deletes a tenant by GUID",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        force = new { type = "boolean", description = "Force deletion (default: false)" }
-                    },
-                    required = new[] { "tenantGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "force": { "type": "boolean", "description": "Force deletion (default: false)" }
+                        },
+                        "required": [ "tenantGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -143,15 +146,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "tenant_enumerate",
                 "Enumerates tenants with pagination and filtering",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        query = new { type = "string", description = "Enumeration request serialized as JSON string using Serializer" }
-                    },
-                    required = new[] { "query" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "query": { "type": "string", "description": "Enumeration request serialized as JSON string using Serializer" }
+                        },
+                        "required": [ "query" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -167,15 +170,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "tenant_exists",
                 "Checks if a tenant exists by GUID",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" }
-                    },
-                    required = new[] { "tenantGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" }
+                        },
+                        "required": [ "tenantGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -189,15 +192,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "tenant_statistics",
                 "Gets statistics for a specific tenant",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" }
-                    },
-                    required = new[] { "tenantGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" }
+                        },
+                        "required": [ "tenantGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -211,12 +214,13 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "tenant_statisticsall",
                 "Gets statistics for all tenants",
-                new
-                {
-                    type = "object",
-                    properties = new { },
-                    required = new string[] { }
-                },
+                LiteGraphMcpSchema.Parse("""
+                    {
+                        "type": "object",
+                        "properties": {},
+                        "required": []
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -226,16 +230,20 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "tenant_getmany",
                 "Reads multiple tenants by their GUIDs. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuids = new { type = "array", items = new { type = "string" }, description = "Array of tenant GUIDs" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
-                    },
-                    required = new[] { "tenantGuids" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuids": {
+                                "type": "array",
+                                "items": { "type": "string" },
+                                "description": "Array of tenant GUIDs"
+                            },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" }
+                        },
+                        "required": [ "tenantGuids" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);

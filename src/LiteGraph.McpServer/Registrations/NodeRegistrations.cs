@@ -27,17 +27,17 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_create",
                 "Creates a new node in a graph",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        name = new { type = "string", description = "Node name" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid", "name" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "name": { "type": "string", "description": "Node name" }
+                        },
+                        "required": [ "tenantGuid", "graphGuid", "name" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -57,19 +57,19 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_get",
                 "Reads a node by GUID",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        nodeGuid = new { type = "string", description = "Node GUID" },
-                        includeData = new { type = "boolean", description = "Include node data" },
-                        includeSubordinates = new { type = "boolean", description = "Include labels, tags, vectors" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "nodeGuid": { "type": "string", "description": "Node GUID" },
+                            "includeData": { "type": "boolean", "description": "Include node data" },
+                            "includeSubordinates": { "type": "boolean", "description": "Include labels, tags, vectors" }
+                        },
+                        "required": [ "tenantGuid", "graphGuid", "nodeGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -91,22 +91,25 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_all",
                 "Lists all nodes in a graph. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
-                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" },
-                        includeData = new { type = "boolean", description = "Include node data" },
-                        includeSubordinates = new { type = "boolean", description = "Include labels, tags, vectors" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "order": { "type": "string", "description": "Enumeration order (default: CreatedDescending)" },
+                            "skip": { "type": "integer", "description": "Number of records to skip (default: 0)" },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" },
+                            "continuationToken": {
+                                "type": "string",
+                                "description": "Continuation token (GUID) from a previous response for marker-based pagination"
+                            },
+                            "includeData": { "type": "boolean", "description": "Include node data" },
+                            "includeSubordinates": { "type": "boolean", "description": "Include labels, tags, vectors" }
+                        },
+                        "required": [ "tenantGuid", "graphGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -122,21 +125,27 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_traverse",
                 "Finds routes/paths between two nodes in a graph using depth-first search",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        fromNodeGuid = new { type = "string", description = "Source node GUID" },
-                        toNodeGuid = new { type = "string", description = "Target node GUID" },
-                        searchType = new { type = "string", description = "Search type: DepthFirstSearch" },
-                        edgeFilter = new { type = "string", description = "Edge filter expression serialized as JSON string using Serializer (optional)" },
-                        nodeFilter = new { type = "string", description = "Node filter expression serialized as JSON string using Serializer (optional)" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid", "fromNodeGuid", "toNodeGuid", "searchType" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "fromNodeGuid": { "type": "string", "description": "Source node GUID" },
+                            "toNodeGuid": { "type": "string", "description": "Target node GUID" },
+                            "searchType": { "type": "string", "description": "Search type: DepthFirstSearch" },
+                            "edgeFilter": {
+                                "type": "string",
+                                "description": "Edge filter expression serialized as JSON string using Serializer (optional)"
+                            },
+                            "nodeFilter": {
+                                "type": "string",
+                                "description": "Node filter expression serialized as JSON string using Serializer (optional)"
+                            }
+                        },
+                        "required": [ "tenantGuid", "graphGuid", "fromNodeGuid", "toNodeGuid", "searchType" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -166,20 +175,20 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_parents",
                 "Gets parent nodes (nodes that have edges connecting to this node). Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        nodeGuid = new { type = "string", description = "Node GUID" },
-                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "nodeGuid": { "type": "string", "description": "Node GUID" },
+                            "order": { "type": "string", "description": "Enumeration order (default: CreatedDescending)" },
+                            "skip": { "type": "integer", "description": "Number of records to skip (default: 0)" },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" }
+                        },
+                        "required": [ "tenantGuid", "graphGuid", "nodeGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -195,20 +204,20 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_children",
                 "Gets child nodes (nodes to which this node has connecting edges). Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        nodeGuid = new { type = "string", description = "Node GUID" },
-                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "nodeGuid": { "type": "string", "description": "Node GUID" },
+                            "order": { "type": "string", "description": "Enumeration order (default: CreatedDescending)" },
+                            "skip": { "type": "integer", "description": "Number of records to skip (default: 0)" },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" }
+                        },
+                        "required": [ "tenantGuid", "graphGuid", "nodeGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -223,16 +232,16 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_deleteall",
                 "Deletes all nodes in a graph",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" }
+                        },
+                        "required": [ "tenantGuid", "graphGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -250,17 +259,21 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_deletemany",
                 "Deletes multiple nodes by their GUIDs",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        nodeGuids = new { type = "array", items = new { type = "string" }, description = "Array of node GUIDs to delete" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid", "nodeGuids" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "nodeGuids": {
+                                "type": "array",
+                                "items": { "type": "string" },
+                                "description": "Array of node GUIDs to delete"
+                            }
+                        },
+                        "required": [ "tenantGuid", "graphGuid", "nodeGuids" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -281,21 +294,24 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_readallintenant",
                 "Reads all nodes in a tenant across all graphs. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
-                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" },
-                        includeData = new { type = "boolean", description = "Include node data (default: false)" },
-                        includeSubordinates = new { type = "boolean", description = "Include subordinate data (default: false)" }
-                    },
-                    required = new[] { "tenantGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "order": { "type": "string", "description": "Enumeration order (default: CreatedDescending)" },
+                            "skip": { "type": "integer", "description": "Number of records to skip (default: 0)" },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" },
+                            "continuationToken": {
+                                "type": "string",
+                                "description": "Continuation token (GUID) from a previous response for marker-based pagination"
+                            },
+                            "includeData": { "type": "boolean", "description": "Include node data (default: false)" },
+                            "includeSubordinates": { "type": "boolean", "description": "Include subordinate data (default: false)" }
+                        },
+                        "required": [ "tenantGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -310,22 +326,25 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_readallingraph",
                 "Reads all nodes in a graph with optional data/subordinate inclusion. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
-                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" },
-                        includeData = new { type = "boolean", description = "Include node data (default: false)" },
-                        includeSubordinates = new { type = "boolean", description = "Include subordinate data (default: false)" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "order": { "type": "string", "description": "Enumeration order (default: CreatedDescending)" },
+                            "skip": { "type": "integer", "description": "Number of records to skip (default: 0)" },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" },
+                            "continuationToken": {
+                                "type": "string",
+                                "description": "Continuation token (GUID) from a previous response for marker-based pagination"
+                            },
+                            "includeData": { "type": "boolean", "description": "Include node data (default: false)" },
+                            "includeSubordinates": { "type": "boolean", "description": "Include subordinate data (default: false)" }
+                        },
+                        "required": [ "tenantGuid", "graphGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -341,21 +360,21 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_readmostconnected",
                 "Reads the most connected nodes in a graph. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
-                        includeData = new { type = "boolean", description = "Include node data (default: false)" },
-                        includeSubordinates = new { type = "boolean", description = "Include subordinate data (default: false)" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "order": { "type": "string", "description": "Enumeration order (default: CreatedDescending)" },
+                            "skip": { "type": "integer", "description": "Number of records to skip (default: 0)" },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" },
+                            "includeData": { "type": "boolean", "description": "Include node data (default: false)" },
+                            "includeSubordinates": { "type": "boolean", "description": "Include subordinate data (default: false)" }
+                        },
+                        "required": [ "tenantGuid", "graphGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -371,21 +390,21 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_readleastconnected",
                 "Reads the least connected nodes in a graph. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
-                        includeData = new { type = "boolean", description = "Include node data (default: false)" },
-                        includeSubordinates = new { type = "boolean", description = "Include subordinate data (default: false)" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "order": { "type": "string", "description": "Enumeration order (default: CreatedDescending)" },
+                            "skip": { "type": "integer", "description": "Number of records to skip (default: 0)" },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" },
+                            "includeData": { "type": "boolean", "description": "Include node data (default: false)" },
+                            "includeSubordinates": { "type": "boolean", "description": "Include subordinate data (default: false)" }
+                        },
+                        "required": [ "tenantGuid", "graphGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -401,15 +420,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_deleteallintenant",
                 "Deletes all nodes across all graphs in a tenant",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" }
-                    },
-                    required = new[] { "tenantGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" }
+                        },
+                        "required": [ "tenantGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -422,20 +441,20 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_neighbors",
                 "Gets neighbor nodes (all connected nodes regardless of edge direction). Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        nodeGuid = new { type = "string", description = "Node GUID" },
-                        order = new { type = "string", description = "Enumeration order (default: CreatedDescending)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "nodeGuid": { "type": "string", "description": "Node GUID" },
+                            "order": { "type": "string", "description": "Enumeration order (default: CreatedDescending)" },
+                            "skip": { "type": "integer", "description": "Number of records to skip (default: 0)" },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" }
+                        },
+                        "required": [ "tenantGuid", "graphGuid", "nodeGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -450,17 +469,20 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_createmany",
                 "Creates multiple nodes in a graph",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        nodes = new { type = "string", description = "Array of node objects serialized as JSON string using Serializer" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid", "nodes" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "nodes": {
+                                "type": "string",
+                                "description": "Array of node objects serialized as JSON string using Serializer"
+                            }
+                        },
+                        "required": [ "tenantGuid", "graphGuid", "nodes" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -478,20 +500,24 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_getmany",
                 "Reads multiple nodes by their GUIDs. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        nodeGuids = new { type = "array", items = new { type = "string" }, description = "Array of node GUIDs" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
-                        includeData = new { type = "boolean", description = "Include node data (default: false)" },
-                        includeSubordinates = new { type = "boolean", description = "Include subordinate data (default: false)" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid", "nodeGuids" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "nodeGuids": {
+                                "type": "array",
+                                "items": { "type": "string" },
+                                "description": "Array of node GUIDs"
+                            },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" },
+                            "includeData": { "type": "boolean", "description": "Include node data (default: false)" },
+                            "includeSubordinates": { "type": "boolean", "description": "Include subordinate data (default: false)" }
+                        },
+                        "required": [ "tenantGuid", "graphGuid", "nodeGuids" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -510,15 +536,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_update",
                 "Updates a node",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        node = new { type = "string", description = "Node object serialized as JSON string using Serializer" }
-                    },
-                    required = new[] { "node" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "node": { "type": "string", "description": "Node object serialized as JSON string using Serializer" }
+                        },
+                        "required": [ "node" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -532,17 +558,17 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_delete",
                 "Deletes a single node by GUID",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        nodeGuid = new { type = "string", description = "Node GUID" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "nodeGuid": { "type": "string", "description": "Node GUID" }
+                        },
+                        "required": [ "tenantGuid", "graphGuid", "nodeGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -557,17 +583,17 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_exists",
                 "Checks if a node exists by GUID",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        nodeGuid = new { type = "string", description = "Node GUID" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid", "nodeGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "nodeGuid": { "type": "string", "description": "Node GUID" }
+                        },
+                        "required": [ "tenantGuid", "graphGuid", "nodeGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -581,15 +607,18 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_search",
                 "Searches nodes with filters",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        searchRequest = new { type = "string", description = "Search request object serialized as JSON string using Serializer" }
-                    },
-                    required = new[] { "searchRequest" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "searchRequest": {
+                                "type": "string",
+                                "description": "Search request object serialized as JSON string using Serializer"
+                            }
+                        },
+                        "required": [ "searchRequest" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -604,15 +633,18 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_readfirst",
                 "Reads the first node matching search criteria",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        searchRequest = new { type = "string", description = "Search request object serialized as JSON string using Serializer" }
-                    },
-                    required = new[] { "searchRequest" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "searchRequest": {
+                                "type": "string",
+                                "description": "Search request object serialized as JSON string using Serializer"
+                            }
+                        },
+                        "required": [ "searchRequest" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -627,15 +659,15 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "node_enumerate",
                 "Enumerates nodes with pagination and filtering",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        query = new { type = "string", description = "Enumeration request serialized as JSON string using Serializer" }
-                    },
-                    required = new[] { "query" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "query": { "type": "string", "description": "Enumeration request serialized as JSON string using Serializer" }
+                        },
+                        "required": [ "query" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);
@@ -1310,15 +1342,16 @@ namespace LiteGraph.McpServer.Registrations
             Expr? edgeFilter,
             Expr? nodeFilter)
         {
-            string body = Serializer.SerializeJson(
-                new
-                {
-                    From = fromNodeGuid,
-                    To = toNodeGuid,
-                    EdgeFilter = edgeFilter,
-                    NodeFilter = nodeFilter
-                },
-                false);
+            // Filters are left out when not set, as the serializer leaves out null properties.
+            Dictionary<string, object> request = new Dictionary<string, object>
+            {
+                { "From", fromNodeGuid },
+                { "To", toNodeGuid }
+            };
+            if (edgeFilter != null) request.Add("EdgeFilter", edgeFilter);
+            if (nodeFilter != null) request.Add("NodeFilter", nodeFilter);
+
+            string body = Serializer.SerializeJson(request, false);
 
             string response = LiteGraphMcpRestProxy.SendJson(
                 sdk,

@@ -26,291 +26,321 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "chat_endpoint_create",
                 "Creates a chat endpoint (an upstream completion or embedding provider) in a tenant",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        endpoint = new { type = "string", description = "ChatEndpoint object serialized as JSON string using Serializer" }
-                    },
-                    required = new[] { "tenantGuid", "endpoint" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "endpoint": { "type": "string", "description": "ChatEndpoint object serialized as JSON string using Serializer" }
+                        },
+                        "required": [ "tenantGuid", "endpoint" ]
+                    }
+                    """),
                 (args) => EndpointCreate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "chat_endpoint_get",
                 "Reads a chat endpoint by GUID; the API key is redacted to its last four characters",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        endpointGuid = new { type = "string", description = "Chat endpoint GUID" }
-                    },
-                    required = new[] { "tenantGuid", "endpointGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "endpointGuid": { "type": "string", "description": "Chat endpoint GUID" }
+                        },
+                        "required": [ "tenantGuid", "endpointGuid" ]
+                    }
+                    """),
                 (args) => EndpointGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "chat_endpoint_all",
                 "Lists chat endpoints in a tenant, optionally filtered by endpoint type. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        endpointType = new { type = "string", description = "Optional endpoint type filter: Embedding or Completion" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
-                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
-                    },
-                    required = new[] { "tenantGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "endpointType": { "type": "string", "description": "Optional endpoint type filter: Embedding or Completion" },
+                            "skip": { "type": "integer", "description": "Number of records to skip (default: 0)" },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" },
+                            "continuationToken": {
+                                "type": "string",
+                                "description": "Continuation token (GUID) from a previous response for marker-based pagination"
+                            }
+                        },
+                        "required": [ "tenantGuid" ]
+                    }
+                    """),
                 (args) => EndpointAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "chat_endpoint_update",
                 "Updates a chat endpoint; sending back a redacted API key value preserves the stored key",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        endpoint = new { type = "string", description = "ChatEndpoint object serialized as JSON string using Serializer; GUID identifies the endpoint to update" }
-                    },
-                    required = new[] { "tenantGuid", "endpoint" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "endpoint": {
+                                "type": "string",
+                                "description": "ChatEndpoint object serialized as JSON string using Serializer; GUID identifies the endpoint to update"
+                            }
+                        },
+                        "required": [ "tenantGuid", "endpoint" ]
+                    }
+                    """),
                 (args) => EndpointUpdate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "chat_endpoint_delete",
                 "Deletes a chat endpoint by GUID",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        endpointGuid = new { type = "string", description = "Chat endpoint GUID" }
-                    },
-                    required = new[] { "tenantGuid", "endpointGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "endpointGuid": { "type": "string", "description": "Chat endpoint GUID" }
+                        },
+                        "required": [ "tenantGuid", "endpointGuid" ]
+                    }
+                    """),
                 (args) => EndpointDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "chat_endpoint_test",
                 "Tests connectivity from the LiteGraph server to a chat endpoint's upstream provider and reports reachability, advertised models, and whether the configured model exists",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        endpointGuid = new { type = "string", description = "Chat endpoint GUID" }
-                    },
-                    required = new[] { "tenantGuid", "endpointGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "endpointGuid": { "type": "string", "description": "Chat endpoint GUID" }
+                        },
+                        "required": [ "tenantGuid", "endpointGuid" ]
+                    }
+                    """),
                 (args) => EndpointTest(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "chat_endpoint_health",
                 "Reads background health-check status for one chat endpoint",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        endpointGuid = new { type = "string", description = "Chat endpoint GUID" }
-                    },
-                    required = new[] { "tenantGuid", "endpointGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "endpointGuid": { "type": "string", "description": "Chat endpoint GUID" }
+                        },
+                        "required": [ "tenantGuid", "endpointGuid" ]
+                    }
+                    """),
                 (args) => EndpointHealth(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "chat_endpoint_healthall",
                 "Reads background health-check status for every chat endpoint in a tenant. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
-                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
-                    },
-                    required = new[] { "tenantGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "skip": { "type": "integer", "description": "Number of records to skip (default: 0)" },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" },
+                            "continuationToken": {
+                                "type": "string",
+                                "description": "Continuation token (GUID) from a previous response for marker-based pagination"
+                            }
+                        },
+                        "required": [ "tenantGuid" ]
+                    }
+                    """),
                 (args) => EndpointHealthAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "chat_completions",
                 "Executes a non-streaming chat completion against a tenant's graph data; streaming is unavailable over MCP. Omitting threadGuid creates a new thread, optionally bound to graphGuid. Requires a user principal; the admin break-glass token is rejected.",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        message = new { type = "string", description = "User message" },
-                        threadGuid = new { type = "string", description = "Optional chat thread GUID; omit to create a new thread" },
-                        graphGuid = new { type = "string", description = "Optional graph GUID to bind a newly created thread to" },
-                        completionEndpointGuid = new { type = "string", description = "Optional completion endpoint GUID override; defaults to the tenant chat settings" },
-                        embeddingEndpointGuid = new { type = "string", description = "Optional embedding endpoint GUID override; defaults to the tenant chat settings" },
-                        enableTools = new { type = "boolean", description = "Optional tool advertisement override; defaults to the tenant chat settings" },
-                        enableRag = new { type = "boolean", description = "Optional retrieval override; defaults to the tenant chat settings" }
-                    },
-                    required = new[] { "tenantGuid", "message" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "message": { "type": "string", "description": "User message" },
+                            "threadGuid": { "type": "string", "description": "Optional chat thread GUID; omit to create a new thread" },
+                            "graphGuid": { "type": "string", "description": "Optional graph GUID to bind a newly created thread to" },
+                            "completionEndpointGuid": {
+                                "type": "string",
+                                "description": "Optional completion endpoint GUID override; defaults to the tenant chat settings"
+                            },
+                            "embeddingEndpointGuid": {
+                                "type": "string",
+                                "description": "Optional embedding endpoint GUID override; defaults to the tenant chat settings"
+                            },
+                            "enableTools": {
+                                "type": "boolean",
+                                "description": "Optional tool advertisement override; defaults to the tenant chat settings"
+                            },
+                            "enableRag": {
+                                "type": "boolean",
+                                "description": "Optional retrieval override; defaults to the tenant chat settings"
+                            }
+                        },
+                        "required": [ "tenantGuid", "message" ]
+                    }
+                    """),
                 (args) => Completions(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "chat_thread_all",
                 "Lists chat threads in a tenant; the caller's own threads by default, or every user's threads with allUsers (admin only). Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        allUsers = new { type = "boolean", description = "True to list every user's threads (admin only, default: false)" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
-                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
-                    },
-                    required = new[] { "tenantGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "allUsers": { "type": "boolean", "description": "True to list every user's threads (admin only, default: false)" },
+                            "skip": { "type": "integer", "description": "Number of records to skip (default: 0)" },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" },
+                            "continuationToken": {
+                                "type": "string",
+                                "description": "Continuation token (GUID) from a previous response for marker-based pagination"
+                            }
+                        },
+                        "required": [ "tenantGuid" ]
+                    }
+                    """),
                 (args) => ThreadAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "chat_thread_get",
                 "Reads a chat thread by GUID",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        threadGuid = new { type = "string", description = "Chat thread GUID" }
-                    },
-                    required = new[] { "tenantGuid", "threadGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "threadGuid": { "type": "string", "description": "Chat thread GUID" }
+                        },
+                        "required": [ "tenantGuid", "threadGuid" ]
+                    }
+                    """),
                 (args) => ThreadGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "chat_thread_delete",
                 "Deletes a chat thread along with its turns and feedback",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        threadGuid = new { type = "string", description = "Chat thread GUID" }
-                    },
-                    required = new[] { "tenantGuid", "threadGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "threadGuid": { "type": "string", "description": "Chat thread GUID" }
+                        },
+                        "required": [ "tenantGuid", "threadGuid" ]
+                    }
+                    """),
                 (args) => ThreadDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "chat_thread_turns",
                 "Reads the turns of a chat thread ascending by sequence, including metrics and tool transcripts. Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        threadGuid = new { type = "string", description = "Chat thread GUID" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
-                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
-                    },
-                    required = new[] { "tenantGuid", "threadGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "threadGuid": { "type": "string", "description": "Chat thread GUID" },
+                            "skip": { "type": "integer", "description": "Number of records to skip (default: 0)" },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" },
+                            "continuationToken": {
+                                "type": "string",
+                                "description": "Continuation token (GUID) from a previous response for marker-based pagination"
+                            }
+                        },
+                        "required": [ "tenantGuid", "threadGuid" ]
+                    }
+                    """),
                 (args) => ThreadTurns(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "chat_feedback_create",
                 "Submits feedback on a chat turn. Requires a user principal; the admin break-glass token is rejected.",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        turnGuid = new { type = "string", description = "Chat turn GUID" },
-                        rating = new { type = "string", description = "Rating: ThumbsUp or ThumbsDown" },
-                        feedbackText = new { type = "string", description = "Optional free-text feedback" }
-                    },
-                    required = new[] { "tenantGuid", "turnGuid", "rating" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "turnGuid": { "type": "string", "description": "Chat turn GUID" },
+                            "rating": { "type": "string", "description": "Rating: ThumbsUp or ThumbsDown" },
+                            "feedbackText": { "type": "string", "description": "Optional free-text feedback" }
+                        },
+                        "required": [ "tenantGuid", "turnGuid", "rating" ]
+                    }
+                    """),
                 (args) => FeedbackCreate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "chat_feedback_all",
                 "Lists all chat feedback in a tenant (admin only). Returns a paginated EnumerationResult envelope (Objects, TotalRecords, RecordsRemaining, ContinuationToken/EndOfResults)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        skip = new { type = "integer", description = "Number of records to skip (default: 0)" },
-                        maxResults = new { type = "integer", description = "Maximum results to return, 1-1000, default 1000" },
-                        continuationToken = new { type = "string", description = "Continuation token (GUID) from a previous response for marker-based pagination" }
-                    },
-                    required = new[] { "tenantGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "skip": { "type": "integer", "description": "Number of records to skip (default: 0)" },
+                            "maxResults": { "type": "integer", "description": "Maximum results to return, 1-1000, default 1000" },
+                            "continuationToken": {
+                                "type": "string",
+                                "description": "Continuation token (GUID) from a previous response for marker-based pagination"
+                            }
+                        },
+                        "required": [ "tenantGuid" ]
+                    }
+                    """),
                 (args) => FeedbackAll(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "chat_feedback_delete",
                 "Deletes a chat feedback record by GUID (admin only)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        feedbackGuid = new { type = "string", description = "Chat feedback GUID" }
-                    },
-                    required = new[] { "tenantGuid", "feedbackGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "feedbackGuid": { "type": "string", "description": "Chat feedback GUID" }
+                        },
+                        "required": [ "tenantGuid", "feedbackGuid" ]
+                    }
+                    """),
                 (args) => FeedbackDelete(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "chat_settings_get",
                 "Reads a tenant's chat settings; defaults are returned when no record exists",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" }
-                    },
-                    required = new[] { "tenantGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" }
+                        },
+                        "required": [ "tenantGuid" ]
+                    }
+                    """),
                 (args) => SettingsGet(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
 
             server.RegisterLiteGraphTool(
                 "chat_settings_update",
                 "Upserts a tenant's chat settings (admin only)",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        settings = new { type = "string", description = "ChatSettings object serialized as JSON string using Serializer" }
-                    },
-                    required = new[] { "tenantGuid", "settings" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "settings": { "type": "string", "description": "ChatSettings object serialized as JSON string using Serializer" }
+                        },
+                        "required": [ "tenantGuid", "settings" ]
+                    }
+                    """),
                 (args) => SettingsUpdate(sdk, LiteGraphMcpServerHelpers.ToJsonElement(args)));
         }
 

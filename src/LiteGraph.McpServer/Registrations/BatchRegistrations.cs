@@ -26,34 +26,43 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "batch_existence",
                 "Checks existence of multiple nodes, edges, vectors, or edges between nodes",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        nodes = new { type = "array", items = new { type = "string" }, description = "List of node GUIDs to check" },
-                        edges = new { type = "array", items = new { type = "string" }, description = "List of edge GUIDs to check" },
-                        vectors = new { type = "array", items = new { type = "string" }, description = "List of vector GUIDs to check" },
-                        edgesBetween = new
-                        {
-                            type = "array",
-                            items = new
-                            {
-                                type = "object",
-                                properties = new
-                                {
-                                    from = new { type = "string", description = "From node GUID" },
-                                    to = new { type = "string", description = "To node GUID" }
-                                },
-                                required = new[] { "from", "to" }
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "nodes": {
+                                "type": "array",
+                                "items": { "type": "string" },
+                                "description": "List of node GUIDs to check"
                             },
-                            description = "List of edge pairs to check (from/to node GUIDs)"
-                        }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid" }
-                },
+                            "edges": {
+                                "type": "array",
+                                "items": { "type": "string" },
+                                "description": "List of edge GUIDs to check"
+                            },
+                            "vectors": {
+                                "type": "array",
+                                "items": { "type": "string" },
+                                "description": "List of vector GUIDs to check"
+                            },
+                            "edgesBetween": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "from": { "type": "string", "description": "From node GUID" },
+                                        "to": { "type": "string", "description": "To node GUID" }
+                                    },
+                                    "required": [ "from", "to" ]
+                                },
+                                "description": "List of edge pairs to check (from/to node GUIDs)"
+                            }
+                        },
+                        "required": [ "tenantGuid", "graphGuid" ]
+                    }
+                    """),
                 (rpcArgs) =>
                 {
                     JsonElement? args = LiteGraphMcpServerHelpers.ToJsonElement(rpcArgs);

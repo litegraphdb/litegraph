@@ -34,21 +34,24 @@ namespace LiteGraph.McpServer.Registrations
             server.RegisterLiteGraphTool(
                 "graph_query",
                 "Executes a native LiteGraph graph query against a single tenant and graph",
-                new
-                {
-                    type = "object",
-                    properties = new
+                LiteGraphMcpSchema.Parse("""
                     {
-                        tenantGuid = new { type = "string", description = "Tenant GUID" },
-                        graphGuid = new { type = "string", description = "Graph GUID" },
-                        request = new { type = "object", description = "GraphQueryRequest object with Query, Parameters, MaxResults, and TimeoutSeconds" },
-                        query = new { type = "string", description = "Query text, used when request is omitted" },
-                        parameters = new { type = "object", description = "Query parameters, used when request is omitted" },
-                        maxResults = new { type = "integer", description = "Maximum rows when the query omits LIMIT" },
-                        timeoutSeconds = new { type = "integer", description = "Query timeout in seconds" }
-                    },
-                    required = new[] { "tenantGuid", "graphGuid" }
-                },
+                        "type": "object",
+                        "properties": {
+                            "tenantGuid": { "type": "string", "description": "Tenant GUID" },
+                            "graphGuid": { "type": "string", "description": "Graph GUID" },
+                            "request": {
+                                "type": "object",
+                                "description": "GraphQueryRequest object with Query, Parameters, MaxResults, and TimeoutSeconds"
+                            },
+                            "query": { "type": "string", "description": "Query text, used when request is omitted" },
+                            "parameters": { "type": "object", "description": "Query parameters, used when request is omitted" },
+                            "maxResults": { "type": "integer", "description": "Maximum rows when the query omits LIMIT" },
+                            "timeoutSeconds": { "type": "integer", "description": "Query timeout in seconds" }
+                        },
+                        "required": [ "tenantGuid", "graphGuid" ]
+                    }
+                    """),
                 (args) => ExecuteQuery(LiteGraphMcpServerHelpers.ToJsonElement(args), sdk));
         }
 
