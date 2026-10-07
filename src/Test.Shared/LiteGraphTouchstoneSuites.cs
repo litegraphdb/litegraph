@@ -397,7 +397,8 @@
                     CreateMcpProtocolSuite(),
                     CreateOnboardingSuite(),
                     CreateScaleOutSuite(),
-                    CreateAotSerializationSuite()
+                    CreateAotSerializationSuite(),
+                    CreateAotServerSuite()
                 };
 
                 if (!String.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(PostgresqlTestConnectionStringEnvironmentVariable)))

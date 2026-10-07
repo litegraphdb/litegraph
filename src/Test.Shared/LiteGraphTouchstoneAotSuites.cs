@@ -41,6 +41,14 @@ namespace Test.Shared
 
         private static readonly DateTime _AotSampleTimestamp = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc).AddTicks(1234560);
 
+        // Assemblies whose classes the sample populator fills in when they appear as property types.
+        private static readonly HashSet<Assembly> _AotSampleAssemblies = new HashSet<Assembly>
+        {
+            typeof(Node).Assembly,
+            typeof(LiteGraph.Server.Classes.Settings).Assembly,
+            typeof(WatsonWebserver.Core.WebserverSettings).Assembly
+        };
+
         private static readonly Type[] _AotParityTypes = new Type[]
         {
             typeof(AuthenticationToken),
@@ -470,7 +478,7 @@ namespace Test.Shared
                 }
             }
 
-            if (depth < 2 && type.IsClass && !type.IsAbstract && type.Assembly == typeof(Node).Assembly
+            if (depth < 2 && type.IsClass && !type.IsAbstract && _AotSampleAssemblies.Contains(type.Assembly)
                 && type.GetConstructor(Type.EmptyTypes) != null)
             {
                 yield return CreateAotSample(type, depth + 1);
