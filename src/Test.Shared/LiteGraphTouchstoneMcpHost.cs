@@ -20,6 +20,7 @@ namespace Test.Shared
         private static readonly TimeSpan _ReadinessPollInterval = TimeSpan.FromMilliseconds(500);
         private static readonly TimeSpan _StartupRetryDelay = TimeSpan.FromSeconds(1);
         private const int _StartupAttemptLimit = 3;
+        private const string _McpExecutableEnvironmentVariable = "LITEGRAPH_TEST_MCP_EXECUTABLE";
         private static McpProcessEnvironment? _McpEnvironment = null;
 
         private static HttpClient CreateReadinessClient()
@@ -149,7 +150,7 @@ namespace Test.Shared
                 McpWorkingDirectory = mcpWorkingDirectory,
                 DatabasePath = Path.Combine(liteGraphWorkingDirectory, "litegraph.db"),
                 LiteGraphAssemblyPath = ResolveBuildOutput("LiteGraph.Server", configuration, targetFramework, "LiteGraph.Server.dll"),
-                McpAssemblyPath = ResolveBuildOutput("LiteGraph.McpServer", configuration, targetFramework, "LiteGraph.McpServer.dll"),
+                McpAssemblyPath = ResolveMcpServerPath(configuration, targetFramework),
                 ApiKey = apiKey,
                 LiteGraphPort = liteGraphPort,
                 McpHttpPort = mcpHttpPort,
@@ -157,6 +158,21 @@ namespace Test.Shared
                 McpWebSocketPort = mcpWebSocketPort,
                 McpMetricsPort = mcpMetricsPort
             };
+        }
+
+        private static string ResolveMcpServerPath(string configuration, string targetFramework)
+        {
+            // LITEGRAPH_TEST_MCP_EXECUTABLE runs the MCP suites against another build of the MCP server, such as a
+            // Native AOT binary (see docs/AOT.md); by default the suites start the JIT build next to this one.
+            string? executable = Environment.GetEnvironmentVariable(_McpExecutableEnvironmentVariable);
+            if (!String.IsNullOrEmpty(executable))
+            {
+                string fullPath = Path.GetFullPath(executable);
+                if (!File.Exists(fullPath)) throw new FileNotFoundException(_McpExecutableEnvironmentVariable + " names a file that does not exist", fullPath);
+                return fullPath;
+            }
+
+            return ResolveBuildOutput("LiteGraph.McpServer", configuration, targetFramework, "LiteGraph.McpServer.dll");
         }
 
         private static ManagedProcess StartDotnetProcess(
@@ -172,7 +188,9 @@ namespace Test.Shared
                     workingDirectory,
                     displayName.Replace('.', '_') + ".log"));
 
-            ProcessStartInfo startInfo = new ProcessStartInfo("dotnet")
+            // A path that is not a .dll is a native executable (for example a Native AOT build of the MCP server).
+            bool isAssembly = assemblyPath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase);
+            ProcessStartInfo startInfo = new ProcessStartInfo(isAssembly ? "dotnet" : assemblyPath)
             {
                 WorkingDirectory = workingDirectory,
                 UseShellExecute = false,
@@ -181,7 +199,7 @@ namespace Test.Shared
                 CreateNoWindow = true
             };
 
-            startInfo.ArgumentList.Add(assemblyPath);
+            if (isAssembly) startInfo.ArgumentList.Add(assemblyPath);
 
             foreach (KeyValuePair<string, string> environmentVariable in environmentVariables)
             {

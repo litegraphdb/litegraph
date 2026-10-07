@@ -2,6 +2,7 @@ namespace Test.Shared
 {
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Net.Http;
     using System.Text;
@@ -23,6 +24,7 @@ namespace Test.Shared
 
         private const string _McpStatelessVersion = "2026-07-28";
         private const string _McpNewestHandshakeVersion = "2025-11-25";
+        private const string _McpToolsBaselineFile = "mcp-tools-baseline.json";
         private static readonly HashSet<string> _VoltaicDemoToolNames = new HashSet<string>(StringComparer.Ordinal) { "ping", "echo", "getTime", "getSessions", "getClients" };
 
         #endregion
@@ -56,7 +58,8 @@ namespace Test.Shared
                     McpProtocolCase("Mcp.Protocol.HandlerArgumentErrorReportsCause", "A malformed argument is reported as invalid params with a readable message", TestMcpHandlerArgumentErrorReportsCause),
                     McpProtocolCase("Mcp.Protocol.ExistingGraphReadStillSucceeds", "Error translation leaves successful tool results unchanged", TestMcpExistingGraphReadStillSucceeds),
                     McpProtocolCase("Mcp.Protocol.TcpAndWebSocketErrorsReportCause", "TCP and WebSocket report the cause of a failed LiteGraph call", TestMcpTcpAndWebSocketErrorsReportCause),
-                    McpProtocolCase("Mcp.Protocol.InitializeCapsHandshakeVersion", "initialize requesting 2026-07-28 negotiates the newest handshake revision", TestMcpInitializeCapsHandshakeVersion)
+                    McpProtocolCase("Mcp.Protocol.InitializeCapsHandshakeVersion", "initialize requesting 2026-07-28 negotiates the newest handshake revision", TestMcpInitializeCapsHandshakeVersion),
+                    McpProtocolCase("Mcp.Protocol.ToolsListBaseline", "tools/list returns every tool's name, description, and schemas exactly as in the baseline", TestMcpToolsListBaseline)
                 },
                 afterSuiteAsync: CleanupMcpSuiteAsync);
         }
@@ -639,6 +642,79 @@ namespace Test.Shared
             AssertNotNull(wsError, "WebSocket graph/get of a deleted graph fails");
             AssertFalse(wsError!.Contains("Internal error"), "WebSocket error is not a generic internal error (" + wsError + ")");
             AssertTrue(wsError.Contains(graphGuid.ToString()), "WebSocket error names the deleted graph (" + wsError + ")");
+        }
+
+        private static async Task TestMcpToolsListBaseline(CancellationToken cancellationToken)
+        {
+            await EnsureMcpEnvironmentAsync(cancellationToken).ConfigureAwait(false);
+            if (_McpClient == null) throw new InvalidOperationException("MCP client is null");
+
+            // Each tool's JSON exactly as the server wrote it, keyed by name. The baseline was captured from the server
+            // before its tool schemas moved from anonymous objects to JSON (for Native AOT), so it pins the published
+            // schemas byte for byte. Set LITEGRAPH_CAPTURE_AOT_BASELINES to a directory to write a fresh baseline there.
+            SortedDictionary<string, string> actual = new SortedDictionary<string, string>(StringComparer.Ordinal);
+            string? cursor = null;
+            int pages = 0;
+
+            do
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                object parameters = cursor == null ? new { } : new { cursor = cursor };
+                JsonRpcResponse response = await _McpClient.CallAsync("tools/list", parameters, token: cancellationToken).ConfigureAwait(false);
+                AssertTrue(response.Error == null, "tools/list page " + (pages + 1) + " succeeds (" + DescribeRpcError(response) + ")");
+                pages++;
+
+                using (JsonDocument result = ParseRpcResult(response))
+                {
+                    foreach (JsonElement tool in result.RootElement.GetProperty("tools").EnumerateArray())
+                    {
+                        string? name = GetStringProperty(tool, "name");
+                        AssertFalse(String.IsNullOrEmpty(name), "tools/list entry has a name");
+                        AssertFalse(actual.ContainsKey(name!), "tools/list lists '" + name + "' once");
+                        actual[name!] = tool.GetRawText();
+                    }
+
+                    cursor = GetStringProperty(result.RootElement, "nextCursor");
+                }
+            }
+            while (!String.IsNullOrEmpty(cursor) && pages < 50);
+
+            string? captureDirectory = Environment.GetEnvironmentVariable(_AotCaptureEnvironmentVariable);
+            if (!String.IsNullOrEmpty(captureDirectory))
+            {
+                Directory.CreateDirectory(captureDirectory);
+                string json = JsonSerializer.Serialize(actual, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(Path.Combine(captureDirectory, _McpToolsBaselineFile), json, cancellationToken).ConfigureAwait(false);
+                return;
+            }
+
+            string baselinePath = Path.Combine(AppContext.BaseDirectory, "Baselines", _McpToolsBaselineFile);
+            AssertTrue(File.Exists(baselinePath), "MCP tools baseline exists at " + baselinePath);
+            string baselineJson = await File.ReadAllTextAsync(baselinePath, cancellationToken).ConfigureAwait(false);
+            Dictionary<string, string> expected =
+                JsonSerializer.Deserialize<Dictionary<string, string>>(baselineJson)
+                ?? new Dictionary<string, string>();
+
+            List<string> failures = new List<string>();
+            foreach (KeyValuePair<string, string> entry in expected)
+            {
+                if (!actual.TryGetValue(entry.Key, out string? actualJson))
+                {
+                    failures.Add(entry.Key + ": no longer listed");
+                }
+                else if (!String.Equals(entry.Value, actualJson, StringComparison.Ordinal))
+                {
+                    failures.Add(entry.Key + ":\n    expected " + entry.Value + "\n    actual   " + actualJson);
+                }
+            }
+
+            foreach (string name in actual.Keys)
+            {
+                if (!expected.ContainsKey(name)) failures.Add(name + ": not in baseline (recapture baselines to add it)");
+            }
+
+            AssertTrue(failures.Count == 0, "tools/list differs from baseline for " + failures.Count + " tool(s):\n  " + String.Join("\n  ", failures));
         }
 
         private static async Task<HashSet<string>> ListMcpToolNamesAsync(CancellationToken cancellationToken)
