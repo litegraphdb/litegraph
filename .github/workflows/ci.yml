@@ -1,50 +1,48 @@
 name: CI
 
+# Every test runs on every commit to any branch and on every pull request, on Linux, macOS, and Windows:
+#   - the Touchstone suites (console, xUnit, and NUnit runners) on net10.0 and net8.0, with PostgreSQL and Redis on Linux;
+#   - Native AOT: src/Test.Aot, and the REST server, MCP server, and console tools published as native executables, with
+#     the Touchstone suites run again against the native servers;
+#   - the C# SDK suite (JIT and Native AOT) against a live server, and the JavaScript and Python SDK and dashboard tests;
+#   - on Linux, the Docker deployments (default and Native AOT images) with their smoke and failover scripts.
+
 on:
   push:
-    branches:
-      - main
-      - v7.0
-      - V10.0
   pull_request:
-    branches:
-      - main
-      - v7.0
-      - V10.0
   workflow_dispatch:
   schedule:
-    # Nightly full deployment run (images built from the commit, never pushed).
     - cron: '17 6 * * *'
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
 
 jobs:
   dotnet:
-    name: .NET build and transaction gates
-    runs-on: ubuntu-24.04
-    services:
-      postgres:
-        # LiteGraph 10 stores vectors with pgvector; the extension must be installable.
-        image: pgvector/pgvector:0.8.6-pg17-trixie
-        env:
-          POSTGRES_DB: litegraph_ci
-          POSTGRES_USER: litegraph
-          POSTGRES_PASSWORD: litegraph
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -h 127.0.0.1 -U litegraph -d litegraph_ci"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-      redis:
-        # Cluster node registry and rolling restart tests (ScaleOut suite).
-        image: redis:7.4.9-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli -h 127.0.0.1 ping"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
+    name: .NET (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            rid: linux-x64
+            exe: ''
+          - os: macos-15
+            rid: osx-arm64
+            exe: ''
+          - os: windows-2025
+            rid: win-x64
+            exe: '.exe'
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -56,86 +54,130 @@ jobs:
             8.0.x
             10.0.x
 
+      - name: Start PostgreSQL (pgvector) and Redis (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          docker run -d --name ci-postgres -p 5432:5432 -e POSTGRES_DB=litegraph_ci -e POSTGRES_USER=litegraph -e POSTGRES_PASSWORD=litegraph pgvector/pgvector:0.8.6-pg17-trixie
+          docker run -d --name ci-redis -p 6379:6379 redis:7.4.9-alpine redis-server --save '' --appendonly no
+          for i in $(seq 1 60); do docker exec ci-postgres pg_isready -h 127.0.0.1 -U litegraph -d litegraph_ci && break; sleep 2; done
+          for i in $(seq 1 30); do docker exec ci-redis redis-cli ping | grep -q PONG && break; sleep 1; done
+          echo "LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING=Host=127.0.0.1;Port=5432;Database=litegraph_ci;Username=litegraph;Password=litegraph;Maximum Pool Size=90;Timeout=15;Command Timeout=60" >> "$GITHUB_ENV"
+          echo "LITEGRAPH_TEST_REDIS_CONNECTION_STRING=127.0.0.1:6379" >> "$GITHUB_ENV"
+
       - name: Restore
         run: dotnet restore src/LiteGraph.sln
 
-      - name: Build
-        run: dotnet build src/LiteGraph.sln -c Debug --no-restore
+      - name: Build (warnings are errors)
+        run: dotnet build src/LiteGraph.sln -c Debug --no-restore -warnaserror
 
       - name: Vulnerability audit
+        if: runner.os == 'Linux'
         run: dotnet list src/LiteGraph.sln package --vulnerable --include-transitive
 
       - name: NuGet package validation
+        if: runner.os == 'Linux'
         run: |
           dotnet build src/LiteGraph/LiteGraph.csproj -c Release
           dotnet pack src/LiteGraph/LiteGraph.csproj -c Release --no-build -o artifacts/nuget
 
-      - name: SQLite transaction concurrency gate
-        run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --transaction-concurrency
+      - name: Touchstone suites (net10.0)
+        run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 --no-build
 
-      - name: PostgreSQL transaction concurrency gate
-        env:
-          LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING: Host=127.0.0.1;Port=5432;Database=litegraph_ci;Username=litegraph;Password=litegraph;Maximum Pool Size=90;Timeout=15;Command Timeout=60
-        run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --transaction-concurrency
+      - name: Touchstone suites (net8.0)
+        run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net8.0 --no-build
 
-      - name: Scale-out suite (pgvector, locks, settings, Redis node registry, rolling restart)
-        env:
-          LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING: Host=127.0.0.1;Port=5432;Database=litegraph_ci;Username=litegraph;Password=litegraph;Maximum Pool Size=90;Timeout=15;Command Timeout=60
-          LITEGRAPH_TEST_REDIS_CONNECTION_STRING: 127.0.0.1:6379
-        run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --suite ScaleOut
+      - name: Transaction concurrency gate
+        run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 --no-build -- --transaction-concurrency
 
-      - name: Serialization parity suite (JSON pinned to the 10.1 baselines, run outside UTC)
+      - name: Serialization parity outside UTC (Asia/Kolkata)
+        if: runner.os != 'Windows'
         env:
           # A non-UTC zone with a half-hour offset, so time-zone bugs in timestamp handling cannot pass unnoticed.
           TZ: Asia/Kolkata
-        run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- --suite Aot.Serialization
+        run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 --no-build -- --suite Aot.Serialization,Aot.Server
 
-      - name: Native AOT prerequisites
+      - name: xUnit runner
+        run: dotnet test src/Test.Xunit/Test.Xunit.csproj -c Debug --framework net10.0 --no-build
+
+      - name: NUnit runner
+        run: dotnet test src/Test.Nunit/Test.Nunit.csproj -c Debug --framework net10.0 --no-build
+
+      - name: Native AOT prerequisites (Linux)
+        if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
 
-      - name: Native AOT library verification (net10.0 and net8.0, SQLite and PostgreSQL)
-        env:
-          LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING: Host=127.0.0.1;Port=5432;Database=litegraph_ci;Username=litegraph;Password=litegraph;Timeout=15;Command Timeout=60
+      - name: Native AOT library (src/Test.Aot, net10.0 and net8.0)
         run: |
           for framework in net10.0 net8.0; do
-            dotnet publish src/Test.Aot/Test.Aot.csproj -c Release -f "$framework" -r linux-x64 -o "artifacts/aot/$framework"
-            "artifacts/aot/$framework/Test.Aot"
+            dotnet publish src/Test.Aot/Test.Aot.csproj -c Release -f "$framework" -r ${{ matrix.rid }} -o "artifacts/aot/$framework"
+            "artifacts/aot/$framework/Test.Aot${{ matrix.exe }}"
           done
 
-      - name: Native AOT C# SDK verification (SDK suite against a live server)
+      - name: Native AOT publish (REST server, MCP server, console tools)
         run: |
-          dotnet build src/LiteGraph.Server/LiteGraph.Server.csproj -c Debug -f net10.0
-          server_dir="$(mktemp -d)"
-          (cd "$server_dir" && dotnet "$GITHUB_WORKSPACE/src/LiteGraph.Server/bin/Debug/net10.0/LiteGraph.Server.dll" > "$server_dir/server.log" 2>&1 &)
+          for project in LiteGraph.Server LiteGraph.McpServer LiteGraphConsole LiteGraph.SampleDatabase LoadGenerator; do
+            dotnet publish "src/$project/$project.csproj" -c Release -f net10.0 -r ${{ matrix.rid }} -p:PublishAot=true -o "artifacts/native/$project"
+          done
+          dotnet publish src/LiteGraph.Server/LiteGraph.Server.csproj -c Release -f net8.0 -r ${{ matrix.rid }} -p:PublishAot=true -o artifacts/native8/LiteGraph.Server
+          dotnet publish src/LiteGraph.McpServer/LiteGraph.McpServer.csproj -c Release -f net8.0 -r ${{ matrix.rid }} -p:PublishAot=true -o artifacts/native8/LiteGraph.McpServer
+
+      - name: Touchstone suites against the native REST and MCP servers (net10.0 build)
+        env:
+          LITEGRAPH_TEST_SERVER_EXECUTABLE: artifacts/native/LiteGraph.Server/LiteGraph.Server${{ matrix.exe }}
+          LITEGRAPH_TEST_MCP_EXECUTABLE: artifacts/native/LiteGraph.McpServer/LiteGraph.McpServer${{ matrix.exe }}
+        run: dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 --no-build
+
+      - name: Server-backed suites against the native REST and MCP servers (net8.0 build)
+        env:
+          LITEGRAPH_TEST_SERVER_EXECUTABLE: artifacts/native8/LiteGraph.Server/LiteGraph.Server${{ matrix.exe }}
+          LITEGRAPH_TEST_MCP_EXECUTABLE: artifacts/native8/LiteGraph.McpServer/LiteGraph.McpServer${{ matrix.exe }}
+        run: >-
+          dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net8.0 --no-build --
+          --suite Mcp.Protocol,Mcp.Server,Authorization,Onboarding,Observability,Chat.Rest,Improvements.Foundation,Aot.Server
+
+      - name: Native console tools
+        run: |
+          db="$RUNNER_TEMP/native-sample.db"
+          "artifacts/native/LiteGraph.SampleDatabase/LiteGraph.SampleDatabase${{ matrix.exe }}" --database "$db"
+          "artifacts/native/LiteGraphConsole/LiteGraphConsole${{ matrix.exe }}" --database "$db" \
+            --tenant 00000000-0000-0000-0000-000000000000 --graph 00000000-0000-0000-0000-000000000000 \
+            --execute "MATCH (n) RETURN n LIMIT 3" | tee "$RUNNER_TEMP/lg.txt"
+          grep -q '"Rows"' "$RUNNER_TEMP/lg.txt"
+          "artifacts/native/LoadGenerator/LoadGenerator${{ matrix.exe }}" --sqlite "$RUNNER_TEMP/native-load.db" \
+            --graphs 2 --nodes 20 --days 1 --requests 50 --chat-threads 2 --chat-turns 2
+
+      - name: C# SDK suite against a live native server (JIT and Native AOT)
+        run: |
+          server_dir="$RUNNER_TEMP/sdk-server"
+          mkdir -p "$server_dir"
+          (cd "$server_dir" && "$GITHUB_WORKSPACE/artifacts/native/LiteGraph.Server/LiteGraph.Server${{ matrix.exe }}" > "$server_dir/server.log" 2>&1 &)
           for i in $(seq 1 60); do
             if curl -sf http://localhost:8701/v1.0/health/ready > /dev/null; then break; fi
             sleep 1
           done
           curl -sf http://localhost:8701/v1.0/health/ready > /dev/null || { cat "$server_dir/server.log"; exit 1; }
-          dotnet publish sdk/csharp/src/Test.Automated/Test.Automated.csproj -c Release -r linux-x64 -p:PublishAot=true -o artifacts/sdk-aot
-          LITEGRAPH_ENDPOINT=http://localhost:8701 artifacts/sdk-aot/Test.Automated
+          dotnet run --project sdk/csharp/src/Test.Automated/Test.Automated.csproj -c Release
+          dotnet publish sdk/csharp/src/Test.Automated/Test.Automated.csproj -c Release -r ${{ matrix.rid }} -p:PublishAot=true -o artifacts/sdk-aot
+          LITEGRAPH_ENDPOINT=http://localhost:8701 "artifacts/sdk-aot/Test.Automated${{ matrix.exe }}"
 
-      - name: Native AOT MCP server verification (MCP suites against a native MCP server, net10.0 and net8.0)
-        run: |
-          for framework in net10.0 net8.0; do
-            dotnet publish src/LiteGraph.McpServer/LiteGraph.McpServer.csproj -c Release -f "$framework" -r linux-x64 -p:PublishAot=true -o "artifacts/mcp-aot/$framework"
-            LITEGRAPH_TEST_MCP_EXECUTABLE="artifacts/mcp-aot/$framework/LiteGraph.McpServer" \
-              dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- \
-              --suite Mcp.Protocol,Mcp.Server,Authorization,Onboarding,Observability,Chat.Rest,Improvements.Foundation
-          done
-
-      - name: Upload test server logs
+      - name: Upload test logs
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: transaction-gate-logs
-          path: /tmp/LiteGraph.Touchstone/**/*.log
+          name: dotnet-${{ matrix.os }}-logs
+          path: |
+            ${{ runner.temp }}/**/*.log
+            /tmp/LiteGraph.Touchstone/**/*.log
           if-no-files-found: ignore
           retention-days: 14
 
   javascript-sdk:
-    name: JavaScript SDK
-    runs-on: ubuntu-24.04
+    name: JavaScript SDK (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15, windows-2025]
     defaults:
       run:
         working-directory: sdk/js
@@ -160,8 +202,12 @@ jobs:
         run: npm pack --dry-run
 
   python-sdk:
-    name: Python SDK
-    runs-on: ubuntu-24.04
+    name: Python SDK (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15, windows-2025]
     defaults:
       run:
         working-directory: sdk/python
@@ -188,8 +234,12 @@ jobs:
         run: python -m build
 
   dashboard:
-    name: Dashboard
-    runs-on: ubuntu-24.04
+    name: Dashboard (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15, windows-2025]
     defaults:
       run:
         working-directory: dashboard
@@ -220,14 +270,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Validate compose files and profiles
+      - name: Validate compose files, profiles, and Native AOT overrides
         env:
           LITEGRAPH_IMAGE_TAG: ci-validate
         run: |
           set -euo pipefail
           for d in single-node-sqlite single-node-postgresql multi-node; do
             docker compose -f docker/$d/compose.yaml config -q
-            echo "valid: docker/$d/compose.yaml"
+            docker compose -f docker/$d/compose.yaml -f docker/$d/compose.native.yaml config -q
+            echo "valid: docker/$d/compose.yaml (default and native)"
           done
           docker compose -f docker/multi-node/compose.yaml --profile switchboard --profile tools config -q
           echo "valid: docker/multi-node/compose.yaml with profiles switchboard and tools"
@@ -240,15 +291,17 @@ jobs:
           echo "all shell scripts parse"
 
   deploy:
-    name: Docker deployments (${{ matrix.deployment }})
-    if: github.event_name != 'push'
+    name: Docker deployment (${{ matrix.deployment }}, ${{ matrix.variant }})
     runs-on: ubuntu-24.04
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
         deployment: [single-node-sqlite, single-node-postgresql, multi-node]
+        variant: [jit, native]
     env:
       LITEGRAPH_IMAGE_TAG: ci-${{ github.sha }}
+      COMPOSE_FILE: ${{ matrix.variant == 'native' && 'compose.yaml:compose.native.yaml' || 'compose.yaml' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -256,8 +309,13 @@ jobs:
       - name: Build images from this commit (not pushed)
         run: |
           set -euo pipefail
-          docker build -f src/LiteGraph.Server/Dockerfile -t jchristn77/litegraph:$LITEGRAPH_IMAGE_TAG src
-          docker build -f src/LiteGraph.McpServer/Dockerfile -t jchristn77/litegraph-mcp:$LITEGRAPH_IMAGE_TAG .
+          if [ "${{ matrix.variant }}" = "native" ]; then
+            docker build -f src/LiteGraph.Server/Dockerfile.native -t jchristn77/litegraph:$LITEGRAPH_IMAGE_TAG-native src
+            docker build -f src/LiteGraph.McpServer/Dockerfile.native -t jchristn77/litegraph-mcp:$LITEGRAPH_IMAGE_TAG-native .
+          else
+            docker build -f src/LiteGraph.Server/Dockerfile -t jchristn77/litegraph:$LITEGRAPH_IMAGE_TAG src
+            docker build -f src/LiteGraph.McpServer/Dockerfile -t jchristn77/litegraph-mcp:$LITEGRAPH_IMAGE_TAG .
+          fi
           docker build -t jchristn77/litegraph-ui:$LITEGRAPH_IMAGE_TAG dashboard
 
       - name: Start ${{ matrix.deployment }}
@@ -289,7 +347,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: deploy-${{ matrix.deployment }}-logs
+          name: deploy-${{ matrix.deployment }}-${{ matrix.variant }}-logs
           path: docker/${{ matrix.deployment }}/compose-logs.txt
           if-no-files-found: ignore
           retention-days: 14
