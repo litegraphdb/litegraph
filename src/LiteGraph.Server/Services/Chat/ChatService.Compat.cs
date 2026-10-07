@@ -252,6 +252,12 @@ namespace LiteGraph.Server.Services.Chat
             };
 
             List<object> toolTranscript = new List<object>();
+
+            // The failure response is sent after the failed turn is persisted, so a client that reads the thread as soon as
+            // it gets the error sees the turn.
+            int failureStatusCode = 0;
+            string failureMessage = null;
+
             ChatCompletionResult result = new ChatCompletionResult
             {
                 ThreadGUID = thread.GUID,
@@ -360,14 +366,16 @@ namespace LiteGraph.Server.Services.Chat
                     turn.Error = cue.Message;
                     turn.HttpStatus = cue.StatusCode;
                     activity?.SetTag("litegraph.chat.error", cue.Message);
-                    await SendCompatFailure(ctx, compat, state, 502, cue.Message, token).ConfigureAwait(false);
+                    failureStatusCode = 502;
+                    failureMessage = cue.Message;
                 }
                 catch (Exception e)
                 {
                     turn.Error = e.Message;
                     activity?.SetTag("litegraph.chat.error", e.Message);
                     _Logging.Warn(_Header + "compat chat turn " + turn.GUID + " failed: " + e.Message);
-                    await SendCompatFailure(ctx, compat, state, 500, e.Message, token).ConfigureAwait(false);
+                    failureStatusCode = 500;
+                    failureMessage = e.Message;
                 }
                 finally
                 {
@@ -402,6 +410,10 @@ namespace LiteGraph.Server.Services.Chat
                 if (turn.Success)
                 {
                     await SendCompatSuccess(ctx, compat, state, turn, result, token).ConfigureAwait(false);
+                }
+                else if (failureStatusCode != 0)
+                {
+                    await SendCompatFailure(ctx, compat, state, failureStatusCode, failureMessage, token).ConfigureAwait(false);
                 }
             }
         }
