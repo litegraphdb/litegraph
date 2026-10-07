@@ -122,6 +122,7 @@ namespace LiteGraph.Serialization
     [JsonSerializable(typeof(EnumerationResult<TenantMetadata>))]
     [JsonSerializable(typeof(EnumerationResult<UserMaster>))]
     [JsonSerializable(typeof(EnumerationResult<VectorMetadata>))]
+    [JsonSerializable(typeof(EnumerationResult<RouteDetail>))]
 
     // Collections stored in columns or exchanged with callers.
     [JsonSerializable(typeof(List<AuthorizationPermissionEnum>))]
@@ -131,6 +132,8 @@ namespace LiteGraph.Serialization
     [JsonSerializable(typeof(List<float>))]
     [JsonSerializable(typeof(List<object>))]
     [JsonSerializable(typeof(List<Dictionary<string, object>>))]
+    [JsonSerializable(typeof(Dictionary<Guid, GraphStatistics>))]
+    [JsonSerializable(typeof(Dictionary<Guid, TenantStatistics>))]
     [JsonSerializable(typeof(Dictionary<string, string>))]
     [JsonSerializable(typeof(Dictionary<string, int>))]
     [JsonSerializable(typeof(Dictionary<string, long>))]

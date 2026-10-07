@@ -78,6 +78,9 @@ namespace Test.Shared
             typeof(EnumerationResult<Node>),
             typeof(EnumerationResult<Edge>),
             typeof(EnumerationResult<Graph>),
+            typeof(EnumerationResult<RouteDetail>),
+            typeof(Dictionary<Guid, GraphStatistics>),
+            typeof(Dictionary<Guid, TenantStatistics>),
             typeof(ExistenceRequest),
             typeof(ExistenceResult),
             typeof(Graph),
@@ -344,6 +347,17 @@ namespace Test.Shared
                     new Expr("Name", OperatorEnum.Equals, "sample"),
                     OperatorEnum.And,
                     new Expr("Count", OperatorEnum.GreaterThan, 3L));
+            }
+
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>) && type.GetGenericArguments()[0] == typeof(Guid))
+            {
+                // A dictionary keyed by GUID as the root sample (statistics results). Properties of this shape inside other
+                // types stay empty, as in the 10.1 baselines.
+                string seed = AotTypeKey(type);
+                IDictionary dictionary = (IDictionary)Activator.CreateInstance(type)!;
+                List<object?> values = AotCollectionItems(type.GetGenericArguments()[1], seed, depth);
+                for (int i = 0; i < values.Count; i++) dictionary[AotGuid(seed + "#key" + i)] = values[i];
+                return dictionary;
             }
 
             object instance = Activator.CreateInstance(type)!;

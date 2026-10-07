@@ -27,6 +27,64 @@ namespace Test.Shared
         private const string _ServerSerializationBaselineFile = "server-serialization-baseline.json";
         private const string _ServerLiveBaselineFile = "server-live-baseline.json";
 
+        // Request bodies and other JSON the server deserializes (Serializer.DeserializeJson<T> and CopyObject<T> in
+        // LiteGraph.Server). Add a type here when the server starts deserializing it.
+        private static readonly Type[] _AotServerDeserializedTypes = new Type[]
+        {
+            typeof(LiteGraph.Server.Classes.AuthenticationToken),
+            typeof(AuthorizationRole),
+            typeof(LiteGraph.Server.Classes.BackupRequest),
+            typeof(CachingSettings),
+            typeof(LiteGraph.Server.Classes.ChatCompletionRequest),
+            typeof(ChatEndpoint),
+            typeof(ChatFeedback),
+            typeof(ChatSettings),
+            typeof(ChatThread),
+            typeof(LiteGraph.Server.Classes.ClusterJobRun),
+            typeof(LiteGraph.Server.Classes.ClusterNode),
+            typeof(Credential),
+            typeof(CredentialScopeAssignment),
+            typeof(Dictionary<string, object>),
+            typeof(Edge),
+            typeof(EnumerationRequest),
+            typeof(ExistenceRequest),
+            typeof(LiteGraph.Server.Classes.GenerateEmbeddingsRequest),
+            typeof(Graph),
+            typeof(LiteGraph.Algorithms.GraphAlgorithmImportRequest),
+            typeof(LiteGraph.Algorithms.GraphAlgorithmRequest),
+            typeof(GraphQueryRequest),
+            typeof(LabelMetadata),
+            typeof(List<Edge>),
+            typeof(List<Guid>),
+            typeof(List<LabelMetadata>),
+            typeof(List<Node>),
+            typeof(List<TagMetadata>),
+            typeof(List<VectorMetadata>),
+            typeof(Node),
+            typeof(LiteGraph.Server.Classes.OllamaChatRequest),
+            typeof(LiteGraph.Server.Classes.OpenAiChatCompletionRequest),
+            typeof(LiteGraph.Server.Classes.RouteRequest),
+            typeof(SearchRequest),
+            typeof(LiteGraph.Server.Classes.Settings),
+            typeof(SubgraphExtractionRequest),
+            typeof(TagMetadata),
+            typeof(TenantMetadata),
+            typeof(LiteGraph.Server.Classes.TenantOnboardRequest),
+            typeof(TransactionRequest),
+            typeof(TransactionResult),
+            typeof(UserMaster),
+            typeof(UserRoleAssignment),
+            typeof(VectorIndexConfiguration),
+            typeof(VectorMetadata),
+            typeof(VectorSearchRequest)
+        };
+
+        // Client results that are never serialized (fluent builders).
+        private static readonly HashSet<Type> _AotNonSerializedResultTypes = new HashSet<Type>
+        {
+            typeof(TransactionRequestBuilder)
+        };
+
         private static readonly Type[] _AotServerParityTypes = new Type[]
         {
             typeof(LiteGraph.Server.Classes.ApiErrorResponse),
@@ -108,6 +166,7 @@ namespace Test.Shared
                 cases: new List<TestCaseDescriptor>
                 {
                     new TestCaseDescriptor("Aot.Server", "Aot.Server.ContextCoverage", "Every server type has source-generated metadata", TestAotServerContextCoverage),
+                    new TestCaseDescriptor("Aot.Server", "Aot.Server.ResponseTypeCoverage", "Every LiteGraphClient result type and every type the server deserializes has source-generated metadata", TestAotServerResponseTypeCoverage),
                     new TestCaseDescriptor("Aot.Server", "Aot.Server.SslSettings", "Settings with a PFX certificate configured serialize without the certificate and round-trip", TestAotServerSslSettings),
                     new TestCaseDescriptor("Aot.Server", "Aot.Server.TypeParity", "Every server type serializes as in the baseline (compact, indented, round trip)", TestAotServerTypeParity),
                     new TestCaseDescriptor("Aot.Server", "Aot.Server.DefaultSettings", "A default settings file is written as in the baseline", TestAotServerDefaultSettings),
@@ -226,6 +285,65 @@ namespace Test.Shared
 
             AssertTrue(missing.Count == 0, "No source-generated metadata for: " + String.Join(", ", missing));
             return Task.CompletedTask;
+        }
+
+        private static Task TestAotServerResponseTypeCoverage(CancellationToken token)
+        {
+            // The REST server returns what the library client methods return, often as is, so every result type needs
+            // metadata (an endpoint the suites never call would otherwise fail only in production). Enumerable results are
+            // returned as List<T>.
+            JsonSerializerOptions options = new JsonSerializerOptions();
+            SortedSet<string> missing = new SortedSet<string>(StringComparer.Ordinal);
+
+            foreach (System.Reflection.PropertyInfo group in typeof(LiteGraphClient).GetProperties())
+            {
+                if (!group.PropertyType.IsInterface) continue;
+
+                foreach (System.Reflection.MethodInfo method in group.PropertyType.GetMethods())
+                {
+                    Type? result = AotResultType(method.ReturnType);
+                    if (result == null || _AotNonSerializedResultTypes.Contains(result)) continue;
+
+                    List<Type> required = new List<Type> { result };
+
+                    // The server wraps list results in an enumeration envelope (EnumerationResultBuilder.FromList).
+                    if (result.IsGenericType && result.GetGenericTypeDefinition() == typeof(List<>))
+                        required.Add(typeof(EnumerationResult<>).MakeGenericType(result.GetGenericArguments()[0]));
+
+                    foreach (Type type in required)
+                    {
+                        if (LiteGraphJsonContext.Default.GetTypeInfo(type) != null) continue;
+                        if (LiteGraph.Server.Classes.ServerJson.Resolver.GetTypeInfo(type, options) != null) continue;
+                        missing.Add(AotTypeKey(type) + " (" + group.Name + "." + method.Name + ")");
+                    }
+                }
+            }
+
+            foreach (Type type in _AotServerDeserializedTypes)
+            {
+                if (LiteGraphJsonContext.Default.GetTypeInfo(type) != null) continue;
+                if (LiteGraph.Server.Classes.ServerJson.Resolver.GetTypeInfo(type, options) != null) continue;
+                missing.Add(AotTypeKey(type) + " (deserialized by the server)");
+            }
+
+            AssertTrue(missing.Count == 0, "No source-generated metadata for " + missing.Count + " result type(s):\n  " + String.Join("\n  ", missing));
+            return Task.CompletedTask;
+        }
+
+        private static Type? AotResultType(Type type)
+        {
+            if (type == typeof(void) || type == typeof(Task) || type == typeof(ValueTask)) return null;
+
+            if (type.IsGenericType)
+            {
+                Type definition = type.GetGenericTypeDefinition();
+                Type argument = type.GetGenericArguments()[0];
+                if (definition == typeof(Task<>) || definition == typeof(ValueTask<>)) return AotResultType(argument);
+                if (definition == typeof(IAsyncEnumerable<>) || definition == typeof(IEnumerable<>)) return typeof(List<>).MakeGenericType(argument);
+            }
+
+            if (type.IsPrimitive || type == typeof(string) || type == typeof(Guid) || type == typeof(DateTime)) return null;
+            return type;
         }
 
         private static Task TestAotServerSslSettings(CancellationToken token)
