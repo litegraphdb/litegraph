@@ -7,6 +7,20 @@
     <Nullable>enable</Nullable>
     <Version>10.2.0</Version>
     <Description>Seeds a LiteGraph database with realistic synthetic graphs, request history, and chat activity for dashboard and observability demos.</Description>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+    <!-- Reflection-based System.Text.Json is off in every build, so the JIT build behaves exactly like a Native AOT one. -->
+    <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
+  </PropertyGroup>
+
+  <!--
+    Native AOT publish (see docs/AOT.md):
+      dotnet publish src/LoadGenerator/LoadGenerator.csproj -c Release -f net10.0 -r <rid> -p:PublishAot=true -o <dir>
+    Every trim or AOT warning, including one from a dependency, fails the publish.
+  -->
+  <PropertyGroup Condition="'$(PublishAot)' == 'true'">
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);IL2026;IL2046;IL2057;IL2067;IL2070;IL2072;IL2075;IL2087;IL2091;IL2104;IL3050;IL3051;IL3053</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

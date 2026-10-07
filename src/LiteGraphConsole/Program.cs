@@ -454,6 +454,14 @@ namespace LiteGraphConsole
             return line.TrimEnd().EndsWith(";", StringComparison.Ordinal);
         }
 
+        // Indented JsonElement metadata (no reflection, so the console also runs under Native AOT).
+        private static readonly System.Text.Json.Serialization.Metadata.JsonTypeInfo<JsonElement> _IndentedElement =
+            (System.Text.Json.Serialization.Metadata.JsonTypeInfo<JsonElement>)new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                TypeInfoResolver = LiteGraphJsonContext.Default
+            }.GetTypeInfo(typeof(JsonElement));
+
         private static string PrettyJson(string json)
         {
             if (String.IsNullOrWhiteSpace(json)) return json;
@@ -461,7 +469,7 @@ namespace LiteGraphConsole
             {
                 using (JsonDocument document = JsonDocument.Parse(json))
                 {
-                    return JsonSerializer.Serialize(document.RootElement, new JsonSerializerOptions { WriteIndented = true });
+                    return JsonSerializer.Serialize(document.RootElement, _IndentedElement);
                 }
             }
             catch
@@ -477,7 +485,7 @@ namespace LiteGraphConsole
             {
                 using (JsonDocument document = JsonDocument.Parse(json))
                 {
-                    return JsonSerializer.Serialize(document.RootElement);
+                    return JsonSerializer.Serialize(document.RootElement, LiteGraphJsonContext.Default.JsonElement);
                 }
             }
             catch
@@ -545,7 +553,7 @@ namespace LiteGraphConsole
             if (String.IsNullOrWhiteSpace(value)) return null;
             try
             {
-                return JsonSerializer.Deserialize<object>(value);
+                return JsonSerializer.Deserialize(value, LiteGraphJsonContext.Default.Object);
             }
             catch
             {
@@ -678,7 +686,7 @@ namespace LiteGraphConsole
             if (String.IsNullOrWhiteSpace(value)) return null;
             try
             {
-                return JsonSerializer.Deserialize<object>(value);
+                return JsonSerializer.Deserialize(value, LiteGraphJsonContext.Default.Object);
             }
             catch
             {

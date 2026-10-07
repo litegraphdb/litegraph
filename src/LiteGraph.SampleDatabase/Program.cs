@@ -1,4 +1,5 @@
 using System.Collections.Specialized;
+using System.Text.Json;
 using LiteGraph;
 using LiteGraph.GraphRepositories.Sqlite;
 
@@ -198,12 +199,12 @@ async Task EnsureScreenshotGraph(LiteGraphClient graphClient, Guid tenant, Guid 
             ("environment", "demo"),
             ("release", "7.0"),
             ("purpose", "dashboard screenshots")),
-        Data = new
+        Data = new Dictionary<string, object>
         {
-            description = "Small sample graph for dashboard screenshots.",
-            layoutHint = "LiteGraph Server is the hub. Data ingestion enters on the left; dashboard and operations views sit on the right.",
-            status = "ready",
-            lastSeededUtc = timestamp
+            { "description", "Small sample graph for dashboard screenshots." },
+            { "layoutHint", "LiteGraph Server is the hub. Data ingestion enters on the left; dashboard and operations views sit on the right." },
+            { "status", "ready" },
+            { "lastSeededUtc", timestamp }
         },
         CreatedUtc = timestamp.AddDays(-30),
         LastUpdateUtc = timestamp
@@ -328,6 +329,13 @@ static VectorMetadata DemoVector(Guid guid, Guid tenant, Guid graph, Guid node, 
     };
 }
 
+// Sample data as JSON text: anonymous objects cannot be serialized under Native AOT.
+static JsonElement SampleJson(string json)
+{
+    using JsonDocument document = JsonDocument.Parse(json);
+    return document.RootElement.Clone();
+}
+
 static Guid NodeGuid(int id) => Guid.Parse($"10000000-0000-0000-0000-{id:D12}");
 static Guid EdgeGuid(int id) => Guid.Parse($"20000000-0000-0000-0000-{id:D12}");
 static Guid VectorGuid(int id) => Guid.Parse($"30000000-0000-0000-0000-{id:D12}");
@@ -337,66 +345,126 @@ static IReadOnlyList<NodeSeed> NodeSeeds() =>
     new(1, "LiteGraph Server",
         ["Service", "Database"],
         [("domain", "graph"), ("tier", "core"), ("status", "active")],
-        new { kind = "service", version = "7.0.0", surfaces = new[] { "REST", "SDK", "MCP" } }),
+        SampleJson("""
+            {
+                "kind": "service",
+                "version": "7.0.0",
+                "surfaces": [ "REST", "SDK", "MCP" ]
+            }
+            """)),
 
     new(2, "AI Assistant",
         ["Application", "AI"],
         [("domain", "ai"), ("tier", "app"), ("status", "active")],
-        new { kind = "application", useCase = "support answers", traffic = "interactive" }),
+        SampleJson("""
+            { "kind": "application", "useCase": "support answers", "traffic": "interactive" }
+            """)),
 
     new(3, "Knowledge Graph",
         ["Graph", "Data"],
         [("domain", "knowledge"), ("tier", "data"), ("status", "active")],
-        new { kind = "graph", contents = new[] { "documents", "entities", "relationships" } }),
+        SampleJson("""
+            {
+                "kind": "graph",
+                "contents": [ "documents", "entities", "relationships" ]
+            }
+            """)),
 
     new(4, "Vector Index",
         ["Vector", "Search"],
         [("domain", "retrieval"), ("tier", "data"), ("status", "active")],
-        new { kind = "index", dimensions = 8, model = "demo-embedding-v1" }),
+        SampleJson("""
+            { "kind": "index", "dimensions": 8, "model": "demo-embedding-v1" }
+            """)),
 
     new(5, "Document Ingestion",
         ["Pipeline", "Ingestion"],
         [("domain", "data"), ("tier", "pipeline"), ("status", "active")],
-        new { kind = "pipeline", cadence = "hourly", mode = "append and update" }),
+        SampleJson("""
+            { "kind": "pipeline", "cadence": "hourly", "mode": "append and update" }
+            """)),
 
     new(6, "Source Documents",
         ["DataSource", "Documents"],
         [("domain", "content"), ("tier", "source"), ("status", "active")],
-        new { kind = "source", formats = new[] { "markdown", "pdf" }, freshness = "daily" }),
+        SampleJson("""
+            {
+                "kind": "source",
+                "formats": [ "markdown", "pdf" ],
+                "freshness": "daily"
+            }
+            """)),
 
     new(7, "PostgreSQL Store",
         ["Storage", "Production"],
         [("domain", "storage"), ("tier", "database"), ("status", "recommended")],
-        new { kind = "database", provider = "postgresql", usage = "production storage" }),
+        SampleJson("""
+            { "kind": "database", "provider": "postgresql", "usage": "production storage" }
+            """)),
 
     new(8, "Dashboard",
         ["Application", "Admin"],
         [("domain", "operations"), ("tier", "ui"), ("status", "active")],
-        new { kind = "dashboard", portals = new[] { "admin", "user" } }),
+        SampleJson("""
+            {
+                "kind": "dashboard",
+                "portals": [ "admin", "user" ]
+            }
+            """)),
 
     new(9, "Observability",
         ["Metrics", "Monitoring"],
         [("domain", "operations"), ("tier", "monitoring"), ("status", "active")],
-        new { kind = "monitoring", tools = new[] { "Prometheus", "Grafana" } }),
+        SampleJson("""
+            {
+                "kind": "monitoring",
+                "tools": [ "Prometheus", "Grafana" ]
+            }
+            """)),
 
     new(10, "Authorization",
         ["Security", "RBAC"],
         [("domain", "security"), ("tier", "policy"), ("status", "active")],
-        new { kind = "policy", scopes = new[] { "read", "write", "admin" } })
+        SampleJson("""
+            {
+                "kind": "policy",
+                "scopes": [ "read", "write", "admin" ]
+            }
+            """))
 ];
 
 static IReadOnlyList<EdgeSeed> EdgeSeeds() =>
 [
-    new(1, "CALLS", 2, 1, 1, ["API"], [("path", "runtime"), ("direction", "inbound")], new { description = "The assistant calls LiteGraph for context." }),
-    new(2, "SERVES", 1, 3, 1, ["Graph"], [("path", "data"), ("mode", "query")], new { description = "LiteGraph serves graph queries." }),
-    new(3, "SEARCHES", 3, 4, 1, ["Vector"], [("path", "retrieval"), ("mode", "semantic")], new { description = "The graph uses vector search for relevant content." }),
-    new(4, "READS", 5, 6, 2, ["Ingestion"], [("path", "source"), ("mode", "pull")], new { description = "The ingestion pipeline reads source content." }),
-    new(5, "WRITES", 5, 3, 1, ["Mutation"], [("path", "ingestion"), ("mode", "transaction")], new { description = "Ingestion updates graph data." }),
-    new(6, "PERSISTS_TO", 1, 7, 1, ["Storage"], [("path", "storage"), ("mode", "production")], new { description = "LiteGraph persists data to PostgreSQL in production." }),
-    new(7, "MANAGES", 8, 1, 1, ["Dashboard"], [("path", "admin"), ("mode", "control")], new { description = "The dashboard manages LiteGraph data and operations." }),
-    new(8, "OBSERVES", 9, 1, 2, ["Telemetry"], [("path", "metrics"), ("mode", "scrape")], new { description = "Observability tools track server health and latency." }),
-    new(9, "ENFORCES", 1, 10, 1, ["Security"], [("path", "authorization"), ("mode", "policy")], new { description = "LiteGraph enforces authorization policy." }),
-    new(10, "PROTECTS", 10, 3, 1, ["Security"], [("path", "data-access"), ("mode", "rbac")], new { description = "Authorization controls access to graph data." })
+    new(1, "CALLS", 2, 1, 1, ["API"], [("path", "runtime"), ("direction", "inbound")], SampleJson("""
+        { "description": "The assistant calls LiteGraph for context." }
+        """)),
+    new(2, "SERVES", 1, 3, 1, ["Graph"], [("path", "data"), ("mode", "query")], SampleJson("""
+        { "description": "LiteGraph serves graph queries." }
+        """)),
+    new(3, "SEARCHES", 3, 4, 1, ["Vector"], [("path", "retrieval"), ("mode", "semantic")], SampleJson("""
+        { "description": "The graph uses vector search for relevant content." }
+        """)),
+    new(4, "READS", 5, 6, 2, ["Ingestion"], [("path", "source"), ("mode", "pull")], SampleJson("""
+        { "description": "The ingestion pipeline reads source content." }
+        """)),
+    new(5, "WRITES", 5, 3, 1, ["Mutation"], [("path", "ingestion"), ("mode", "transaction")], SampleJson("""
+        { "description": "Ingestion updates graph data." }
+        """)),
+    new(6, "PERSISTS_TO", 1, 7, 1, ["Storage"], [("path", "storage"), ("mode", "production")], SampleJson("""
+        { "description": "LiteGraph persists data to PostgreSQL in production." }
+        """)),
+    new(7, "MANAGES", 8, 1, 1, ["Dashboard"], [("path", "admin"), ("mode", "control")], SampleJson("""
+        { "description": "The dashboard manages LiteGraph data and operations." }
+        """)),
+    new(8, "OBSERVES", 9, 1, 2, ["Telemetry"], [("path", "metrics"), ("mode", "scrape")], SampleJson("""
+        { "description": "Observability tools track server health and latency." }
+        """)),
+    new(9, "ENFORCES", 1, 10, 1, ["Security"], [("path", "authorization"), ("mode", "policy")], SampleJson("""
+        { "description": "LiteGraph enforces authorization policy." }
+        """)),
+    new(10, "PROTECTS", 10, 3, 1, ["Security"], [("path", "data-access"), ("mode", "rbac")], SampleJson("""
+        { "description": "Authorization controls access to graph data." }
+        """))
 ];
 
 internal sealed record NodeSeed(
