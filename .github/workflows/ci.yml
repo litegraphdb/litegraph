@@ -148,18 +148,26 @@ jobs:
             --graphs 2 --nodes 20 --days 1 --requests 50 --chat-threads 2 --chat-turns 2
 
       - name: C# SDK suite against a live native server (JIT and Native AOT)
+        env:
+          # 127.0.0.1, not localhost: on Windows, localhost tries IPv6 first and every refused ::1 connection costs about
+          # two seconds before the IPv4 fallback.
+          LITEGRAPH_ENDPOINT: http://127.0.0.1:8701
         run: |
           server_dir="$RUNNER_TEMP/sdk-server"
           mkdir -p "$server_dir"
-          (cd "$server_dir" && "$GITHUB_WORKSPACE/artifacts/native/LiteGraph.Server/LiteGraph.Server${{ matrix.exe }}" > "$server_dir/server.log" 2>&1 &)
+          cd "$server_dir"
+          "$GITHUB_WORKSPACE/artifacts/native/LiteGraph.Server/LiteGraph.Server${{ matrix.exe }}" > "$server_dir/server.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          cd "$GITHUB_WORKSPACE"
           for i in $(seq 1 60); do
-            if curl -sf http://localhost:8701/v1.0/health/ready > /dev/null; then break; fi
+            if curl -sf "$LITEGRAPH_ENDPOINT/v1.0/health/ready" > /dev/null; then break; fi
             sleep 1
           done
-          curl -sf http://localhost:8701/v1.0/health/ready > /dev/null || { cat "$server_dir/server.log"; exit 1; }
+          curl -sf "$LITEGRAPH_ENDPOINT/v1.0/health/ready" > /dev/null || { cat "$server_dir/server.log"; exit 1; }
           dotnet run --project sdk/csharp/src/Test.Automated/Test.Automated.csproj -c Release
           dotnet publish sdk/csharp/src/Test.Automated/Test.Automated.csproj -c Release -r ${{ matrix.rid }} -p:PublishAot=true -o artifacts/sdk-aot
-          LITEGRAPH_ENDPOINT=http://localhost:8701 "artifacts/sdk-aot/Test.Automated${{ matrix.exe }}"
+          "artifacts/sdk-aot/Test.Automated${{ matrix.exe }}"
 
       - name: Upload test logs
         if: failure()
