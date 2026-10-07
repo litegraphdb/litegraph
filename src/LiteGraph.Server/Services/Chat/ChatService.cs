@@ -458,6 +458,13 @@ namespace LiteGraph.Server.Services.Chat
 
             bool streaming = request.Stream;
             List<ChatToolTranscriptEntry> toolTranscript = new List<ChatToolTranscriptEntry>();
+
+            // A non-streaming error response is sent after the failed turn is persisted, so a client that reads the thread
+            // as soon as it gets the error sees the turn.
+            int errorStatusCode = 0;
+            ApiErrorEnum errorCode = ApiErrorEnum.InternalError;
+            string errorMessage = null;
+
             ChatCompletionResult result = new ChatCompletionResult
             {
                 ThreadGUID = thread.GUID,
@@ -557,7 +564,7 @@ namespace LiteGraph.Server.Services.Chat
                     activity?.SetTag("litegraph.chat.error", cue.Message);
 
                     if (streaming) await SendSse(ctx, new ChatStreamErrorEvent { Message = cue.Message, StatusCode = cue.StatusCode }).ConfigureAwait(false);
-                    else await SendJsonError(ctx, 502, ApiErrorEnum.BadRequest, cue.Message).ConfigureAwait(false);
+                    else { errorStatusCode = 502; errorCode = ApiErrorEnum.BadRequest; errorMessage = cue.Message; }
                 }
                 catch (Exception e)
                 {
@@ -566,7 +573,7 @@ namespace LiteGraph.Server.Services.Chat
                     _Logging.Warn(_Header + "chat turn " + turn.GUID + " failed: " + e.Message);
 
                     if (streaming) await SendSse(ctx, new ChatStreamErrorEvent { Message = e.Message }).ConfigureAwait(false);
-                    else await SendJsonError(ctx, 500, ApiErrorEnum.InternalError, e.Message).ConfigureAwait(false);
+                    else { errorStatusCode = 500; errorCode = ApiErrorEnum.InternalError; errorMessage = e.Message; }
                 }
                 finally
                 {
@@ -617,6 +624,10 @@ namespace LiteGraph.Server.Services.Chat
                 else if (streaming)
                 {
                     await SendEventAsync(ctx, new ServerSentEvent { Data = "[DONE]" }, true).ConfigureAwait(false);
+                }
+                else if (errorStatusCode != 0)
+                {
+                    await SendJsonError(ctx, errorStatusCode, errorCode, errorMessage).ConfigureAwait(false);
                 }
             }
         }
