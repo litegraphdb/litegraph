@@ -2006,9 +2006,12 @@ namespace Test.Automated
 		{
 			LiteGraphSdk sdk = RequireSdk();
 			await RecentRequestHistoryAsync(sdk).ConfigureAwait(false);
-			// Page over entries recorded before this test only: requests captured while paging (including the paging requests
-			// themselves) would otherwise shift the offset-based pages and repeat an entry.
-			RequestHistorySearchRequest request = new RequestHistorySearchRequest { MaxKeys = 2, ToUtc = DateTime.UtcNow.AddSeconds(-5) };
+			// Page over a window whose entries are all recorded: history is captured just after each response, so a request
+			// that started before the cutoff can still be stored while paging and shift the offset-based pages. Make six
+			// requests, give their capture time to finish, and stop the window a second before now.
+			for (int i = 0; i < 6; i++) await sdk.Admin.ReadClusterNodes().ConfigureAwait(false);
+			await Task.Delay(1500).ConfigureAwait(false);
+			RequestHistorySearchRequest request = new RequestHistorySearchRequest { MaxKeys = 2, ToUtc = DateTime.UtcNow.AddSeconds(-1) };
 			int count = 0;
 			HashSet<Guid> seen = new HashSet<Guid>();
 			await foreach (RequestHistoryEntry entry in sdk.RequestHistory.Enumerate(request).ConfigureAwait(false))
