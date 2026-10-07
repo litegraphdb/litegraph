@@ -1,0 +1,23 @@
+#
+# Native AOT images for the LiteGraph server and MCP server (the dashboard image is unchanged).
+# Same settings, environment variables, ports, and behavior as the default images; see docs/AOT.md.
+#
+# Use with the main file:
+#   docker compose -f compose.yaml -f compose.native.yaml up -d
+#
+# The images are tagged <LITEGRAPH_IMAGE_TAG>-native. Build them from this repository first (see docker/README.md):
+#   docker build -f src/LiteGraph.Server/Dockerfile.native -t jchristn77/litegraph:<tag>-native src
+#   docker build -f src/LiteGraph.McpServer/Dockerfile.native -t jchristn77/litegraph-mcp:<tag>-native .
+#
+
+services:
+  litegraph-init:
+    image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.0.0}-native'
+  litegraph-1:
+    image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.0.0}-native'
+  litegraph-2:
+    image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.0.0}-native'
+  litegraph-3:
+    image: 'jchristn77/litegraph:${LITEGRAPH_IMAGE_TAG:-v10.0.0}-native'
+  litegraph-mcp:
+    image: 'jchristn77/litegraph-mcp:${LITEGRAPH_IMAGE_TAG:-v10.0.0}-native'
