@@ -5,7 +5,7 @@
 		<IsAotCompatible>true</IsAotCompatible>
 		<Version>10.2.0</Version>
 		<Description>LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
-		<PackageReleaseNotes>v10.2.0: Native AOT and trimming support (IsAotCompatible). Source-generated JSON metadata (LiteGraphJsonContext), Serializer.AddTypeInfoResolver for application types stored in Data, DeserializeJson and ConvertData overloads that take JsonTypeInfo, and GEXF export without XmlSerializer. JSON output and storage are unchanged; no breaking changes.</PackageReleaseNotes>
+		<PackageReleaseNotes>v10.2.0: Native AOT and trimming support (IsAotCompatible). Source-generated JSON metadata (LiteGraphJsonContext), Serializer.AddTypeInfoResolver for application types stored in Data, DeserializeJson and ConvertData overloads that take JsonTypeInfo, and GEXF export without XmlSerializer. SyslogLogging 2.4.0. JSON output and storage are unchanged; no breaking changes.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<Authors>Joel Christner</Authors>
 		<Company>Joel Christner</Company>
@@ -40,7 +40,7 @@
 		<PackageReference Include="PrettyId" Version="2.0.1" />
 		<PackageReference Include="RestWrapper" Version="3.3.1" />
 		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
-		<PackageReference Include="SyslogLogging" Version="2.3.1" />
+		<PackageReference Include="SyslogLogging" Version="2.4.0" />
 		<PackageReference Include="System.Text.Json" Version="10.0.12" />
 		<PackageReference Include="Timestamps" Version="1.0.13" />
 		<PackageReference Include="WhatTimeIsIt" Version="1.0.2" />

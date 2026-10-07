@@ -10,8 +10,8 @@
 		<DocumentationFile>LiteGraph.McpServer.xml</DocumentationFile>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="SyslogLogging" Version="2.3.1" />
-		<PackageReference Include="Voltaic" Version="2.2.1" />
+		<PackageReference Include="SyslogLogging" Version="2.4.0" />
+		<PackageReference Include="Voltaic" Version="2.3.0" />
 	</ItemGroup>
 
 	<ItemGroup>
