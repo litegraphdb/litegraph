@@ -1,9 +1,7 @@
 # AOT Readiness Plan for LiteGraph
 
-Status: **implemented in v10.2.0** (branch `feature/aot`). The library and the C# SDK are AOT-compatible; see
-[docs/AOT.md](docs/AOT.md) for the user-facing guide and §0 below for how the implementation differs from the plan.
-Phase 6: `LiteGraph.McpServer` was made Native AOT compatible afterward (branch `feature/aot-mcp`; see the Phase 6
-status note). `LiteGraph.Server` still runs on the JIT only.
+Status: **implemented in v10.2.0**, including Phase 6 (the REST server, MCP server, and console tools). Archived: the
+current guide is [docs/AOT.md](../docs/AOT.md), and §0 below records how the implementation differs from the plan.
 
 Goal: an application that references LiteGraph and publishes with `PublishAot=true` builds with **zero trim or AOT
 warnings that come from LiteGraph** and runs correctly on SQLite and PostgreSQL. Behavior under the JIT (all current
@@ -298,7 +296,7 @@ request body moved to a dictionary, settings metadata in `LiteGraphMcpJsonContex
 native executable passes every MCP-dependent Touchstone suite (net10.0 and net8.0) and writes the same settings file
 as the JIT build.
 
-**Status (REST server, not started).** With Watson 7.3.0 and PolyPrompt 3.2.0, the server's remaining warnings are its
+**Status (REST server, done in 10.2.0; this note is from before the work).** With Watson 7.3.0 and PolyPrompt 3.2.0, the server's remaining warnings are its
 own (6 call sites) and Clutch.Sdk's (cluster mode only, an AOT-compatible release pending). The larger job is not in
 the warnings: the server crashes at startup on its `Settings` type and needs metadata for about 80 types, a review of
 238 `Serializer` calls, and replacements for 83 anonymous objects (66 of them chat tool schemas).

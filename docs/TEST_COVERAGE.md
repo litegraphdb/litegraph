@@ -345,9 +345,14 @@ The bulk of the 205 MCP tools are covered inside the domain tables above: the `M
 | Source-generated metadata covers every model type | `Aot.ContextCoverage` | — | — |
 | JIT behavior for exceptions and unregistered types | `Aot.JitCompatibility` | — | — |
 | GEXF export output | `Aot.GexfParity` (against the `XmlSerializer` baseline) | — | — |
-| Library under Native AOT (SQLite and PostgreSQL) | `src/Test.Aot`, published with `PublishAot` and run in CI | Unregistered application type fails with `NotSupportedException`; failing transaction rolls back with a provider error code | Server and console are not published with Native AOT |
+| Library under Native AOT (SQLite and PostgreSQL) | `src/Test.Aot`, published with `PublishAot` and run in CI | Unregistered application type fails with `NotSupportedException`; failing transaction rolls back with a provider error code | — |
 | C# SDK under Native AOT | `SDK-C#` suite published with `PublishAot=true` against a live server (157 cases), run in CI | Same negatives as the JIT run | — |
-| MCP server under Native AOT (net10.0 and net8.0) | `Mcp.Protocol`, `Mcp.Server`, `Authorization`, `Onboarding`, `Observability`, `Chat.Rest`, and `Improvements.Foundation` run against the native executable (`LITEGRAPH_TEST_MCP_EXECUTABLE`) in CI | Same negatives as the JIT run (missing and mistyped arguments, unknown tools, translated errors) | Docker image still runs the JIT build |
+| REST and MCP servers under Native AOT | The full Touchstone run (net10.0) and the server-backed suites (net8.0) against native executables (`LITEGRAPH_TEST_SERVER_EXECUTABLE`, `LITEGRAPH_TEST_MCP_EXECUTABLE`) on Linux, macOS, and Windows in CI | Same negatives as the JIT run | — |
+| Servers and tools serialize without reflection | Reflection-based System.Text.Json is off in every build of the servers and tools, so every server-backed case runs the AOT JSON path under the JIT too; `Aot.Server.ContextCoverage` | A type without metadata throws `NotSupportedException` | — |
+| Server JSON output (types, default settings, chat stream events and tool transcripts, OpenAPI, seed data, chat tool schemas) | `Aot.Server`: `TypeParity`, `DefaultSettings`, `PayloadShapes`, `Live` (byte for byte against baselines captured before the server work) | — | — |
+| SSL settings with a PFX certificate | `Aot.Server.SslSettings` (real certificate: serializes without the certificate object and round-trips) | — | — |
+| Console tools under Native AOT | CI publishes `lg`, `LiteGraph.SampleDatabase`, and `LoadGenerator` natively and runs them (seed, query, load) | — | — |
+| Docker deployments with native images | CI `deploy` job: all three deployments with `compose.native.yaml`, smoke, and multi-node failover | — | — |
 | MCP tool names, descriptions, and schemas | `Mcp.Protocol.ToolsListBaseline` (211 tools, byte for byte against a baseline captured before the schemas moved from anonymous objects to JSON) | — | — |
 
 ## SDK client coverage (summary)

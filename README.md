@@ -13,6 +13,7 @@ The `v7.0.0` transaction-scaling work is now merged into `main`. Historical plan
 ## What Is Included
 
 - Core .NET graph library targeting `net8.0` and `net10.0`, compatible with Native AOT and trimming
+- Every executable (REST server, MCP server, `lg` console, load generator) runs on the .NET runtime or as a Native AOT executable, with identical behavior
 - SQLite provider for embedded, local, and test use, with in-process HNSW vector indexing through `HnswLite`
 - PostgreSQL provider with pgvector for production, including multi-node clusters behind a load balancer
 - Native LiteGraph graph query language for reads, traversals, vector search, and graph mutations
@@ -67,16 +68,16 @@ Authorization — built-in and custom roles (including the delegable Chat Admin)
 
 ## New In v10.2
 
-v10.2 makes the `LiteGraph` library and the `LiteGraph.Sdk` C# SDK compatible with Native AOT and trimming. Applications that embed LiteGraph or call a LiteGraph server through the SDK can now be published with `PublishAot=true`. Additive release: JSON output, storage, and the public API are unchanged, so every deployment upgrades in place.
+v10.2 makes all of LiteGraph available as Native AOT: the library and the C# SDK can be used in Native AOT and trimmed applications, and the REST server, MCP server, and console tools can be published as native executables (and native container images) that need no .NET runtime. Nothing changes unless you opt in: JSON output, storage, settings, the REST and MCP APIs, and the public .NET API are unchanged, the default builds and Docker images still run on the .NET runtime, and every deployment upgrades in place.
 
-- Both packages set `IsAotCompatible` and build with no trim or AOT warnings. Every type they serialize has source-generated metadata (`LiteGraphJsonContext`, `LiteGraphSdkJsonContext`), which applications can also add to their own `JsonSerializerOptions`.
-- Applications that store their own classes in `Data` register a `JsonSerializerContext` once with `Serializer.AddTypeInfoResolver`, or pass type metadata to the new `ConvertData` and `DeserializeJson` overloads. `JsonElement`, `JsonNode`, primitives, dictionaries, and lists need no registration. Under the JIT nothing changes: any serializable object still works.
-- GEXF export writes XML directly instead of through `XmlSerializer`, with identical output.
-- The MCP server can be published as a Native AOT executable (`-p:PublishAot=true`) that needs no .NET runtime, with the same tools, settings, and transports. The Docker image still runs the JIT build.
-- Updated packages: PolyPrompt 3.2.0, Voltaic 2.3.0, Watson 7.3.0, SyslogLogging 2.4.0, and Clutch.Sdk 0.3.0, the Native AOT compatible releases.
-- Verified by `src/Test.Aot`, a Native AOT end-to-end run on SQLite and PostgreSQL, by the SDK's test suite published as a Native AOT binary, and by a new Touchstone suite that checks every model type's JSON byte for byte against 10.1.
+- **Executables**: `dotnet publish -c Release -r <rid> -p:PublishAot=true` turns `LiteGraph.Server`, `LiteGraph.McpServer`, `LiteGraphConsole` (`lg`), `LoadGenerator`, or `LiteGraph.SampleDatabase` into a native executable that runs exactly like the default build, with the same settings files and options. `Dockerfile.native` and each deployment's `compose.native.yaml` do the same for containers (about 65 MB instead of about 400 MB for the server image).
+- **Library and C# SDK**: both set `IsAotCompatible`. Every type they serialize has source-generated metadata (`LiteGraphJsonContext`, `LiteGraphSdkJsonContext`). Applications that store their own classes in `Data` register a `JsonSerializerContext` once with `Serializer.AddTypeInfoResolver`, or pass type metadata to the new `ConvertData` and `DeserializeJson` overloads; under the JIT nothing changes.
+- **One code path**: the servers and tools serialize only through source-generated metadata in every build, so the default build runs exactly what a native build runs, and new baseline suites check that JSON output (every model and server type, the settings file, chat streams, the OpenAPI document, the chat and MCP tool schemas) is byte-for-byte unchanged.
+- **Fixes**: timestamps keep their UTC value through JSON on machines not set to UTC; a server configured for SSL from a PFX file can serialize its settings again (settings API, `--showconfig`).
+- **Packages**: PolyPrompt 3.2.0, Voltaic 2.3.0, Watson 7.3.0, SyslogLogging 2.4.0, and Clutch.Sdk 0.3.0, the Native AOT compatible releases.
+- **CI** runs every test on every commit on Linux, macOS, and Windows, including the native builds and the Docker deployments with both kinds of images.
 
-See [Native AOT and trimming](docs/AOT.md).
+See [Native AOT](docs/AOT.md) for the commands, the container images, and what applications that embed the library need to know.
 
 ## New In v10.1
 
@@ -147,7 +148,7 @@ See [Chat](docs/CHAT.md) for the chat architecture and [REST API](docs/REST_API.
 ## Documentation
 
 - [Storage configuration](docs/STORAGE.md)
-- [Native AOT and trimming](docs/AOT.md)
+- [Native AOT](docs/AOT.md)
 - [Clustering and multi-node deployment](docs/CLUSTERING.md)
 - [Docker deployments](docker/README.md)
 - [Native graph query language](docs/DSL.md)
@@ -178,7 +179,14 @@ On first start the server writes `litegraph.json`, creates `litegraph.db` in the
 curl http://127.0.0.1:8701/v1.0/health/ready
 ```
 
-Any setting can be overridden with environment variables, for example `LITEGRAPH_PORT`, or `LITEGRAPH_DB_TYPE=Postgresql` with `LITEGRAPH_DB_HOST`, `LITEGRAPH_DB_PORT`, `LITEGRAPH_DB_NAME`, `LITEGRAPH_DB_USERNAME`, and `LITEGRAPH_DB_PASSWORD` to use a PostgreSQL server that has the pgvector extension. See [Settings](docs/SETTINGS.md).
+To run it as a native executable instead (no .NET runtime needed on the machine that runs it; see [Native AOT](docs/AOT.md) for the build prerequisites):
+
+```bash
+dotnet publish src/LiteGraph.Server/LiteGraph.Server.csproj -c Release -f net10.0 -r linux-x64 -p:PublishAot=true -o out/server
+out/server/LiteGraph.Server
+```
+
+Both behave the same way. Any setting can be overridden with environment variables, for example `LITEGRAPH_PORT`, or `LITEGRAPH_DB_TYPE=Postgresql` with `LITEGRAPH_DB_HOST`, `LITEGRAPH_DB_PORT`, `LITEGRAPH_DB_NAME`, `LITEGRAPH_DB_USERNAME`, and `LITEGRAPH_DB_PASSWORD` to use a PostgreSQL server that has the pgvector extension. See [Settings](docs/SETTINGS.md).
 
 ## Quick Start With Docker Compose
 
@@ -260,7 +268,7 @@ The Compose deployments use these images, selected by `LITEGRAPH_IMAGE_TAG` (def
 - `jchristn77/litegraph-mcp:v10.0.0`
 - `jchristn77/litegraph-ui:v10.0.0`
 
-Building a release tag (a plain `vMAJOR.MINOR.PATCH`) also moves `:latest`; any other tag leaves `:latest` alone. To run a build of your own, build and tag it with `build-all.bat <tag>` and start a deployment with `LITEGRAPH_IMAGE_TAG=<tag>`. PostgreSQL deployments use `pgvector/pgvector:0.8.6-pg17-trixie`; the cluster adds `jchristn77/clutch-server:v0.2.0`, `redis:7.4.9-alpine`, `nginx:1.27-alpine`, and optionally `jchristn77/switchboard:v5.2.2`.
+These run the server and MCP server on the .NET runtime. Smaller Native AOT images can be built from `Dockerfile.native` and started with each deployment's `compose.native.yaml`; see [docker/README.md](docker/README.md#native-aot-images). Building a release tag (a plain `vMAJOR.MINOR.PATCH`) also moves `:latest`; any other tag leaves `:latest` alone. To run a build of your own, build and tag it with `build-all.bat <tag>` and start a deployment with `LITEGRAPH_IMAGE_TAG=<tag>`. PostgreSQL deployments use `pgvector/pgvector:0.8.6-pg17-trixie`; the cluster adds `jchristn77/clutch-server:v0.2.0`, `redis:7.4.9-alpine`, `nginx:1.27-alpine`, and optionally `jchristn77/switchboard:v5.2.2`.
 
 ## Factory Reset
 

@@ -2,13 +2,18 @@
 
 ## Upgrading From v10.1 To v10.2 (In-Place)
 
-v10.2 makes the `LiteGraph` library and the `LiteGraph.Sdk` C# SDK compatible with Native AOT and trimming. Storage, JSON output, REST and MCP behavior, and the public API are unchanged, so this is a routine in-place upgrade on SQLite and PostgreSQL: deploy the new binaries or bump the Docker image tags to `v10.2.0`. No migration runs, and rolling back to 10.1 is a matter of restoring the previous binaries.
+v10.2 makes all of LiteGraph available as Native AOT (see [Native AOT](AOT.md)). Storage, settings files, JSON output, REST and MCP behavior, and the public API are unchanged, so this is a routine in-place upgrade on SQLite and PostgreSQL: deploy the new binaries or bump the Docker image tags to `v10.2.0`. No migration runs, and rolling back to 10.1 is a matter of restoring the previous binaries.
 
-One behavior fix applies to every deployment and client: on machines whose time zone is not UTC, timestamps that passed through JSON were shifted by the local UTC offset; they no longer are, and `DateTime` values read through the serializer now have `Kind` `Utc`. Code that compensated by calling `ToUniversalTime()` keeps working (the call is now a no-op). Code that compensated in the other direction, or that relied on `Kind` being `Local`, should be checked.
+Two behavior fixes apply:
 
-Applications that embed LiteGraph or use the C# SDK need no changes under the JIT. To publish them with Native AOT, see [Native AOT and trimming](AOT.md): classes the application stores in `Data` must be registered with `Serializer.AddTypeInfoResolver`, and anonymous objects in `Data` must become dictionaries or named classes.
+- On machines whose time zone is not UTC, timestamps that passed through JSON were shifted by the local UTC offset; they no longer are, and `DateTime` values read through the serializer now have `Kind` `Utc`. Code that compensated by calling `ToUniversalTime()` keeps working (the call is now a no-op). Code that compensated in the other direction, or that relied on `Kind` being `Local`, should be checked.
+- A server with `Rest.Ssl` configured from a PFX file can serialize its settings again (the settings API and `--showconfig` failed before).
 
-The MCP server can now also be published as a Native AOT executable (see [Native AOT and trimming](AOT.md#the-mcp-server-as-a-native-executable)). It is optional: the JIT build and the Docker image are unchanged and read the same `litegraph.json`.
+Running natively is optional. To switch a server, MCP server, or console tool to a native executable, publish it with `-p:PublishAot=true` for the target platform and run it in place of the JIT build, with the same `litegraph.json` and environment variables; for containers, build the native images and start the deployment with its `compose.native.yaml`. Switching back is the same in reverse. See [Building native executables](AOT.md#building-native-executables) and [docker/README.md](../docker/README.md#native-aot-images).
+
+Applications that embed LiteGraph or use the C# SDK need no changes under the JIT. To publish them with Native AOT, see [Native AOT](AOT.md#using-the-library-or-the-c-sdk-in-a-native-aot-application): classes the application stores in `Data` must be registered with `Serializer.AddTypeInfoResolver`, and anonymous objects in `Data` must become dictionaries or named classes.
+
+Code that builds on the server project itself (custom builds, forks) should know that the server, MCP server, and tools now turn reflection-based System.Text.Json off in every build: a type serialized there needs source-generated metadata (`LiteGraphServerJsonContext`), or it fails with a `NotSupportedException` that names it.
 
 ---
 

@@ -1,21 +1,78 @@
-# Native AOT And Trimming
+# Native AOT
+
+Every part of LiteGraph runs in either of two ways, with the same behavior, settings, and output:
+
+- **JIT (the default).** The NuGet packages, `dotnet run`, `dotnet publish`, and the Docker images on Docker Hub all run
+  on the .NET runtime. Nothing in this document is needed to keep doing that.
+- **Native AOT.** Each executable can be published as a self-contained native binary for one operating system and
+  architecture: no .NET runtime to install, a faster start, and a smaller footprint. Applications that use the library
+  or the C# SDK can be published with Native AOT or trimming as well.
+
+| Component | Default (JIT) | Native AOT |
+| --- | --- | --- |
+| `LiteGraph` library (NuGet) | Any .NET 8 or 10 application | Your application with `<PublishAot>true</PublishAot>` ([details](#using-the-library-or-the-c-sdk-in-a-native-aot-application)) |
+| `LiteGraph.Sdk` C# SDK (NuGet) | Any .NET 8 application | Same as the library |
+| `LiteGraph.Server` (REST) | `dotnet run`, Docker image `jchristn77/litegraph` | `dotnet publish ... -p:PublishAot=true`, or `Dockerfile.native` |
+| `LiteGraph.McpServer` | `dotnet run`, Docker image `jchristn77/litegraph-mcp` | `dotnet publish ... -p:PublishAot=true`, or `Dockerfile.native` |
+| `LiteGraphConsole` (`lg`), `LiteGraph.SampleDatabase`, `LoadGenerator` | `dotnet run`, `lg` .NET tool | `dotnet publish ... -p:PublishAot=true` |
+| Dashboard, JavaScript SDK, Python SDK | Not .NET; unaffected | Not applicable |
+
+The servers and tools do not change behavior between the two: they serialize only through source-generated JSON
+metadata in every build (reflection-based System.Text.Json is turned off even under the JIT), so the default build
+already runs exactly the code a native build runs, and every test run checks it.
+
+## Building Native Executables
+
+Native AOT compiles for the machine it runs on, so build on (or for) each operating system and architecture you deploy
+to. Prerequisites:
+
+| Build machine | Install |
+| --- | --- |
+| Linux | `clang` and `zlib1g-dev` (Debian and Ubuntu: `sudo apt-get install clang zlib1g-dev`) |
+| macOS | Xcode command line tools (`xcode-select --install`) |
+| Windows | Visual Studio 2022 or later with the "Desktop development with C++" workload |
+
+Publish any of the executables with `-p:PublishAot=true` and a runtime identifier (`linux-x64`, `linux-arm64`,
+`osx-arm64`, `osx-x64`, `win-x64`, `win-arm64`):
+
+```bash
+dotnet publish src/LiteGraph.Server/LiteGraph.Server.csproj       -c Release -f net10.0 -r linux-x64 -p:PublishAot=true -o out/server
+dotnet publish src/LiteGraph.McpServer/LiteGraph.McpServer.csproj -c Release -f net10.0 -r linux-x64 -p:PublishAot=true -o out/mcp
+dotnet publish src/LiteGraphConsole/LiteGraphConsole.csproj       -c Release -f net10.0 -r linux-x64 -p:PublishAot=true -o out/lg
+dotnet publish src/LoadGenerator/LoadGenerator.csproj             -c Release -f net10.0 -r linux-x64 -p:PublishAot=true -o out/loadgen
+dotnet publish src/LiteGraph.SampleDatabase/LiteGraph.SampleDatabase.csproj -c Release -f net10.0 -r linux-x64 -p:PublishAot=true -o out/sample
+```
+
+`-f net8.0` works the same way. Any trim or AOT warning, including one from a dependency, fails the publish, so a
+binary that builds is one the compiler could fully analyze.
+
+Run the executable exactly as you would run the JIT build: from the directory that holds its settings file
+(`litegraph.json`, created with defaults on first start), with the same command-line options and environment variables.
+Keep the files published next to the executable (for example `libe_sqlite3.so`, `libe_sqlite3.dylib`, or
+`e_sqlite3.dll` for SQLite).
+
+```bash
+cd /srv/litegraph && /opt/litegraph/LiteGraph.Server         # REST server on port 8701
+cd /srv/litegraph-mcp && /opt/litegraph-mcp/LiteGraph.McpServer
+```
+
+Without `-p:PublishAot=true`, `dotnet build`, `dotnet run`, and `dotnet publish` produce the usual JIT builds.
+
+## Native Container Images
+
+`src/LiteGraph.Server/Dockerfile.native` and `src/LiteGraph.McpServer/Dockerfile.native` build images that hold only the
+native executable on `runtime-deps` (about 65 MB compressed for the server, against about 400 MB for the default image).
+Each deployment under `docker/` has a `compose.native.yaml` override that switches the server and MCP server to those
+images. Native images are built from the repository, not published to Docker Hub. See
+[docker/README.md](../docker/README.md#native-aot-images).
+
+## Using The Library Or The C# SDK In A Native AOT Application
 
 As of v10.2, the `LiteGraph` library and the `LiteGraph.Sdk` C# SDK work in applications published with Native AOT
 (`PublishAot`) or trimming (`PublishTrimmed`). Both packages set `IsAotCompatible` and build with no trim or AOT
-analyzer warnings (the library for `net8.0` and `net10.0`, the SDK for `net8.0`), and both are tested as Native AOT
-binaries:
+analyzer warnings (the library for `net8.0` and `net10.0`, the SDK for `net8.0`).
 
-- `src/Test.Aot` runs the library end to end on SQLite and PostgreSQL: repository initialization and built-in roles,
-  tenants, users, credentials, graphs, nodes, edges, labels, tags, vectors, expression filters, the graph query
-  language, brute-force and indexed vector search, transactions (commit, rollback, provider error codes), GEXF, JSONL,
-  and projection export, JSONL import, algorithms with write-back, and application data types.
-- The C# SDK's `Test.Automated` suite (157 cases against a live server) passes when published with `PublishAot=true`.
-
-`LiteGraph.McpServer` can also be published as a Native AOT executable (see
-[The MCP Server As A Native Executable](#the-mcp-server-as-a-native-executable)). `LiteGraph.Server` and the console
-tools still run on the JIT only. The Docker images run every component on the JIT.
-
-## Publishing An Application
+### Publishing An Application
 
 ```xml
 <PropertyGroup>
@@ -26,7 +83,12 @@ tools still run on the JIT only. The Docker images run every component on the JI
 Nothing else is needed. SQLite's native library ships next to the executable, as it does for a JIT application.
 PostgreSQL (Npgsql and pgvector) needs no extra configuration.
 
-## Data, Payloads, And Other Untyped Values
+Unlike the LiteGraph executables, the library keeps reflection-based serialization available to JIT applications, so
+existing applications keep working unchanged; the differences only appear once your application turns reflection off
+(Native AOT, trimming, or `JsonSerializerIsReflectionEnabledByDefault=false`).
+
+
+### Data, Payloads, And Other Untyped Values
 
 `Graph.Data`, `Node.Data`, `Edge.Data`, `TransactionOperation.Payload`, `TransactionOperationResult.Result`,
 `JsonlRecord.Object`, and query parameters are typed `object`. Under the JIT, any serializable object works, as before.
@@ -45,7 +107,7 @@ Values read back from the database are always `JsonElement`, under both the JIT 
 Anonymous types (`new { name = "x" }`) cannot be supported under Native AOT, because no metadata can be generated for
 them ahead of time. Use a `Dictionary<string, object>` or a named class instead.
 
-## Registering Your Own Types
+### Registering Your Own Types
 
 Declare a source-generated context for your types and register it once at startup:
 
@@ -81,7 +143,7 @@ at any time. LiteGraph's own metadata is always consulted first.
 The SDK has the same API: `LiteGraph.Sdk.Serializer.AddTypeInfoResolver` and
 `LiteGraph.Sdk.Serializer.DeserializeJson(json, typeInfo)`.
 
-## Serializing LiteGraph Types With Your Own Options
+### Serializing LiteGraph Types With Your Own Options
 
 The generated metadata is public. Add it to your own `JsonSerializerOptions` to serialize LiteGraph types with your
 own settings:
@@ -97,7 +159,7 @@ LiteGraph's serializer adds converters on top (timestamps as `yyyy-MM-ddTHH:mm:s
 expressions, exceptions), so use `LiteGraph.Serialization.Serializer` when the output must match what LiteGraph
 stores and returns.
 
-## Differences Between JIT And Native AOT
+### Differences Between JIT And Native AOT (Library And SDK)
 
 | Behavior | JIT | Native AOT |
 | --- | --- | --- |
@@ -110,78 +172,55 @@ stores and returns.
 For LiteGraph's own types, JSON output is identical under the JIT and Native AOT, and identical to 10.1. The
 `Aot.Serialization` Touchstone suite checks every model type byte for byte against baselines captured from 10.1.
 
-## The MCP Server As A Native Executable
+## Testing
 
-`LiteGraph.McpServer` publishes as a Native AOT executable with no trim or AOT warnings, including from its
-dependencies (Voltaic 2.3, Watson 7.3, SyslogLogging 2.4, and the C# SDK):
-
-```bash
-dotnet publish src/LiteGraph.McpServer/LiteGraph.McpServer.csproj -c Release -f net10.0 -r linux-x64 -p:PublishAot=true -o out/mcp-aot
-cd <directory for litegraph.json and logs> && /path/to/out/mcp-aot/LiteGraph.McpServer
-```
-
-The executable behaves like the JIT build: the same settings file (`litegraph.json`), environment variables, transports
-(HTTP, TCP, WebSocket), tools, schemas, and results, and it needs no .NET runtime. A `net8.0`
-build works the same way. Under `-p:PublishAot=true`, any trim or AOT warning fails the publish.
-
-Without `-p:PublishAot=true` the project builds and publishes for the JIT exactly as before, which is what the Docker
-image does.
-
-How the MCP server stays compatible:
-
-- Tool argument schemas are JSON text, parsed once at registration by `LiteGraphMcpSchema.Parse` (or built as
-  dictionaries with `LiteGraphMcpSchema.Property` and `LiteGraphMcpSchema.Object`), never anonymous objects. Voltaic
-  converts every schema to a `JsonElement` when a tool is registered, which needs metadata for the schema's type.
-- The settings classes have source-generated metadata (`LiteGraphMcpJsonContext`), registered with the SDK serializer
-  at startup.
-- Results of TCP and WebSocket methods are serialized with Voltaic's metadata
-  (`VoltaicJson.TypeInfoResolver`), and tool arguments are parsed with `JsonDocument`.
-- The project turns on the trim and AOT analyzers for every build, so new reflection-based calls show up as warnings
-  (and the solution must build with none).
-
-`Mcp.Protocol.ToolsListBaseline` compares every tool in `tools/list` (211 tools) byte for byte with a baseline captured
-before the schemas moved to JSON, so the published names, descriptions, and schemas are unchanged.
-
-## Verifying
+CI runs all of the following on every commit, on Linux (x64), macOS (arm64), and Windows (x64). To run them locally:
 
 ```bash
-# Library: Native AOT publish (trim and AOT warnings are errors) and run
-dotnet publish src/Test.Aot/Test.Aot.csproj -c Release -f net10.0 -r linux-x64 -o out/aot
-LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING="Host=...;Username=...;Password=...;Database=..." out/aot/Test.Aot
+# Library as a native binary (SQLite; PostgreSQL too when LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING is set)
+dotnet publish src/Test.Aot/Test.Aot.csproj -c Release -f net10.0 -r osx-arm64 -o out/aot && out/aot/Test.Aot
 
-# SDK: Native AOT publish of the SDK suite, run against a live server (LITEGRAPH_ENDPOINT, default http://localhost:8701)
-dotnet publish sdk/csharp/src/Test.Automated/Test.Automated.csproj -c Release -r linux-x64 -p:PublishAot=true -o out/sdk-aot
+# The Touchstone suites against native REST and MCP servers (every case that starts a server uses these executables)
+dotnet publish src/LiteGraph.Server/LiteGraph.Server.csproj -c Release -f net10.0 -r osx-arm64 -p:PublishAot=true -o out/server
+dotnet publish src/LiteGraph.McpServer/LiteGraph.McpServer.csproj -c Release -f net10.0 -r osx-arm64 -p:PublishAot=true -o out/mcp
+LITEGRAPH_TEST_SERVER_EXECUTABLE=out/server/LiteGraph.Server LITEGRAPH_TEST_MCP_EXECUTABLE=out/mcp/LiteGraph.McpServer \
+  dotnet run --project src/Test.Automated/Test.Automated.csproj --framework net10.0
+
+# C# SDK suite as a native binary, against a running server (LITEGRAPH_ENDPOINT, default http://localhost:8701)
+dotnet publish sdk/csharp/src/Test.Automated/Test.Automated.csproj -c Release -r osx-arm64 -p:PublishAot=true -o out/sdk-aot
 out/sdk-aot/Test.Automated
 ```
 
-```bash
-# MCP server: Native AOT publish (any trim or AOT warning fails it), then the MCP suites against the native executable
-dotnet publish src/LiteGraph.McpServer/LiteGraph.McpServer.csproj -c Release -f net10.0 -r linux-x64 -p:PublishAot=true -o out/mcp-aot
-LITEGRAPH_TEST_MCP_EXECUTABLE=out/mcp-aot/LiteGraph.McpServer \
-  dotnet run --project src/Test.Automated/Test.Automated.csproj --framework net10.0 -- --suite Mcp.Protocol,Mcp.Server
-```
+The suites that pin JSON output, so that none of this changed what LiteGraph writes:
 
-`LITEGRAPH_TEST_MCP_EXECUTABLE` makes every Touchstone case that starts the MCP server start that executable instead
-of the JIT build; the other suites (`Authorization`, `Onboarding`, `Observability`, `Chat.Rest`,
-`Improvements.Foundation`) use it too.
-
-Running `dotnet run --project src/Test.Aot` also works: `PublishAot` turns reflection-based serialization and dynamic
-code off for JIT runs of that project, so most problems show up without a full Native AOT compile.
+- `Aot.Serialization`: every library model type, byte for byte against baselines captured from 10.1 (compact, indented,
+  and round trip), GEXF output, and timestamps in any time zone.
+- `Aot.Server`: every server type, the default settings file, chat stream events and tool transcripts, the OpenAPI
+  document, first-boot seed data, and the chat tool schemas as the model provider receives them, against baselines
+  captured before the server work; plus metadata coverage and SSL settings with a real certificate.
+- `Mcp.Protocol.ToolsListBaseline`: all 211 MCP tools in `tools/list`, byte for byte.
 
 ## For Contributors
 
-- A new type that LiteGraph serializes or deserializes needs a `[JsonSerializable]` entry in
-  `src/LiteGraph/Serialization/LiteGraphJsonContext.cs` (or `LiteGraphSdkJsonContext.cs` in the SDK), and an entry in
-  the parity list in `src/Test.Shared/LiteGraphTouchstoneAotSuites.cs`. `Aot.ContextCoverage` fails when they disagree.
-- Call `JsonSerializer` through `Serializer`, through options built with `Serializer.CreateResolver`, or with a
-  `JsonTypeInfo<T>`; never with plain `JsonSerializerOptions`. Do not add reflection, `XmlSerializer`, or
-  `JsonStringEnumConverter` without a type argument.
-- The build must stay free of IL warnings; `IsAotCompatible` turns the analyzers on for every build.
-- In the MCP server, write a new tool's schema as JSON with `LiteGraphMcpSchema.Parse`, add new settings classes under
-  `LiteGraphMcpServerSettings` (covered by `LiteGraphMcpJsonContext`), and route JSON through the SDK `Serializer`, a
-  `JsonTypeInfo`, or `JsonDocument`/`JsonNode`. A tool added or changed on purpose needs the tools baseline recaptured
-  (`LITEGRAPH_CAPTURE_AOT_BASELINES=<directory>` with `--case Mcp.Protocol.ToolsListBaseline`), reviewed, and
-  copied to `src/Test.Shared/Baselines/mcp-tools-baseline.json`.
-- After changing serialization, run `Aot.Serialization` and `src/Test.Aot` as a Native AOT binary.
-  If a model change intentionally changes JSON output, recapture the baselines with
-  `LITEGRAPH_CAPTURE_AOT_BASELINES=<directory>` and review the diff before committing them.
+The rules that keep everything compatible, enforced by the build and the tests:
+
+- **Library and C# SDK** (`IsAotCompatible`): all JSON goes through `Serializer`, options built with
+  `Serializer.CreateResolver`, or a `JsonTypeInfo<T>`. A new serialized type needs a `[JsonSerializable]` entry in
+  `Serialization/LiteGraphJsonContext.cs` (or `LiteGraphSdkJsonContext.cs`) and in the parity list in
+  `src/Test.Shared/LiteGraphTouchstoneAotSuites.cs`; `Aot.ContextCoverage` fails when they disagree.
+- **REST server**: a new serialized type needs a `[JsonSerializable]` entry in
+  `src/LiteGraph.Server/Classes/LiteGraphServerJsonContext.cs` and in `_AotServerParityTypes`
+  (`src/Test.Shared/LiteGraphTouchstoneAotServerSuites.cs`). Chat tool property schemas are JSON text.
+- **MCP server**: tool schemas are JSON text passed to `LiteGraphMcpSchema.Parse` (or dictionaries from
+  `LiteGraphMcpSchema.Property` and `Object`); settings classes hang off `LiteGraphMcpServerSettings`
+  (`LiteGraphMcpJsonContext`).
+- **Everywhere**: no anonymous types in serialized values (use a named class or a `Dictionary<string, object>`), no
+  `JsonSerializer` call with plain options, no reflection, no `XmlSerializer`, no `JsonStringEnumConverter` without a type
+  argument, no `Enum.GetValues(Type)`.
+- The trim and AOT analyzers run on every build of every project, and the solution must build with no warnings. The
+  servers and tools turn reflection-based System.Text.Json off in every build
+  (`<JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>`), so a missing type
+  fails the ordinary test run with a `NotSupportedException` naming it, not only a native one.
+- If a change is meant to alter JSON output, recapture the baselines with `LITEGRAPH_CAPTURE_AOT_BASELINES=<directory>`
+  (with `--suite Aot.Serialization,Aot.Server` or `--case Mcp.Protocol.ToolsListBaseline`), review the diff, and copy the
+  files into `src/Test.Shared/Baselines/`.

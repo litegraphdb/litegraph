@@ -4,23 +4,55 @@
 
 v10.2.0
 
-v10.2 makes the `LiteGraph` library and the `LiteGraph.Sdk` C# SDK compatible with Native AOT and trimming. It is an additive release: JSON output, storage, and the public API are unchanged, and SQLite and PostgreSQL deployments upgrade in place. See [docs/AOT.md](docs/AOT.md).
+v10.2 makes all of LiteGraph available as Native AOT. The library and the C# SDK work in Native AOT and trimmed applications, and the REST server, MCP server, and console tools publish as native executables and native container images. It is an additive release: JSON output, storage, settings, the REST and MCP APIs, and the public .NET API are unchanged, the default builds and Docker images still run on the .NET runtime, and SQLite and PostgreSQL deployments upgrade in place. See [docs/AOT.md](docs/AOT.md).
 
-- **Source-generated JSON**: `LiteGraphJsonContext` (core) and `LiteGraphSdkJsonContext` (SDK) hold metadata for every model type, enumeration result, collection, and untyped data shape the packages serialize. `Serializer` resolves types from the context first, then from resolvers added with the new `Serializer.AddTypeInfoResolver`, and from reflection only when reflection-based serialization is enabled, so JIT applications behave exactly as before.
+### Executables and containers
+
+- `LiteGraph.Server`, `LiteGraph.McpServer`, `LiteGraphConsole` (`lg`), `LoadGenerator`, and `LiteGraph.SampleDatabase` publish with `dotnet publish -r <rid> -p:PublishAot=true` (net10.0 and net8.0) with no trim or AOT warnings; any such warning, including one from a dependency, fails the publish. The native executables use the same settings files, options, and environment variables as the default builds.
+- The servers and tools serialize only through source-generated JSON metadata in every build: reflection-based System.Text.Json is turned off in their JIT builds too, so the default build runs exactly the code a native build runs, and a type without metadata fails the ordinary test run. Every project runs the trim and AOT analyzers on every build.
+- `Dockerfile.native` (server and MCP server) builds images that hold only the native executable on `runtime-deps`, about 65 MB compressed for the server against about 400 MB. Each deployment directory has a `compose.native.yaml` override that switches the server and MCP server to `<LITEGRAPH_IMAGE_TAG>-native` images. The default images, build scripts, and published tags are unchanged; native images are built from the repository.
+
+### REST server
+
+- `ServerJson.Register` adds `LiteGraphServerJsonContext` (every server type, Watson's `WebserverSettings` in `Settings.Rest`, and the `EnumerationResult<T>` and `List<T>` results the server builds from library types) to the LiteGraph serializer at startup.
+- Chat stream events, tool transcripts, and tool error content are named types (`ChatStreamStartedEvent`, `ChatStreamContentEvent`, `ChatStreamToolCallEvent`, `ChatStreamToolResultEvent`, `ChatStreamRetrievalEvent`, `ChatStreamUsageEvent`, `ChatStreamErrorEvent`, `ChatRetrievalChunk`, `ChatToolTranscriptEntry`, `ChatToolErrorContent`) instead of anonymous objects, with the same JSON. Chat tool property schemas are JSON text. First-boot seed data and the request history bulk delete response are dictionaries with the same JSON.
+- Two `JsonSerializer` calls, the operational log formatter, `Enum.GetValues(Type)`, and the non-generic `JsonStringEnumConverter` on `ApiErrorEnum` and `ApiVersionEnum` were replaced with AOT-safe equivalents.
+
+### MCP server
+
+- Tool schemas are JSON parsed once at registration (`LiteGraphMcpSchema`) instead of anonymous objects, which Voltaic converts to `JsonElement` at registration and cannot do under Native AOT. The settings file has source-generated metadata (`LiteGraphMcpJsonContext`); TCP and WebSocket method results are written with Voltaic's metadata; tool arguments are parsed with `JsonDocument`; the `node_routes` request body is a dictionary with the same JSON.
+
+### Console tools
+
+- `lg` formats and parses JSON through the library's generated metadata; `LiteGraph.SampleDatabase` writes sample data from JSON text and dictionaries (stored data is byte-identical to before); `LoadGenerator` needed no changes.
+
+### Library and C# SDK
+
+- **Source-generated JSON**: `LiteGraphJsonContext` (core) and `LiteGraphSdkJsonContext` (SDK) hold metadata for every model type, enumeration result, collection, and untyped data shape the packages serialize. `Serializer` resolves types from the context first, then from resolvers added with the new `Serializer.AddTypeInfoResolver`, and from reflection only when reflection-based serialization is enabled, so JIT applications behave exactly as before. Both packages set `IsAotCompatible`.
 - **New APIs**: `Serializer.AddTypeInfoResolver(IJsonTypeInfoResolver)` and `Serializer.DeserializeJson<T>(string, JsonTypeInfo<T>)` in both packages; `LiteGraphClient.ConvertData<T>(object, JsonTypeInfo<T>)`. Under Native AOT, a type no resolver knows fails with a `NotSupportedException` that names it.
 - **Serializer internals**: enum attributes use `JsonStringEnumConverter<TEnum>`; the name-value collection and expression converters no longer call back into reflection; the exception converter keeps its 10.1 output under the JIT and writes a fixed set of fields (`Message`, `ParamName`, `Data`, `InnerException`, `HelpLink`, `Source`, `HResult`, `StackTrace`) under Native AOT. `CopyObject` no longer turns missing metadata into a `null` result.
 - **Library call sites**: transaction payloads, HNSW index files, the query engine and parser, algorithm write-back, and projection export use the same resolver chain. Transaction provider error codes are read from `DbException.SqlState` and `SqliteException.SqliteErrorCode` directly, with the previous name-based lookup kept for other exception types.
 - **GEXF export** writes XML with `XmlWriter` instead of `XmlSerializer`, which cannot run under Native AOT. Output is unchanged.
 - **Query results** go through `DataTableLoader`, which keeps `DataTable.Load` (and its key-merging and result-set semantics) and documents why it is safe under trimming: LiteGraph result tables never have expression columns.
 - **SDK request bodies**: `TestEndpoint`, `PreloadEndpoint`, `RebuildVectorIndex`, and `SubmitFeedback` sent anonymous objects, which cannot be serialized under Native AOT; they now send dictionaries with the same JSON. SDK serializer options are cached instead of rebuilt on every call.
-- **Tests**: new `src/Test.Aot` project, a Native AOT end-to-end run on SQLite and PostgreSQL (trim and AOT warnings are errors at publish); new `Aot.Serialization` Touchstone suite (JSON for every model type compared byte for byte with baselines captured from 10.1, context coverage, JIT compatibility, and GEXF output); the C# SDK suite uses dictionaries instead of anonymous objects for test data so it can run as a Native AOT binary.
-- CI publishes and runs `Test.Aot` on Linux against SQLite and PostgreSQL.
-- **MCP server as a Native AOT executable**: `LiteGraph.McpServer` publishes with `-p:PublishAot=true` (net10.0 and net8.0) with no trim or AOT warnings and runs without a .NET runtime. Tools, schemas, results, settings, and transports are unchanged, and the JIT build and Docker image are as before.
-  - Tool schemas are JSON parsed once at registration (`LiteGraphMcpSchema`) instead of anonymous objects, which Voltaic cannot convert under Native AOT. The new `Mcp.Protocol.ToolsListBaseline` case checks all 211 tools in `tools/list` byte for byte against a baseline captured before the change.
-  - The settings file has source-generated metadata (`LiteGraphMcpJsonContext`); TCP and WebSocket method results are written with Voltaic's metadata; tool arguments are parsed with `JsonDocument`; the `node_routes` request body is a dictionary with the same JSON.
-  - The MCP server project runs the trim and AOT analyzers on every build. `LITEGRAPH_TEST_MCP_EXECUTABLE` runs the MCP-dependent Touchstone suites against another MCP server build, and CI runs them against the native executable.
-- Package updates to the Native AOT compatible releases of LiteGraph's own dependencies: PolyPrompt 3.1.0 → 3.2.0, Voltaic 2.2.1 → 2.3.0, Watson 7.2.2 → 7.3.0, SyslogLogging 2.3.1 → 2.4.0 (core, server, and MCP server), Clutch.Sdk 0.2.0 → 0.3.0 (server; verified with the multi-node smoke and failover scripts against Clutch server 0.2.0 and 0.3.0). Under the JIT their behavior and JSON output are unchanged, except that SyslogLogging now writes NaN and Infinity log property values as strings instead of throwing. The server and MCP server still run on the JIT; these updates remove most of the third-party AOT warnings that stood in the way of publishing them as Native AOT applications.
-- **Fix: timestamps in JSON on machines not set to UTC.** The JSON timestamp converter (core and SDK) parsed `...Z` values into the machine's local time and then wrote that local time back with a `Z` suffix, so a value that went through JSON (copied settings and users, SDK responses, request bodies, cluster registry entries) moved by the local UTC offset. Timestamps now parse as UTC (a value without a zone is taken as UTC, and an explicit offset is converted), and local times are converted to UTC before they are written. Servers and clients running in UTC, including the Docker images, were not affected.
+- The JavaScript and Python SDKs are unchanged and stay at 10.0.0; they work with 10.2 servers.
+
+### Fixes
+
+- **Timestamps in JSON on machines not set to UTC.** The JSON timestamp converter (core and SDK) parsed `...Z` values into the machine's local time and then wrote that local time back with a `Z` suffix, so a value that went through JSON (copied settings and users, SDK responses, request bodies, cluster registry entries) moved by the local UTC offset. Timestamps now parse as UTC (a value without a zone is taken as UTC, and an explicit offset is converted), and local times are converted to UTC before they are written. Servers and clients running in UTC, including the Docker images, were not affected.
+- **SSL settings with a PFX file.** With `Rest.Ssl` configured from a PFX file, serializing the server settings (the settings API, `--showconfig`, settings saves) failed with `NotSupportedException` on `X509Certificate2.Handle`, because Watson's `SslSettings.SslCertificate` loads the certificate when read. SSL settings are now written by `SslSettingsJsonConverter`, which leaves the certificate object out; the settings file format is unchanged.
+
+### Dependencies
+
+- PolyPrompt 3.1.0 → 3.2.0, Voltaic 2.2.1 → 2.3.0, Watson 7.2.2 → 7.3.0, SyslogLogging 2.3.1 → 2.4.0 (core, server, and MCP server), Clutch.Sdk 0.2.0 → 0.3.0 (server), all Native AOT compatible. Under the JIT their behavior and JSON output are unchanged, except that SyslogLogging now writes NaN and Infinity log property values as strings instead of throwing. Clutch.Sdk 0.3.0 is verified with the multi-node smoke and failover scripts against Clutch server 0.2.0 and 0.3.0.
+
+### Tests and CI
+
+- New `src/Test.Aot`: the library end to end as a native binary on SQLite and PostgreSQL.
+- New Touchstone suites and cases that pin JSON output against baselines captured before the work: `Aot.Serialization` (every library model type against 10.1, GEXF, timestamps in any time zone), `Aot.Server` (every server type, the default settings file, chat stream events and tool transcripts, the OpenAPI document, seed data, and the chat tool schemas as the model provider receives them; metadata coverage; SSL settings with a real certificate), and `Mcp.Protocol.ToolsListBaseline` (all 211 MCP tools).
+- `LITEGRAPH_TEST_SERVER_EXECUTABLE` and `LITEGRAPH_TEST_MCP_EXECUTABLE` run every server-backed Touchstone case against other builds of the servers, such as native executables.
+- The C# SDK suite uses dictionaries instead of anonymous objects for test data, so it also runs as a native binary.
+- CI runs every test on every commit to any branch, on Linux, macOS, and Windows: the Touchstone suites (console, xUnit, and NUnit runners; net10.0 and net8.0; PostgreSQL and Redis on Linux), `Test.Aot`, native publishes of every executable with the suites run again against the native servers, the C# SDK suite (JIT and native), the JavaScript and Python SDKs, the dashboard, and, on Linux, all three Docker deployments with default and native images, including smoke and failover.
 
 ## Previous Versions
 
