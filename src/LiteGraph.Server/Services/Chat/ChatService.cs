@@ -323,7 +323,7 @@ namespace LiteGraph.Server.Services.Chat
                 {
                     ["model"] = endpoint.Model,
                     ["keep_alive"] = "30m"
-                });
+                }, LiteGraphJsonContext.Default.DictionaryStringObject);
 
                 using (HttpClient client = new HttpClient())
                 using (CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(_TokenSource.Token))
@@ -457,7 +457,7 @@ namespace LiteGraph.Server.Services.Chat
             };
 
             bool streaming = request.Stream;
-            List<object> toolTranscript = new List<object>();
+            List<ChatToolTranscriptEntry> toolTranscript = new List<ChatToolTranscriptEntry>();
             ChatCompletionResult result = new ChatCompletionResult
             {
                 ThreadGUID = thread.GUID,
@@ -470,7 +470,7 @@ namespace LiteGraph.Server.Services.Chat
             {
                 ctx.Response.StatusCode = 200;
                 BeginSse(ctx);
-                await SendSse(ctx, new { @event = "started", threadGuid = thread.GUID, turnGuid = turn.GUID }).ConfigureAwait(false);
+                await SendSse(ctx, new ChatStreamStartedEvent { ThreadGuid = thread.GUID, TurnGuid = turn.GUID }).ConfigureAwait(false);
             }
 
             using (Activity activity = _Observability?.StartActivity("chat.turn", ActivityKind.Internal))
@@ -556,7 +556,7 @@ namespace LiteGraph.Server.Services.Chat
                     turn.HttpStatus = cue.StatusCode;
                     activity?.SetTag("litegraph.chat.error", cue.Message);
 
-                    if (streaming) await SendSse(ctx, new { @event = "error", message = cue.Message, statusCode = cue.StatusCode }).ConfigureAwait(false);
+                    if (streaming) await SendSse(ctx, new ChatStreamErrorEvent { Message = cue.Message, StatusCode = cue.StatusCode }).ConfigureAwait(false);
                     else await SendJsonError(ctx, 502, ApiErrorEnum.BadRequest, cue.Message).ConfigureAwait(false);
                 }
                 catch (Exception e)
@@ -565,7 +565,7 @@ namespace LiteGraph.Server.Services.Chat
                     activity?.SetTag("litegraph.chat.error", e.Message);
                     _Logging.Warn(_Header + "chat turn " + turn.GUID + " failed: " + e.Message);
 
-                    if (streaming) await SendSse(ctx, new { @event = "error", message = e.Message }).ConfigureAwait(false);
+                    if (streaming) await SendSse(ctx, new ChatStreamErrorEvent { Message = e.Message }).ConfigureAwait(false);
                     else await SendJsonError(ctx, 500, ApiErrorEnum.InternalError, e.Message).ConfigureAwait(false);
                 }
                 finally
@@ -602,7 +602,7 @@ namespace LiteGraph.Server.Services.Chat
                 {
                     if (streaming)
                     {
-                        await SendSse(ctx, new { @event = "usage", usage = result }).ConfigureAwait(false);
+                        await SendSse(ctx, new ChatStreamUsageEvent { Usage = result }).ConfigureAwait(false);
                         await SendEventAsync(ctx, new ServerSentEvent { Data = "[DONE]" }, true).ConfigureAwait(false);
                     }
                     else
@@ -673,7 +673,7 @@ namespace LiteGraph.Server.Services.Chat
 
                     System.Text.StringBuilder context = new System.Text.StringBuilder();
                     context.AppendLine("Relevant graph context retrieved by semantic search (most similar first):");
-                    List<object> chunkSummaries = new List<object>();
+                    List<ChatRetrievalChunk> chunkSummaries = new List<ChatRetrievalChunk>();
 
                     foreach (VectorSearchResult vres in results)
                     {
@@ -682,12 +682,12 @@ namespace LiteGraph.Server.Services.Chat
                         context.AppendLine("- Node " + (nodeName ?? nodeGuid?.ToString() ?? "unknown")
                             + " (guid " + nodeGuid + ", score " + (vres.Score != null ? vres.Score.Value.ToString("F4") : "n/a") + ")"
                             + (vres.Node != null && vres.Node.Data != null ? ": " + Truncate(_Serializer.SerializeJson(vres.Node.Data, false), 500) : String.Empty));
-                        chunkSummaries.Add(new { nodeGuid = nodeGuid, name = nodeName, score = vres.Score });
+                        chunkSummaries.Add(new ChatRetrievalChunk { NodeGuid = nodeGuid, Name = nodeName, Score = vres.Score });
                     }
 
                     messages.Add(ChatMessage.System(context.ToString()));
 
-                    if (streaming) await SendSse(ctx, new { @event = "retrieval", chunks = chunkSummaries }).ConfigureAwait(false);
+                    if (streaming) await SendSse(ctx, new ChatStreamRetrievalEvent { Chunks = chunkSummaries }).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -714,7 +714,7 @@ namespace LiteGraph.Server.Services.Chat
             int maxIterations,
             ChatTurn turn,
             ChatCompletionResult result,
-            List<object> toolTranscript,
+            List<ChatToolTranscriptEntry> toolTranscript,
             bool streaming,
             CancellationToken token,
             Func<string, Task> onDelta = null)
@@ -756,13 +756,13 @@ namespace LiteGraph.Server.Services.Chat
                         sawContent = true;
                         content.Append(chunk.Text);
                         if (onDelta != null) await onDelta(chunk.Text).ConfigureAwait(false);
-                        else if (streaming) await SendSse(ctx, new { @event = "delta", content = chunk.Text }).ConfigureAwait(false);
+                        else if (streaming) await SendSse(ctx, new ChatStreamContentEvent { Event = "delta", Content = chunk.Text }).ConfigureAwait(false);
                     }
 
                     if (!String.IsNullOrEmpty(chunk.ReasoningText))
                     {
                         reasoning.Append(chunk.ReasoningText);
-                        if (streaming) await SendSse(ctx, new { @event = "thinking", content = chunk.ReasoningText }).ConfigureAwait(false);
+                        if (streaming) await SendSse(ctx, new ChatStreamContentEvent { Event = "thinking", Content = chunk.ReasoningText }).ConfigureAwait(false);
                     }
                 }
 
@@ -788,7 +788,7 @@ namespace LiteGraph.Server.Services.Chat
                         token.ThrowIfCancellationRequested();
                         turn.ToolCallCount++;
 
-                        if (streaming) await SendSse(ctx, new { @event = "tool_call", name = call.Name, arguments = call.ArgumentsJson, iteration = iteration }).ConfigureAwait(false);
+                        if (streaming) await SendSse(ctx, new ChatStreamToolCallEvent { Name = call.Name, Arguments = call.ArgumentsJson, Iteration = iteration }).ConfigureAwait(false);
 
                         ChatToolExecutionResult toolResult;
                         using (Activity toolActivity = _Observability?.StartActivity("chat.tool.execute", ActivityKind.Internal))
@@ -805,19 +805,19 @@ namespace LiteGraph.Server.Services.Chat
                             toolActivity?.SetTag("litegraph.chat.tool.success", toolResult.Success);
                         }
 
-                        toolTranscript.Add(new
+                        toolTranscript.Add(new ChatToolTranscriptEntry
                         {
-                            iteration = iteration,
-                            name = call.Name,
-                            arguments = call.ArgumentsJson,
-                            success = toolResult.Success,
-                            error = toolResult.Error,
-                            runtimeMs = toolResult.DurationMs
+                            Iteration = iteration,
+                            Name = call.Name,
+                            Arguments = call.ArgumentsJson,
+                            Success = toolResult.Success,
+                            Error = toolResult.Error,
+                            RuntimeMs = toolResult.DurationMs
                         });
 
-                        if (streaming) await SendSse(ctx, new { @event = "tool_result", name = call.Name, success = toolResult.Success, error = toolResult.Error, runtimeMs = toolResult.DurationMs }).ConfigureAwait(false);
+                        if (streaming) await SendSse(ctx, new ChatStreamToolResultEvent { Name = call.Name, Success = toolResult.Success, Error = toolResult.Error, RuntimeMs = toolResult.DurationMs }).ConfigureAwait(false);
 
-                        string toolContent = (toolResult.Success ? toolResult.ResultJson : _Serializer.SerializeJson(new { error = toolResult.Error }, false));
+                        string toolContent = (toolResult.Success ? toolResult.ResultJson : _Serializer.SerializeJson(new ChatToolErrorContent { Error = toolResult.Error }, false));
                         messages.Add(ChatMessage.ToolResult(call.Id, call.Name, Truncate(toolContent, 65536)));
                     }
 
@@ -1005,7 +1005,7 @@ namespace LiteGraph.Server.Services.Chat
             {
                 try
                 {
-                    string dataJson = System.Text.Json.JsonSerializer.Serialize(node.Data);
+                    string dataJson = System.Text.Json.JsonSerializer.Serialize(node.Data, LiteGraphJsonContext.Default.Object);
                     if (!String.IsNullOrEmpty(dataJson) && !dataJson.Equals("null", StringComparison.Ordinal))
                     {
                         if (sb.Length > 0) sb.Append(' ');

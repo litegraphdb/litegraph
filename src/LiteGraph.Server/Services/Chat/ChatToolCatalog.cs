@@ -47,12 +47,13 @@ namespace LiteGraph.Server.Services.Chat
                 Name = "graph_get",
                 Description = "Reads a graph by GUID",
                 RequestType = RequestTypeEnum.GraphRead,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID" },
-                    includeData = new { type = "boolean", description = "Include graph data" },
-                    includeSubordinates = new { type = "boolean", description = "Include labels, tags, vectors" }
-                }, "graphGuid"),
+                Schema = SchemaOf(ParseProperties("""
+                    {
+                        "graphGuid": { "type": "string", "description": "Graph GUID" },
+                        "includeData": { "type": "boolean", "description": "Include graph data" },
+                        "includeSubordinates": { "type": "boolean", "description": "Include labels, tags, vectors" }
+                    }
+                    """), "graphGuid"),
                 Bind = (args, req) =>
                 {
                     req.GraphGUID = GetGuid(args, "graphGuid");
@@ -67,12 +68,17 @@ namespace LiteGraph.Server.Services.Chat
                 Name = "graph_search",
                 Description = "Searches graphs by name and labels",
                 RequestType = RequestTypeEnum.GraphSearch,
-                Schema = SchemaOf(new
-                {
-                    name = new { type = "string", description = "Graph name filter" },
-                    labels = new { type = "array", items = new { type = "string" }, description = "Label filters" },
-                    maxResults = new { type = "integer", description = "Maximum results to return" }
-                }),
+                Schema = SchemaOf(ParseProperties("""
+                    {
+                        "name": { "type": "string", "description": "Graph name filter" },
+                        "labels": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "description": "Label filters"
+                        },
+                        "maxResults": { "type": "integer", "description": "Maximum results to return" }
+                    }
+                    """)),
                 Bind = (args, req) => { req.SearchRequest = BindSearch(args); },
                 Handler = handler.GraphSearch
             });
@@ -82,10 +88,11 @@ namespace LiteGraph.Server.Services.Chat
                 Name = "graph_statistics",
                 Description = "Gets node, edge, label, tag, and vector counts for a graph",
                 RequestType = RequestTypeEnum.GraphStatistics,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID" }
-                }, "graphGuid"),
+                Schema = SchemaOf(ParseProperties("""
+                    {
+                        "graphGuid": { "type": "string", "description": "Graph GUID" }
+                    }
+                    """), "graphGuid"),
                 Bind = (args, req) => { req.GraphGUID = GetGuid(args, "graphGuid"); },
                 Handler = handler.GraphStatistics
             });
@@ -109,13 +116,14 @@ namespace LiteGraph.Server.Services.Chat
                 Name = "node_get",
                 Description = "Reads a node by GUID",
                 RequestType = RequestTypeEnum.NodeRead,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID" },
-                    nodeGuid = new { type = "string", description = "Node GUID" },
-                    includeData = new { type = "boolean", description = "Include node data" },
-                    includeSubordinates = new { type = "boolean", description = "Include labels, tags, vectors" }
-                }, "graphGuid", "nodeGuid"),
+                Schema = SchemaOf(ParseProperties("""
+                    {
+                        "graphGuid": { "type": "string", "description": "Graph GUID" },
+                        "nodeGuid": { "type": "string", "description": "Node GUID" },
+                        "includeData": { "type": "boolean", "description": "Include node data" },
+                        "includeSubordinates": { "type": "boolean", "description": "Include labels, tags, vectors" }
+                    }
+                    """), "graphGuid", "nodeGuid"),
                 Bind = (args, req) =>
                 {
                     req.GraphGUID = GetGuid(args, "graphGuid");
@@ -131,13 +139,18 @@ namespace LiteGraph.Server.Services.Chat
                 Name = "node_search",
                 Description = "Searches nodes in a graph by name and labels",
                 RequestType = RequestTypeEnum.NodeSearch,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID" },
-                    name = new { type = "string", description = "Node name filter" },
-                    labels = new { type = "array", items = new { type = "string" }, description = "Label filters" },
-                    maxResults = new { type = "integer", description = "Maximum results to return" }
-                }, "graphGuid"),
+                Schema = SchemaOf(ParseProperties("""
+                    {
+                        "graphGuid": { "type": "string", "description": "Graph GUID" },
+                        "name": { "type": "string", "description": "Node name filter" },
+                        "labels": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "description": "Label filters"
+                        },
+                        "maxResults": { "type": "integer", "description": "Maximum results to return" }
+                    }
+                    """), "graphGuid"),
                 Bind = (args, req) =>
                 {
                     req.GraphGUID = GetGuid(args, "graphGuid");
@@ -195,11 +208,12 @@ namespace LiteGraph.Server.Services.Chat
                 Name = "edge_get",
                 Description = "Reads an edge by GUID",
                 RequestType = RequestTypeEnum.EdgeRead,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID" },
-                    edgeGuid = new { type = "string", description = "Edge GUID" }
-                }, "graphGuid", "edgeGuid"),
+                Schema = SchemaOf(ParseProperties("""
+                    {
+                        "graphGuid": { "type": "string", "description": "Graph GUID" },
+                        "edgeGuid": { "type": "string", "description": "Edge GUID" }
+                    }
+                    """), "graphGuid", "edgeGuid"),
                 Bind = (args, req) =>
                 {
                     req.GraphGUID = GetGuid(args, "graphGuid");
@@ -213,13 +227,18 @@ namespace LiteGraph.Server.Services.Chat
                 Name = "edge_search",
                 Description = "Searches edges in a graph by name and labels",
                 RequestType = RequestTypeEnum.EdgeSearch,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID" },
-                    name = new { type = "string", description = "Edge name filter" },
-                    labels = new { type = "array", items = new { type = "string" }, description = "Label filters" },
-                    maxResults = new { type = "integer", description = "Maximum results to return" }
-                }, "graphGuid"),
+                Schema = SchemaOf(ParseProperties("""
+                    {
+                        "graphGuid": { "type": "string", "description": "Graph GUID" },
+                        "name": { "type": "string", "description": "Edge name filter" },
+                        "labels": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "description": "Label filters"
+                        },
+                        "maxResults": { "type": "integer", "description": "Maximum results to return" }
+                    }
+                    """), "graphGuid"),
                 Bind = (args, req) =>
                 {
                     req.GraphGUID = GetGuid(args, "graphGuid");
@@ -233,14 +252,15 @@ namespace LiteGraph.Server.Services.Chat
                 Name = "edge_betweennodes",
                 Description = "Lists edges between two nodes as a paginated enumeration result",
                 RequestType = RequestTypeEnum.EdgeBetween,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID" },
-                    fromNodeGuid = new { type = "string", description = "Source node GUID" },
-                    toNodeGuid = new { type = "string", description = "Destination node GUID" },
-                    maxResults = new { type = "integer", description = "Maximum results to return (default 1000)" },
-                    skip = new { type = "integer", description = "Number of records to skip (default 0)" }
-                }, "graphGuid", "fromNodeGuid", "toNodeGuid"),
+                Schema = SchemaOf(ParseProperties("""
+                    {
+                        "graphGuid": { "type": "string", "description": "Graph GUID" },
+                        "fromNodeGuid": { "type": "string", "description": "Source node GUID" },
+                        "toNodeGuid": { "type": "string", "description": "Destination node GUID" },
+                        "maxResults": { "type": "integer", "description": "Maximum results to return (default 1000)" },
+                        "skip": { "type": "integer", "description": "Number of records to skip (default 0)" }
+                    }
+                    """), "graphGuid", "fromNodeGuid", "toNodeGuid"),
                 Bind = (args, req) =>
                 {
                     req.GraphGUID = GetGuid(args, "graphGuid");
@@ -281,15 +301,16 @@ namespace LiteGraph.Server.Services.Chat
                 Description = "Semantic similarity search over graph vectors.  Provide natural-language text; the server embeds it and returns the most similar nodes with scores as a paginated enumeration result.",
                 RequestType = RequestTypeEnum.VectorSearch,
                 RequiresEmbedding = true,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID to search within" },
-                    text = new { type = "string", description = "Natural-language text to search for" },
-                    topK = new { type = "integer", description = "Number of results to return (default 8)" },
-                    minScore = new { type = "number", description = "Minimum similarity score between -1 and 1" },
-                    maxResults = new { type = "integer", description = "Maximum results to return (default 1000)" },
-                    skip = new { type = "integer", description = "Number of records to skip (default 0)" }
-                }, "graphGuid", "text"),
+                Schema = SchemaOf(ParseProperties("""
+                    {
+                        "graphGuid": { "type": "string", "description": "Graph GUID to search within" },
+                        "text": { "type": "string", "description": "Natural-language text to search for" },
+                        "topK": { "type": "integer", "description": "Number of results to return (default 8)" },
+                        "minScore": { "type": "number", "description": "Minimum similarity score between -1 and 1" },
+                        "maxResults": { "type": "integer", "description": "Maximum results to return (default 1000)" },
+                        "skip": { "type": "integer", "description": "Number of records to skip (default 0)" }
+                    }
+                    """), "graphGuid", "text"),
                 Bind = (args, req) =>
                 {
                     VectorSearchRequest vsr = new VectorSearchRequest();
@@ -379,10 +400,11 @@ namespace LiteGraph.Server.Services.Chat
                 Description = "Creates a new graph in LiteGraph",
                 RequestType = RequestTypeEnum.GraphCreate,
                 Mutation = true,
-                Schema = SchemaOf(new
-                {
-                    name = new { type = "string", description = "Graph name" }
-                }, "name"),
+                Schema = SchemaOf(ParseProperties("""
+                    {
+                        "name": { "type": "string", "description": "Graph name" }
+                    }
+                    """), "name"),
                 Bind = (args, req) => { req.Graph = new Graph { Name = GetString(args, "name") }; },
                 Handler = handler.GraphCreate
             });
@@ -393,11 +415,12 @@ namespace LiteGraph.Server.Services.Chat
                 Description = "Updates a graph.  Supply the full graph object; omitted fields are cleared.",
                 RequestType = RequestTypeEnum.GraphUpdate,
                 Mutation = true,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID" },
-                    graph = new { type = "object", description = "Full graph object" }
-                }, "graphGuid", "graph"),
+                Schema = SchemaOf(ParseProperties("""
+                    {
+                        "graphGuid": { "type": "string", "description": "Graph GUID" },
+                        "graph": { "type": "object", "description": "Full graph object" }
+                    }
+                    """), "graphGuid", "graph"),
                 Bind = (args, req) =>
                 {
                     req.GraphGUID = GetGuid(args, "graphGuid");
@@ -413,11 +436,12 @@ namespace LiteGraph.Server.Services.Chat
                 Description = "Deletes a graph",
                 RequestType = RequestTypeEnum.GraphDelete,
                 Mutation = true,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID" },
-                    force = new { type = "boolean", description = "Delete contained nodes and edges as well" }
-                }, "graphGuid"),
+                Schema = SchemaOf(ParseProperties("""
+                    {
+                        "graphGuid": { "type": "string", "description": "Graph GUID" },
+                        "force": { "type": "boolean", "description": "Delete contained nodes and edges as well" }
+                    }
+                    """), "graphGuid"),
                 Bind = (args, req) =>
                 {
                     req.GraphGUID = GetGuid(args, "graphGuid");
@@ -432,11 +456,12 @@ namespace LiteGraph.Server.Services.Chat
                 Description = "Creates a node in a graph",
                 RequestType = RequestTypeEnum.NodeCreate,
                 Mutation = true,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID" },
-                    node = new { type = "object", description = "Node object with name, data, labels, tags" }
-                }, "graphGuid", "node"),
+                Schema = SchemaOf(ParseProperties("""
+                    {
+                        "graphGuid": { "type": "string", "description": "Graph GUID" },
+                        "node": { "type": "object", "description": "Node object with name, data, labels, tags" }
+                    }
+                    """), "graphGuid", "node"),
                 Bind = (args, req) =>
                 {
                     req.GraphGUID = GetGuid(args, "graphGuid");
@@ -451,12 +476,13 @@ namespace LiteGraph.Server.Services.Chat
                 Description = "Updates a node.  Supply the full node object; omitted fields are cleared.",
                 RequestType = RequestTypeEnum.NodeUpdate,
                 Mutation = true,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID" },
-                    nodeGuid = new { type = "string", description = "Node GUID" },
-                    node = new { type = "object", description = "Full node object" }
-                }, "graphGuid", "nodeGuid", "node"),
+                Schema = SchemaOf(ParseProperties("""
+                    {
+                        "graphGuid": { "type": "string", "description": "Graph GUID" },
+                        "nodeGuid": { "type": "string", "description": "Node GUID" },
+                        "node": { "type": "object", "description": "Full node object" }
+                    }
+                    """), "graphGuid", "nodeGuid", "node"),
                 Bind = (args, req) =>
                 {
                     req.GraphGUID = GetGuid(args, "graphGuid");
@@ -484,11 +510,12 @@ namespace LiteGraph.Server.Services.Chat
                 Description = "Creates an edge between two nodes",
                 RequestType = RequestTypeEnum.EdgeCreate,
                 Mutation = true,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID" },
-                    edge = new { type = "object", description = "Edge object with from, to, name, cost, data, labels, tags" }
-                }, "graphGuid", "edge"),
+                Schema = SchemaOf(ParseProperties("""
+                    {
+                        "graphGuid": { "type": "string", "description": "Graph GUID" },
+                        "edge": { "type": "object", "description": "Edge object with from, to, name, cost, data, labels, tags" }
+                    }
+                    """), "graphGuid", "edge"),
                 Bind = (args, req) =>
                 {
                     req.GraphGUID = GetGuid(args, "graphGuid");
@@ -503,12 +530,13 @@ namespace LiteGraph.Server.Services.Chat
                 Description = "Updates an edge.  Supply the full edge object; omitted fields are cleared.",
                 RequestType = RequestTypeEnum.EdgeUpdate,
                 Mutation = true,
-                Schema = SchemaOf(new
-                {
-                    graphGuid = new { type = "string", description = "Graph GUID" },
-                    edgeGuid = new { type = "string", description = "Edge GUID" },
-                    edge = new { type = "object", description = "Full edge object" }
-                }, "graphGuid", "edgeGuid", "edge"),
+                Schema = SchemaOf(ParseProperties("""
+                    {
+                        "graphGuid": { "type": "string", "description": "Graph GUID" },
+                        "edgeGuid": { "type": "string", "description": "Edge GUID" },
+                        "edge": { "type": "object", "description": "Full edge object" }
+                    }
+                    """), "graphGuid", "edgeGuid", "edge"),
                 Bind = (args, req) =>
                 {
                     req.GraphGUID = GetGuid(args, "graphGuid");
@@ -541,73 +569,91 @@ namespace LiteGraph.Server.Services.Chat
 
         private static Serializer _Serializer = new Serializer();
 
-        private static object SchemaOf(object properties, params string[] required)
+        private static object SchemaOf(JsonElement properties, params string[] required)
         {
-            if (required != null && required.Length > 0)
+            // Property schemas are JSON text parsed once (anonymous objects cannot be serialized under Native AOT); the
+            // schema is a dictionary so its JSON keeps the order type, properties, required.
+            Dictionary<string, object> schema = new Dictionary<string, object>
             {
-                return new { type = "object", properties = properties, required = required };
-            }
+                { "type", "object" },
+                { "properties", properties }
+            };
 
-            return new { type = "object", properties = properties };
+            if (required != null && required.Length > 0) schema.Add("required", required);
+            return schema;
+        }
+
+        private static JsonElement ParseProperties(string json)
+        {
+            using (JsonDocument document = JsonDocument.Parse(json))
+            {
+                return document.RootElement.Clone();
+            }
         }
 
         private static object NodeTargetSchema()
         {
-            return SchemaOf(new
-            {
-                graphGuid = new { type = "string", description = "Graph GUID" },
-                nodeGuid = new { type = "string", description = "Node GUID" }
-            }, "graphGuid", "nodeGuid");
+            return SchemaOf(ParseProperties("""
+                {
+                    "graphGuid": { "type": "string", "description": "Graph GUID" },
+                    "nodeGuid": { "type": "string", "description": "Node GUID" }
+                }
+                """), "graphGuid", "nodeGuid");
         }
 
         private static object EdgeTargetSchema()
         {
-            return SchemaOf(new
-            {
-                graphGuid = new { type = "string", description = "Graph GUID" },
-                edgeGuid = new { type = "string", description = "Edge GUID" }
-            }, "graphGuid", "edgeGuid");
+            return SchemaOf(ParseProperties("""
+                {
+                    "graphGuid": { "type": "string", "description": "Graph GUID" },
+                    "edgeGuid": { "type": "string", "description": "Edge GUID" }
+                }
+                """), "graphGuid", "edgeGuid");
         }
 
-        private static object PaginationProperties()
+        private static JsonElement PaginationProperties()
         {
-            return new
-            {
-                maxResults = new { type = "integer", description = "Maximum results to return (default 1000)" },
-                skip = new { type = "integer", description = "Number of records to skip (default 0)" }
-            };
+            return ParseProperties("""
+                {
+                    "maxResults": { "type": "integer", "description": "Maximum results to return (default 1000)" },
+                    "skip": { "type": "integer", "description": "Number of records to skip (default 0)" }
+                }
+                """);
         }
 
         private static object GraphScopedPagedSchema()
         {
-            return SchemaOf(new
-            {
-                graphGuid = new { type = "string", description = "Graph GUID" },
-                maxResults = new { type = "integer", description = "Maximum results to return (default 1000)" },
-                skip = new { type = "integer", description = "Number of records to skip (default 0)" }
-            }, "graphGuid");
+            return SchemaOf(ParseProperties("""
+                {
+                    "graphGuid": { "type": "string", "description": "Graph GUID" },
+                    "maxResults": { "type": "integer", "description": "Maximum results to return (default 1000)" },
+                    "skip": { "type": "integer", "description": "Number of records to skip (default 0)" }
+                }
+                """), "graphGuid");
         }
 
         private static object NodeTargetPagedSchema()
         {
-            return SchemaOf(new
-            {
-                graphGuid = new { type = "string", description = "Graph GUID" },
-                nodeGuid = new { type = "string", description = "Node GUID" },
-                maxResults = new { type = "integer", description = "Maximum results to return (default 1000)" },
-                skip = new { type = "integer", description = "Number of records to skip (default 0)" }
-            }, "graphGuid", "nodeGuid");
+            return SchemaOf(ParseProperties("""
+                {
+                    "graphGuid": { "type": "string", "description": "Graph GUID" },
+                    "nodeGuid": { "type": "string", "description": "Node GUID" },
+                    "maxResults": { "type": "integer", "description": "Maximum results to return (default 1000)" },
+                    "skip": { "type": "integer", "description": "Number of records to skip (default 0)" }
+                }
+                """), "graphGuid", "nodeGuid");
         }
 
         private static object EdgeTargetPagedSchema()
         {
-            return SchemaOf(new
-            {
-                graphGuid = new { type = "string", description = "Graph GUID" },
-                edgeGuid = new { type = "string", description = "Edge GUID" },
-                maxResults = new { type = "integer", description = "Maximum results to return (default 1000)" },
-                skip = new { type = "integer", description = "Number of records to skip (default 0)" }
-            }, "graphGuid", "edgeGuid");
+            return SchemaOf(ParseProperties("""
+                {
+                    "graphGuid": { "type": "string", "description": "Graph GUID" },
+                    "edgeGuid": { "type": "string", "description": "Edge GUID" },
+                    "maxResults": { "type": "integer", "description": "Maximum results to return (default 1000)" },
+                    "skip": { "type": "integer", "description": "Number of records to skip (default 0)" }
+                }
+                """), "graphGuid", "edgeGuid");
         }
 
         private static void BindNodeTarget(JsonElement? args, RequestContext req)

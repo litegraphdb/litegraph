@@ -112,7 +112,7 @@ namespace LiteGraph.Server.Services
             {
                 sb.AppendLine("# HELP litegraph_node_state Current state of this node as reported to the node registry: 1 for the current state, 0 otherwise.");
                 sb.AppendLine("# TYPE litegraph_node_state gauge");
-                foreach (ClusterNodeStateEnum value in Enum.GetValues(typeof(ClusterNodeStateEnum)))
+                foreach (ClusterNodeStateEnum value in Enum.GetValues<ClusterNodeStateEnum>())
                 {
                     if (value == ClusterNodeStateEnum.Offline) continue;
                     sb.AppendLine("litegraph_node_state{" + node + ",state=\"" + value + "\"} " + ((int)value == state ? "1" : "0"));

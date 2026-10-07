@@ -859,28 +859,6 @@
             }
         }
 
-        private sealed class RequestHistoryTransactionDiagnostics
-        {
-            public Guid TransactionId { get; set; } = Guid.Empty;
-            public string State { get; set; } = null;
-            public bool Success { get; set; } = false;
-            public bool RolledBack { get; set; } = false;
-            public bool ValidationFailure { get; set; } = false;
-            public int? FailedOperationIndex { get; set; } = null;
-            public int OperationCount { get; set; } = 0;
-            public string IsolationLevel { get; set; } = null;
-            public string Provider { get; set; } = null;
-            public bool IsolatedRepository { get; set; } = false;
-            public bool SerializedByGate { get; set; } = false;
-            public int RetryCount { get; set; } = 0;
-            public bool Retryable { get; set; } = false;
-            public bool ConcurrencyConflict { get; set; } = false;
-            public string ProviderErrorCode { get; set; } = null;
-            public double QueueWaitDurationMs { get; set; } = 0;
-            public double CommitDurationMs { get; set; } = 0;
-            public double RollbackDurationMs { get; set; } = 0;
-        }
-
         internal async Task ExceptionHandler(HttpContextBase @base, Exception exception)
         {
             throw new NotImplementedException();
@@ -4164,7 +4142,7 @@
             {
                 int deleted = await _LiteGraph.RequestHistory.DeleteMany(search, timeoutCts.Token).ConfigureAwait(false);
                 ctx.Response.StatusCode = 200;
-                await ctx.Response.Send(_Serializer.SerializeJson(new { Deleted = deleted }));
+                await ctx.Response.Send(_Serializer.SerializeJson(new Dictionary<string, object> { { "Deleted", deleted } }));
             }
             catch (OperationCanceledException oce) when (timeoutCts.IsCancellationRequested)
             {

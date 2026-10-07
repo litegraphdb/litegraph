@@ -10,6 +10,11 @@
 		<DocumentationFile>LiteGraph.McpServer.xml</DocumentationFile>
 		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
 		<EnableAotAnalyzer>true</EnableAotAnalyzer>
+		<!--
+			Reflection-based System.Text.Json is off in every build, not only Native AOT, so the JIT build behaves exactly like
+			the native one and the test suites catch a type without metadata.
+		-->
+		<JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
 	</PropertyGroup>
 
 	<!--

@@ -6,7 +6,7 @@ namespace LiteGraph.Server.Classes
     /// <summary>
     /// API error codes.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter<ApiErrorEnum>))]
     public enum ApiErrorEnum
     {
         /// <summary>

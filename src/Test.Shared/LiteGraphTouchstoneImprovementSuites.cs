@@ -1528,7 +1528,7 @@
                 Directory.CreateDirectory(workingDirectory);
                 string configuration = GetCurrentBuildConfiguration();
                 string targetFramework = GetCurrentTargetFrameworkMoniker();
-                string serverAssembly = ResolveBuildOutput("LiteGraph.Server", configuration, targetFramework, "LiteGraph.Server.dll");
+                string serverAssembly = ResolveServerPath(configuration, targetFramework);
 
                 process = StartDotnetProcess(
                     displayName: "LiteGraph.Server.PostgresqlRest",

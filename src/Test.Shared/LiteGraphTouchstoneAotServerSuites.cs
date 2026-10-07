@@ -107,6 +107,8 @@ namespace Test.Shared
                 displayName: "LiteGraph.Server JSON output is unchanged by the Native AOT work",
                 cases: new List<TestCaseDescriptor>
                 {
+                    new TestCaseDescriptor("Aot.Server", "Aot.Server.ContextCoverage", "Every server type has source-generated metadata", TestAotServerContextCoverage),
+                    new TestCaseDescriptor("Aot.Server", "Aot.Server.SslSettings", "Settings with a PFX certificate configured serialize without the certificate and round-trip", TestAotServerSslSettings),
                     new TestCaseDescriptor("Aot.Server", "Aot.Server.TypeParity", "Every server type serializes as in the baseline (compact, indented, round trip)", TestAotServerTypeParity),
                     new TestCaseDescriptor("Aot.Server", "Aot.Server.DefaultSettings", "A default settings file is written as in the baseline", TestAotServerDefaultSettings),
                     new TestCaseDescriptor("Aot.Server", "Aot.Server.PayloadShapes", "Chat stream events, tool transcripts, and other built payloads serialize as in the baseline", TestAotServerPayloadShapes),
@@ -117,6 +119,8 @@ namespace Test.Shared
 
         private static async Task TestAotServerTypeParity(CancellationToken token)
         {
+            LiteGraph.Server.Classes.ServerJson.Register();
+            using AotServerDirectoryGuard directories = new AotServerDirectoryGuard();
             SortedDictionary<string, string> actual = new SortedDictionary<string, string>(StringComparer.Ordinal);
             Serializer serializer = new Serializer();
 
@@ -143,6 +147,8 @@ namespace Test.Shared
 
         private static async Task TestAotServerDefaultSettings(CancellationToken token)
         {
+            LiteGraph.Server.Classes.ServerJson.Register();
+            using AotServerDirectoryGuard directories = new AotServerDirectoryGuard();
             Serializer serializer = new Serializer();
             LiteGraph.Server.Classes.Settings settings = new LiteGraph.Server.Classes.Settings();
 
@@ -159,7 +165,9 @@ namespace Test.Shared
         {
             // The payloads LiteGraph.Server builds itself (chat stream events, tool transcripts, the request history bulk
             // delete response, and seed data), including the ones the live case cannot reach (retrieval and thinking
-            // events), with values of every shape: nulls, optional numbers, and nested lists.
+            // events), with values of every shape: nulls, optional numbers, and nested lists. The baseline was captured from
+            // the anonymous objects these types replaced.
+            LiteGraph.Server.Classes.ServerJson.Register();
             Serializer serializer = new Serializer();
             Guid nodeGuid = Guid.Parse("11111111-2222-3333-4444-555555555555");
             Guid threadGuid = Guid.Parse("66666666-7777-8888-9999-000000000000");
@@ -167,31 +175,31 @@ namespace Test.Shared
 
             SortedDictionary<string, object> payloads = new SortedDictionary<string, object>(StringComparer.Ordinal)
             {
-                { "started", new { @event = "started", threadGuid = threadGuid, turnGuid = nodeGuid } },
-                { "error-upstream", new { @event = "error", message = "HTTP 500", statusCode = (int?)500 } },
-                { "error-upstream-nostatus", new { @event = "error", message = "HTTP failure", statusCode = (int?)null } },
-                { "error", new { @event = "error", message = "failure" } },
-                { "usage", new { @event = "usage", usage = usage } },
-                { "retrieval", new { @event = "retrieval", chunks = new List<object>
+                { "started", new LiteGraph.Server.Classes.ChatStreamStartedEvent { ThreadGuid = threadGuid, TurnGuid = nodeGuid } },
+                { "error-upstream", new LiteGraph.Server.Classes.ChatStreamErrorEvent { Message = "HTTP 500", StatusCode = 500 } },
+                { "error-upstream-nostatus", new LiteGraph.Server.Classes.ChatStreamErrorEvent { Message = "HTTP failure", StatusCode = null } },
+                { "error", new LiteGraph.Server.Classes.ChatStreamErrorEvent { Message = "failure" } },
+                { "usage", new LiteGraph.Server.Classes.ChatStreamUsageEvent { Usage = usage } },
+                { "retrieval", new LiteGraph.Server.Classes.ChatStreamRetrievalEvent { Chunks = new List<LiteGraph.Server.Classes.ChatRetrievalChunk>
                     {
-                        new { nodeGuid = (Guid?)nodeGuid, name = "first", score = (float?)0.875f },
-                        new { nodeGuid = (Guid?)null, name = (string?)null, score = (float?)null }
+                        new LiteGraph.Server.Classes.ChatRetrievalChunk { NodeGuid = nodeGuid, Name = "first", Score = 0.875f },
+                        new LiteGraph.Server.Classes.ChatRetrievalChunk { NodeGuid = null, Name = null, Score = null }
                     } } },
-                { "retrieval-empty", new { @event = "retrieval", chunks = new List<object>() } },
-                { "delta", new { @event = "delta", content = "text \"quoted\" <b>" } },
-                { "thinking", new { @event = "thinking", content = "reasoning" } },
-                { "tool_call", new { @event = "tool_call", name = "graph_get", arguments = "{\"graphGuid\":\"x\"}", iteration = 2 } },
-                { "tool_result", new { @event = "tool_result", name = "graph_get", success = true, error = (string?)null, runtimeMs = 12.5 } },
-                { "tool_result-error", new { @event = "tool_result", name = "graph_get", success = false, error = "bad", runtimeMs = 0.0 } },
-                { "transcript", new List<object>
+                { "retrieval-empty", new LiteGraph.Server.Classes.ChatStreamRetrievalEvent { Chunks = new List<LiteGraph.Server.Classes.ChatRetrievalChunk>() } },
+                { "delta", new LiteGraph.Server.Classes.ChatStreamContentEvent { Event = "delta", Content = "text \"quoted\" <b>" } },
+                { "thinking", new LiteGraph.Server.Classes.ChatStreamContentEvent { Event = "thinking", Content = "reasoning" } },
+                { "tool_call", new LiteGraph.Server.Classes.ChatStreamToolCallEvent { Name = "graph_get", Arguments = "{\"graphGuid\":\"x\"}", Iteration = 2 } },
+                { "tool_result", new LiteGraph.Server.Classes.ChatStreamToolResultEvent { Name = "graph_get", Success = true, Error = null, RuntimeMs = 12.5 } },
+                { "tool_result-error", new LiteGraph.Server.Classes.ChatStreamToolResultEvent { Name = "graph_get", Success = false, Error = "bad", RuntimeMs = 0.0 } },
+                { "transcript", new List<LiteGraph.Server.Classes.ChatToolTranscriptEntry>
                     {
-                        new { iteration = 1, name = "graph_all", arguments = "{}", success = true, error = (string?)null, runtimeMs = 3.25 },
-                        new { iteration = 2, name = "graph_get", arguments = "{}", success = false, error = "bad", runtimeMs = 0.0 }
+                        new LiteGraph.Server.Classes.ChatToolTranscriptEntry { Iteration = 1, Name = "graph_all", Arguments = "{}", Success = true, Error = null, RuntimeMs = 3.25 },
+                        new LiteGraph.Server.Classes.ChatToolTranscriptEntry { Iteration = 2, Name = "graph_get", Arguments = "{}", Success = false, Error = "bad", RuntimeMs = 0.0 }
                     } },
-                { "tool-error-content", new { error = "bad" } },
-                { "tool-error-content-null", new { error = (string?)null } },
-                { "request-history-deleted", new { Deleted = 42 } },
-                { "seed-data", new { description = "Default LiteGraph API service node." } }
+                { "tool-error-content", new LiteGraph.Server.Classes.ChatToolErrorContent { Error = "bad" } },
+                { "tool-error-content-null", new LiteGraph.Server.Classes.ChatToolErrorContent { Error = null } },
+                { "request-history-deleted", new Dictionary<string, object> { { "Deleted", 42 } } },
+                { "seed-data", new Dictionary<string, object> { { "description", "Default LiteGraph API service node." } } }
             };
 
             SortedDictionary<string, string> actual = new SortedDictionary<string, string>(StringComparer.Ordinal);
@@ -202,6 +210,65 @@ namespace Test.Shared
             }
 
             await CompareAotServerBaseline("server-payload-baseline.json", actual, token).ConfigureAwait(false);
+        }
+
+        private static Task TestAotServerContextCoverage(CancellationToken token)
+        {
+            // Under Native AOT (and in the server, which turns reflection-based serialization off in every build) a type
+            // without metadata fails; this catches one here, where reflection would otherwise hide it.
+            JsonSerializerOptions options = new JsonSerializerOptions();
+            List<string> missing = new List<string>();
+            foreach (Type type in _AotServerParityTypes)
+            {
+                if (LiteGraphJsonContext.Default.GetTypeInfo(type) == null && LiteGraph.Server.Classes.ServerJson.Resolver.GetTypeInfo(type, options) == null)
+                    missing.Add(AotTypeKey(type));
+            }
+
+            AssertTrue(missing.Count == 0, "No source-generated metadata for: " + String.Join(", ", missing));
+            return Task.CompletedTask;
+        }
+
+        private static Task TestAotServerSslSettings(CancellationToken token)
+        {
+            LiteGraph.Server.Classes.ServerJson.Register();
+            string directory = Path.Combine(Path.GetTempPath(), "litegraph-aot-ssl-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(directory);
+
+            try
+            {
+                string pfx = Path.Combine(directory, "server.pfx");
+                using (System.Security.Cryptography.RSA rsa = System.Security.Cryptography.RSA.Create(2048))
+                {
+                    System.Security.Cryptography.X509Certificates.CertificateRequest request = new System.Security.Cryptography.X509Certificates.CertificateRequest(
+                        "CN=litegraph-test", rsa, System.Security.Cryptography.HashAlgorithmName.SHA256, System.Security.Cryptography.RSASignaturePadding.Pkcs1);
+                    using (System.Security.Cryptography.X509Certificates.X509Certificate2 certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(1)))
+                    {
+                        File.WriteAllBytes(pfx, certificate.Export(System.Security.Cryptography.X509Certificates.X509ContentType.Pkcs12, "secret"));
+                    }
+                }
+
+                LiteGraph.Server.Classes.Settings settings = new LiteGraph.Server.Classes.Settings();
+                settings.Rest.Ssl.Enable = true;
+                settings.Rest.Ssl.PfxCertificateFile = pfx;
+                settings.Rest.Ssl.PfxCertificatePassword = "secret";
+                AssertNotNull(settings.Rest.Ssl.SslCertificate, "The certificate loads from the PFX file");
+
+                Serializer serializer = new Serializer();
+                string json = serializer.SerializeJson(settings, true);
+                AssertFalse(json.Contains("SslCertificate", StringComparison.Ordinal), "The certificate object is not written");
+
+                LiteGraph.Server.Classes.Settings read = serializer.DeserializeJson<LiteGraph.Server.Classes.Settings>(json);
+                AssertTrue(read.Rest.Ssl.Enable, "SSL stays enabled");
+                AssertEqual(pfx, read.Rest.Ssl.PfxCertificateFile, "The PFX file round-trips");
+                AssertEqual("secret", read.Rest.Ssl.PfxCertificatePassword, "The PFX password round-trips");
+                AssertNotNull(read.Rest.Ssl.SslCertificate, "The certificate loads from the round-tripped settings");
+            }
+            finally
+            {
+                try { Directory.Delete(directory, true); } catch { }
+            }
+
+            return Task.CompletedTask;
         }
 
         private static async Task TestAotServerLive(CancellationToken cancellationToken)

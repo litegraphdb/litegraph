@@ -6,7 +6,7 @@
     /// <summary>
     /// API versions.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    [JsonConverter(typeof(JsonStringEnumConverter<ApiVersionEnum>))]
     public enum ApiVersionEnum
     {
         /// <summary>

@@ -5,6 +5,8 @@ namespace LiteGraph.Server.Classes
     using System.Globalization;
     using System.Text.Json;
     using System.Text.Json.Serialization;
+    using System.Text.Json.Serialization.Metadata;
+    using LiteGraph.Serialization;
 
     /// <summary>
     /// Formats operational log records.
@@ -76,7 +78,7 @@ namespace LiteGraph.Server.Classes
             if (!String.IsNullOrEmpty(traceId)) record["traceId"] = traceId;
             if (includeResponseBody && !String.IsNullOrEmpty(responseBody)) record["responseBody"] = responseBody;
 
-            return JsonSerializer.Serialize(record, JsonOptions);
+            return JsonSerializer.Serialize(record, (JsonTypeInfo<Dictionary<string, object>>)JsonOptions.GetTypeInfo(typeof(Dictionary<string, object>)));
         }
 
         #endregion
@@ -86,7 +88,8 @@ namespace LiteGraph.Server.Classes
         private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            WriteIndented = false
+            WriteIndented = false,
+            TypeInfoResolver = LiteGraphJsonContext.Default
         };
 
         #endregion

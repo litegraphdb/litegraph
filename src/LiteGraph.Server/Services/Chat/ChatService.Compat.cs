@@ -251,7 +251,7 @@ namespace LiteGraph.Server.Services.Chat
                 MaxOutputTokens = compat.MaxOutputTokens
             };
 
-            List<object> toolTranscript = new List<object>();
+            List<ChatToolTranscriptEntry> toolTranscript = new List<ChatToolTranscriptEntry>();
             ChatCompletionResult result = new ChatCompletionResult
             {
                 ThreadGUID = thread.GUID,

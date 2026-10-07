@@ -68,6 +68,9 @@ namespace LiteGraph.Server
 
         public static async Task Main(string[] args)
         {
+            // JSON metadata for the server's own types; required under Native AOT, and the same path under the JIT.
+            ServerJson.Register();
+
             try
             {
                 RegisterShutdownHandlers();
@@ -1025,7 +1028,7 @@ namespace LiteGraph.Server
                     Name = "LiteGraph Server",
                     Labels = new List<string> { "Service" },
                     Tags = Tags(("role", "api"), ("state", "ready")),
-                    Data = new { description = "Default LiteGraph API service node." },
+                    Data = new Dictionary<string, object> { { "description", "Default LiteGraph API service node." } },
                     CreatedUtc = now,
                     LastUpdateUtc = now
                 },
@@ -1037,7 +1040,7 @@ namespace LiteGraph.Server
                     Name = "PostgreSQL Storage",
                     Labels = new List<string> { "Storage" },
                     Tags = Tags(("provider", "postgresql"), ("state", "ready")),
-                    Data = new { description = "Default PostgreSQL storage node." },
+                    Data = new Dictionary<string, object> { { "description", "Default PostgreSQL storage node." } },
                     CreatedUtc = now,
                     LastUpdateUtc = now
                 },
@@ -1049,7 +1052,7 @@ namespace LiteGraph.Server
                     Name = "LiteGraph Dashboard",
                     Labels = new List<string> { "Application" },
                     Tags = Tags(("role", "dashboard"), ("state", "ready")),
-                    Data = new { description = "Default dashboard application node." },
+                    Data = new Dictionary<string, object> { { "description", "Default dashboard application node." } },
                     CreatedUtc = now,
                     LastUpdateUtc = now
                 }
@@ -1077,7 +1080,7 @@ namespace LiteGraph.Server
                     Cost = 1,
                     Labels = new List<string> { "Storage" },
                     Tags = Tags(("path", "database")),
-                    Data = new { description = "LiteGraph persists graph data to PostgreSQL." },
+                    Data = new Dictionary<string, object> { { "description", "LiteGraph persists graph data to PostgreSQL." } },
                     CreatedUtc = now,
                     LastUpdateUtc = now
                 },
@@ -1092,7 +1095,7 @@ namespace LiteGraph.Server
                     Cost = 1,
                     Labels = new List<string> { "Dashboard" },
                     Tags = Tags(("path", "rest")),
-                    Data = new { description = "The dashboard manages LiteGraph through the REST API." },
+                    Data = new Dictionary<string, object> { { "description", "The dashboard manages LiteGraph through the REST API." } },
                     CreatedUtc = now,
                     LastUpdateUtc = now
                 }

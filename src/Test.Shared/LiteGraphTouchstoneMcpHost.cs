@@ -21,6 +21,7 @@ namespace Test.Shared
         private static readonly TimeSpan _StartupRetryDelay = TimeSpan.FromSeconds(1);
         private const int _StartupAttemptLimit = 3;
         private const string _McpExecutableEnvironmentVariable = "LITEGRAPH_TEST_MCP_EXECUTABLE";
+        private const string _ServerExecutableEnvironmentVariable = "LITEGRAPH_TEST_SERVER_EXECUTABLE";
         private static McpProcessEnvironment? _McpEnvironment = null;
 
         private static HttpClient CreateReadinessClient()
@@ -149,7 +150,7 @@ namespace Test.Shared
                 LiteGraphWorkingDirectory = liteGraphWorkingDirectory,
                 McpWorkingDirectory = mcpWorkingDirectory,
                 DatabasePath = Path.Combine(liteGraphWorkingDirectory, "litegraph.db"),
-                LiteGraphAssemblyPath = ResolveBuildOutput("LiteGraph.Server", configuration, targetFramework, "LiteGraph.Server.dll"),
+                LiteGraphAssemblyPath = ResolveServerPath(configuration, targetFramework),
                 McpAssemblyPath = ResolveMcpServerPath(configuration, targetFramework),
                 ApiKey = apiKey,
                 LiteGraphPort = liteGraphPort,
@@ -162,17 +163,28 @@ namespace Test.Shared
 
         private static string ResolveMcpServerPath(string configuration, string targetFramework)
         {
-            // LITEGRAPH_TEST_MCP_EXECUTABLE runs the MCP suites against another build of the MCP server, such as a
-            // Native AOT binary (see docs/AOT.md); by default the suites start the JIT build next to this one.
-            string? executable = Environment.GetEnvironmentVariable(_McpExecutableEnvironmentVariable);
-            if (!String.IsNullOrEmpty(executable))
-            {
-                string fullPath = Path.GetFullPath(executable);
-                if (!File.Exists(fullPath)) throw new FileNotFoundException(_McpExecutableEnvironmentVariable + " names a file that does not exist", fullPath);
-                return fullPath;
-            }
+            // LITEGRAPH_TEST_MCP_EXECUTABLE runs the suites against another build of the MCP server, such as a Native AOT
+            // executable (see docs/AOT.md); by default they start the JIT build next to this one.
+            return ResolveExecutableOverride(_McpExecutableEnvironmentVariable)
+                ?? ResolveBuildOutput("LiteGraph.McpServer", configuration, targetFramework, "LiteGraph.McpServer.dll");
+        }
 
-            return ResolveBuildOutput("LiteGraph.McpServer", configuration, targetFramework, "LiteGraph.McpServer.dll");
+        private static string ResolveServerPath(string configuration, string targetFramework)
+        {
+            // LITEGRAPH_TEST_SERVER_EXECUTABLE runs the suites against another build of the REST server, such as a Native
+            // AOT executable (see docs/AOT.md); by default they start the JIT build next to this one.
+            return ResolveExecutableOverride(_ServerExecutableEnvironmentVariable)
+                ?? ResolveBuildOutput("LiteGraph.Server", configuration, targetFramework, "LiteGraph.Server.dll");
+        }
+
+        private static string? ResolveExecutableOverride(string environmentVariable)
+        {
+            string? executable = Environment.GetEnvironmentVariable(environmentVariable);
+            if (String.IsNullOrEmpty(executable)) return null;
+
+            string fullPath = Path.GetFullPath(executable);
+            if (!File.Exists(fullPath)) throw new FileNotFoundException(environmentVariable + " names a file that does not exist", fullPath);
+            return fullPath;
         }
 
         private static ManagedProcess StartDotnetProcess(

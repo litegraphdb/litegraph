@@ -1018,7 +1018,7 @@ namespace LiteGraph.Server.Services
         private static void AssertRouteLabelsComplete()
         {
             HashSet<string> labels = new HashSet<string>(StringComparer.Ordinal);
-            foreach (RequestTypeEnum requestType in (RequestTypeEnum[])Enum.GetValues(typeof(RequestTypeEnum)))
+            foreach (RequestTypeEnum requestType in Enum.GetValues<RequestTypeEnum>())
             {
                 string label = RouteLabel(requestType);
                 if (String.IsNullOrWhiteSpace(label))
