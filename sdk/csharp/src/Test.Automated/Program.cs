@@ -2030,7 +2030,15 @@ namespace Test.Automated
 
 			string marker = "/v1.0/no-such-route-" + Guid.NewGuid().ToString("N");
 			await sdk.Get<object>(_Endpoint.TrimEnd('/') + marker).ConfigureAwait(false);
-			await Task.Delay(500).ConfigureAwait(false);
+
+			// Request history is captured after the response is sent; wait until the entry is stored.
+			for (int attempt = 0; attempt < 40; attempt++)
+			{
+				EnumerationResult<RequestHistoryEntry>? captured = await sdk.RequestHistory.Search(new RequestHistorySearchRequest { Path = marker }).ConfigureAwait(false);
+				if (captured != null && captured.Objects.Count > 0) break;
+				await Task.Delay(250).ConfigureAwait(false);
+			}
+
 			RequestHistoryDeleteResult? deleted = await sdk.RequestHistory.DeleteMany(new RequestHistorySearchRequest { Path = marker }).ConfigureAwait(false);
 			AssertNotNull(deleted, "Bulk delete result");
 			AssertTrue(deleted!.Deleted >= 1, "Bulk delete removes matching entries");
