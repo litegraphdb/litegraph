@@ -4,6 +4,8 @@ The LiteGraph MCP server exposes the graph database as a set of Model Context Pr
 
 For the setup walkthrough (build, install, start, and connect Claude), see [Using Claude with LiteGraph](CLAUDE_MCP.md). For the underlying HTTP contract that every tool wraps, see the [REST API](REST_API.md).
 
+As of v10.2 the MCP server can also be published as a Native AOT executable that needs no .NET runtime; tools, transports, and settings are the same. See [Native AOT and trimming](AOT.md#the-mcp-server-as-a-native-executable).
+
 ## Transports
 
 The server is built on Voltaic 2.x and listens on three transports at once. All three expose the same operations under the same names; pick whichever fits the client. `tools/list` publishes only LiteGraph tools; Voltaic's demo tools (`echo`, `getTime`, `getSessions`, `getClients`) are not exposed. The protocol `ping` method is always available and returns `{}`.

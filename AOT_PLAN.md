@@ -2,7 +2,8 @@
 
 Status: **implemented in v10.2.0** (branch `feature/aot`). The library and the C# SDK are AOT-compatible; see
 [docs/AOT.md](docs/AOT.md) for the user-facing guide and §0 below for how the implementation differs from the plan.
-`LiteGraph.McpServer` and `LiteGraph.Server` (Phase 6) were not attempted and still run on the JIT.
+Phase 6: `LiteGraph.McpServer` was made Native AOT compatible afterward (branch `feature/aot-mcp`; see the Phase 6
+status note). `LiteGraph.Server` still runs on the JIT only.
 
 Goal: an application that references LiteGraph and publishes with `PublishAot=true` builds with **zero trim or AOT
 warnings that come from LiteGraph** and runs correctly on SQLite and PostgreSQL. Behavior under the JIT (all current
@@ -287,6 +288,20 @@ server's `API/` folder), so each needs its own `JsonSerializerContext` registere
 dependencies (Watson, Voltaic, PolyPrompt, StackExchange.Redis, OpenTelemetry, Clutch.Sdk) have not been probed. Start
 this phase with the same rooted-publish probe (§1.2) to size it. If AOT for the server is ever wanted, it is its own
 project; it should not block library readiness.
+
+**Status (MCP server, done).** Once Voltaic 2.3.0 (and Watson 7.3.0, SyslogLogging 2.4.0) shipped AOT-compatible,
+the MCP server's Native AOT publish went from 84 warnings (72 of them Voltaic's) to 8, all from the two call sites
+above. The work: 194 literal tool schemas rewritten mechanically (Roslyn) from anonymous objects to JSON text parsed by
+`LiteGraphMcpSchema.Parse`, the dynamically built authorization schemas moved to dictionaries, the `node_routes`
+request body moved to a dictionary, settings metadata in `LiteGraphMcpJsonContext`, and the two call sites fixed. The
+`Mcp.Protocol.ToolsListBaseline` case, captured before any change, confirms all 211 tools are byte-identical. The
+native executable passes every MCP-dependent Touchstone suite (net10.0 and net8.0) and writes the same settings file
+as the JIT build.
+
+**Status (REST server, not started).** With Watson 7.3.0 and PolyPrompt 3.2.0, the server's remaining warnings are its
+own (6 call sites) and Clutch.Sdk's (cluster mode only, an AOT-compatible release pending). The larger job is not in
+the warnings: the server crashes at startup on its `Settings` type and needs metadata for about 80 types, a review of
+238 `Serializer` calls, and replacements for 83 anonymous objects (66 of them chat tool schemas).
 
 ---
 

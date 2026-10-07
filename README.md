@@ -72,6 +72,7 @@ v10.2 makes the `LiteGraph` library and the `LiteGraph.Sdk` C# SDK compatible wi
 - Both packages set `IsAotCompatible` and build with no trim or AOT warnings. Every type they serialize has source-generated metadata (`LiteGraphJsonContext`, `LiteGraphSdkJsonContext`), which applications can also add to their own `JsonSerializerOptions`.
 - Applications that store their own classes in `Data` register a `JsonSerializerContext` once with `Serializer.AddTypeInfoResolver`, or pass type metadata to the new `ConvertData` and `DeserializeJson` overloads. `JsonElement`, `JsonNode`, primitives, dictionaries, and lists need no registration. Under the JIT nothing changes: any serializable object still works.
 - GEXF export writes XML directly instead of through `XmlSerializer`, with identical output.
+- The MCP server can be published as a Native AOT executable (`-p:PublishAot=true`) that needs no .NET runtime, with the same tools, settings, and transports. The Docker image still runs the JIT build.
 - Updated packages: PolyPrompt 3.2.0, Voltaic 2.3.0, Watson 7.3.0, SyslogLogging 2.4.0, and Clutch.Sdk 0.3.0, the Native AOT compatible releases.
 - Verified by `src/Test.Aot`, a Native AOT end-to-end run on SQLite and PostgreSQL, by the SDK's test suite published as a Native AOT binary, and by a new Touchstone suite that checks every model type's JSON byte for byte against 10.1.
 

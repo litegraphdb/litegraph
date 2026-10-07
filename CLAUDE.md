@@ -21,6 +21,11 @@ LITEGRAPH_TEST_POSTGRESQL_CONNECTION_STRING="Host=127.0.0.1;Port=5432;Username=.
 # Native AOT check of the library (trim/AOT warnings are errors; runs SQLite, plus PostgreSQL when the variable is set)
 dotnet publish src/Test.Aot/Test.Aot.csproj -c Release -f net10.0 -r osx-arm64 -o out/aot && out/aot/Test.Aot
 
+# Native AOT check of the MCP server (any IL warning fails the publish), then the MCP suites against the executable
+dotnet publish src/LiteGraph.McpServer/LiteGraph.McpServer.csproj -c Release -f net10.0 -r osx-arm64 -p:PublishAot=true -o out/mcp-aot
+LITEGRAPH_TEST_MCP_EXECUTABLE=out/mcp-aot/LiteGraph.McpServer \
+  dotnet run --project src/Test.Automated/Test.Automated.csproj --framework net10.0 -- --suite Mcp.Protocol,Mcp.Server
+
 # Run the server (single node, SQLite, creates litegraph.json and litegraph.db in the current directory)
 dotnet run --project src/LiteGraph.Server/LiteGraph.Server.csproj --framework net10.0
 
@@ -86,8 +91,13 @@ Tenant → Graph → Nodes/Edges → Labels/Tags/Vectors
 - `LiteGraph` and `LiteGraph.Sdk` set `IsAotCompatible`; builds must stay free of IL warnings.
 - In the library and the SDK, all JSON goes through `Serializer` (or options built with `Serializer.CreateResolver`, or a
   `JsonTypeInfo<T>`). Never call `JsonSerializer` with plain options there, and do not add reflection, `XmlSerializer`,
-  anonymous types in serialized values, or the non-generic `JsonStringEnumConverter`. The server, MCP server, and console
-  still run on the JIT and are not held to this.
+  anonymous types in serialized values, or the non-generic `JsonStringEnumConverter`. The server and console still run
+  on the JIT and are not held to this.
+- `LiteGraph.McpServer` also publishes as a Native AOT executable and is held to the same rules: tool schemas are JSON
+  text passed to `LiteGraphMcpSchema.Parse` (or dictionaries from `LiteGraphMcpSchema.Property`/`Object`), never
+  anonymous objects; settings classes hang off `LiteGraphMcpServerSettings` (metadata in `LiteGraphMcpJsonContext`).
+  Its trim and AOT analyzers run on every build. `Mcp.Protocol.ToolsListBaseline` pins every tool's `tools/list` JSON;
+  recapture `Baselines/mcp-tools-baseline.json` only for an intended tool change.
 - A new serialized type needs a `[JsonSerializable]` entry in `Serialization/LiteGraphJsonContext.cs` (or
   `LiteGraphSdkJsonContext.cs`) and in the parity list in `Test.Shared/LiteGraphTouchstoneAotSuites.cs`.
 - JSON output is pinned by baselines in `Test.Shared/Baselines`; run `--suite Aot.Serialization` (any time zone).

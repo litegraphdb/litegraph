@@ -8,6 +8,8 @@ One behavior fix applies to every deployment and client: on machines whose time 
 
 Applications that embed LiteGraph or use the C# SDK need no changes under the JIT. To publish them with Native AOT, see [Native AOT and trimming](AOT.md): classes the application stores in `Data` must be registered with `Serializer.AddTypeInfoResolver`, and anonymous objects in `Data` must become dictionaries or named classes.
 
+The MCP server can now also be published as a Native AOT executable (see [Native AOT and trimming](AOT.md#the-mcp-server-as-a-native-executable)). It is optional: the JIT build and the Docker image are unchanged and read the same `litegraph.json`.
+
 ---
 
 ## Upgrading From v9.x To v10.0 (Breaking On PostgreSQL)

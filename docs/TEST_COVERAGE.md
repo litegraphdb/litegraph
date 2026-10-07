@@ -345,8 +345,10 @@ The bulk of the 205 MCP tools are covered inside the domain tables above: the `M
 | Source-generated metadata covers every model type | `Aot.ContextCoverage` | — | — |
 | JIT behavior for exceptions and unregistered types | `Aot.JitCompatibility` | — | — |
 | GEXF export output | `Aot.GexfParity` (against the `XmlSerializer` baseline) | — | — |
-| Library under Native AOT (SQLite and PostgreSQL) | `src/Test.Aot`, published with `PublishAot` and run in CI | Unregistered application type fails with `NotSupportedException`; failing transaction rolls back with a provider error code | Server, MCP server, and console are not published with Native AOT |
+| Library under Native AOT (SQLite and PostgreSQL) | `src/Test.Aot`, published with `PublishAot` and run in CI | Unregistered application type fails with `NotSupportedException`; failing transaction rolls back with a provider error code | Server and console are not published with Native AOT |
 | C# SDK under Native AOT | `SDK-C#` suite published with `PublishAot=true` against a live server (157 cases), run in CI | Same negatives as the JIT run | — |
+| MCP server under Native AOT (net10.0 and net8.0) | `Mcp.Protocol`, `Mcp.Server`, `Authorization`, `Onboarding`, `Observability`, `Chat.Rest`, and `Improvements.Foundation` run against the native executable (`LITEGRAPH_TEST_MCP_EXECUTABLE`) in CI | Same negatives as the JIT run (missing and mistyped arguments, unknown tools, translated errors) | Docker image still runs the JIT build |
+| MCP tool names, descriptions, and schemas | `Mcp.Protocol.ToolsListBaseline` (211 tools, byte for byte against a baseline captured before the schemas moved from anonymous objects to JSON) | — | — |
 
 ## SDK client coverage (summary)
 

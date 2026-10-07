@@ -115,6 +115,15 @@ jobs:
           dotnet publish sdk/csharp/src/Test.Automated/Test.Automated.csproj -c Release -r linux-x64 -p:PublishAot=true -o artifacts/sdk-aot
           LITEGRAPH_ENDPOINT=http://localhost:8701 artifacts/sdk-aot/Test.Automated
 
+      - name: Native AOT MCP server verification (MCP suites against a native MCP server, net10.0 and net8.0)
+        run: |
+          for framework in net10.0 net8.0; do
+            dotnet publish src/LiteGraph.McpServer/LiteGraph.McpServer.csproj -c Release -f "$framework" -r linux-x64 -p:PublishAot=true -o "artifacts/mcp-aot/$framework"
+            LITEGRAPH_TEST_MCP_EXECUTABLE="artifacts/mcp-aot/$framework/LiteGraph.McpServer" \
+              dotnet run --project src/Test.Automated/Test.Automated.csproj -c Debug --framework net10.0 -- \
+              --suite Mcp.Protocol,Mcp.Server,Authorization,Onboarding,Observability,Chat.Rest,Improvements.Foundation
+          done
+
       - name: Upload test server logs
         if: failure()
         uses: actions/upload-artifact@v7
