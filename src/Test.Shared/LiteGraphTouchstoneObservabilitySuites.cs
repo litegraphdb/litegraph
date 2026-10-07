@@ -119,7 +119,8 @@ namespace Test.Shared
                 int status = await SendRestRequestAsync(HttpMethod.Get, _McpEnvironment.LiteGraphEndpoint + "/v1.0/tenants", null, cancellationToken).ConfigureAwait(false);
                 AssertTrue(status >= 400 && status < 500, "Unauthenticated tenant listing returns a client error status");
 
-                string metrics = await ScrapeAsync(_McpEnvironment.LiteGraphEndpoint + "/metrics", cancellationToken).ConfigureAwait(false);
+                // Request metrics are recorded after the response is sent, so the counter can trail the response briefly.
+                string metrics = await ScrapeUntilCountAsync(_McpEnvironment.LiteGraphEndpoint + "/metrics", 1, "litegraph_http_request_errors_total", new[] { "component=\"rest\"", "status_class=\"4xx\"" }, cancellationToken).ConfigureAwait(false);
 
                 double errorCount = SumMetricSeries(metrics, "litegraph_http_request_errors_total", "component=\"rest\"", "status_class=\"4xx\"");
                 AssertTrue(errorCount >= 1, "REST error counter increments for a 4xx response");
@@ -268,6 +269,20 @@ namespace Test.Shared
                 cancellationToken.ThrowIfCancellationRequested();
                 metrics = await ScrapeAsync(url, cancellationToken).ConfigureAwait(false);
                 if (metrics.Contains(expectedSubstring)) return metrics;
+                await Task.Delay(250, cancellationToken).ConfigureAwait(false);
+            }
+
+            return metrics;
+        }
+
+        private static async Task<string> ScrapeUntilCountAsync(string url, double minimum, string metricName, string[] requiredLabels, CancellationToken cancellationToken)
+        {
+            string metrics = String.Empty;
+            for (int attempt = 0; attempt < 20; attempt++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                metrics = await ScrapeAsync(url, cancellationToken).ConfigureAwait(false);
+                if (SumMetricSeries(metrics, metricName, requiredLabels) >= minimum) return metrics;
                 await Task.Delay(250, cancellationToken).ConfigureAwait(false);
             }
 
