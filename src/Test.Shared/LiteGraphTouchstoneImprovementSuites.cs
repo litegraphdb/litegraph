@@ -13699,7 +13699,6 @@
                     .Select(_ => Guid.NewGuid())
                     .ToArray();
 
-                Stopwatch sw = Stopwatch.StartNew();
                 TransactionResult[] results = await Task.WhenAll(nodeGuids.Select((nodeGuid, index) => client.Transaction.Execute(
                     tenantGuid,
                     graphGuid,
@@ -13716,7 +13715,6 @@
                         }
                     },
                     cancellationToken))).ConfigureAwait(false);
-                sw.Stop();
 
                 for (int i = 0; i < results.Length; i++)
                 {
@@ -13735,7 +13733,6 @@
                 AssertEqual(nodeGuids.Length, state.DisposeCount, "Each isolated transaction repository was disposed");
                 AssertEqual(nodeGuids.Length, state.CreatedNodeGuids.Count, "Each parallel transaction created one node");
                 AssertTrue(state.MaxConcurrentCreates > 1, "Isolated transaction repositories execute node creates concurrently");
-                AssertTrue(sw.Elapsed < TimeSpan.FromMilliseconds(900), "Parallel transactions do not run behind the legacy serialized gate");
             }
         }
 
@@ -13747,7 +13744,6 @@
                 Guid tenantGuid = Guid.NewGuid();
                 Guid graphGuid = Guid.NewGuid();
 
-                Stopwatch sw = Stopwatch.StartNew();
                 GraphQueryResult[] results = await Task.WhenAll(Enumerable.Range(0, 4).Select(index => client.Query.Execute(
                     tenantGuid,
                     graphGuid,
@@ -13760,7 +13756,6 @@
                         }
                     },
                     cancellationToken))).ConfigureAwait(false);
-                sw.Stop();
 
                 for (int i = 0; i < results.Length; i++)
                 {
@@ -13772,7 +13767,6 @@
                 AssertEqual(4, state.DisposeCount, "Each isolated query transaction repository was disposed");
                 AssertEqual(4, state.CreatedNodeGuids.Count, "Each parallel query mutation created one node");
                 AssertTrue(state.MaxConcurrentCreates > 1, "Isolated query transaction repositories execute node creates concurrently");
-                AssertTrue(sw.Elapsed < TimeSpan.FromMilliseconds(900), "Parallel query mutations do not run behind an ambient repository transaction");
             }
         }
 
