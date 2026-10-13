@@ -603,6 +603,16 @@ namespace LiteGraph.Server
 
             if (_CreateDefaultRecords) await CreateDefaultRecords().ConfigureAwait(false);
 
+            DefaultCredentialStatus defaultCredentials = await DefaultCredentialService.Read(_Settings, _Repo, _Token).ConfigureAwait(false);
+            if (defaultCredentials.HasDefaultCredentials)
+            {
+                Console.WriteLine("WARNING: " + DefaultCredentialService.Warning);
+                _Logging.Warn(_Header + DefaultCredentialService.Warning
+                    + " Active defaults: administrator token=" + defaultCredentials.AdministratorToken
+                    + ", seeded user password=" + defaultCredentials.SeededUserPassword
+                    + ", seeded bearer token=" + defaultCredentials.SeededBearerToken);
+            }
+
             #endregion
 
             #region LiteGraph-Client

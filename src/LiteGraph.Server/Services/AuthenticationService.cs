@@ -66,6 +66,12 @@ namespace LiteGraph.Server.Services
 
         #region Internal-Methods
 
+        internal Task<DefaultCredentialStatus> ReadDefaultCredentialStatus(CancellationToken token = default)
+        {
+            return DefaultCredentialService.Read(_Settings, _Repo, token);
+        }
+
+
         /// <summary>
         /// Authenticate and authorize.
         /// </summary>

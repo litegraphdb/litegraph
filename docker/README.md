@@ -18,6 +18,8 @@ docker compose up -d
 smoke.bat
 ```
 
+**Before production or remote access, change all default credentials.** Follow the [production guidance](../README.md#before-production-or-remote-access) for the administrator token, seeded administrator password, and seeded bearer credential. Startup and dashboard warnings are reminders; they do not restrict access.
+
 Then open the dashboard at http://127.0.0.1:3001 and sign in with the default administrator (`default@user.com` / `password`), or call the API at http://127.0.0.1:8701 with `Authorization: Bearer litegraphadmin`. Replace `single-node-postgresql` with either of the other directories to run that deployment instead. `smoke.bat` (or `pwsh ./smoke.ps1` on Linux and macOS) checks every service, a vector write and search round trip, and the deployment-specific behavior, and exits non-zero on the first failure.
 
 | Service | URL | Credentials |

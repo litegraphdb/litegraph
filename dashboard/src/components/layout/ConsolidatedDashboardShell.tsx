@@ -1,6 +1,7 @@
 'use client';
 import React, { useMemo } from 'react';
 import DashboardLayout from './DashboardLayout';
+import DefaultCredentialsBanner from './DefaultCredentialsBanner';
 import { buildNavForPrincipal, navSectionsToMenuItems } from '@/constants/sidebar';
 import { usePrincipal } from '@/hooks/permissionHooks';
 
@@ -33,6 +34,7 @@ const ConsolidatedDashboardShell = ({
       useTenantSelector={principal.isSystemAdmin || principal.isBreakGlass}
       isAdmin={principal.isSystemAdmin || principal.isBreakGlass}
     >
+      <DefaultCredentialsBanner />
       {children}
     </DashboardLayout>
   );

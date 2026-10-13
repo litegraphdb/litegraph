@@ -235,6 +235,7 @@
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.DELETE, "/v1.0/backups/{backupFilename}", BackupDeleteRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Delete backup", "Admin"));
 
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/flush", FlushRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Flush database to disk", "Admin"));
+            _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/security/default-credentials", DefaultCredentialsRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Read default credential availability (system administrator only)", "Admin"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.GET, "/v1.0/settings", SettingsReadRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Read server settings", "Admin"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.PUT, "/v1.0/settings", SettingsUpdateRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Update server settings", "Admin"));
             _Webserver.Routes.PostAuthentication.Parameter.Add(HttpMethod.POST, "/v1.0/settings/restart", SettingsRestartRoute, ExceptionRoute, openApiMetadata: OpenApiRouteMetadata.Create("Restart the server (a rolling restart of every node in cluster mode)", "Admin"));
@@ -1012,6 +1013,22 @@
             }
 
             await WrappedRequestHandler(ctx, req, _ServiceHandler.FlushDatabase);
+        }
+
+        private async Task DefaultCredentialsRoute(HttpContextBase ctx)
+        {
+            RequestContext req = (RequestContext)ctx.Metadata;
+            if (!req.Authentication.IsSystemAdmin)
+            {
+                await NotAdmin(ctx);
+                return;
+            }
+
+            ctx.Response.Headers.Add("Cache-Control", "no-store");
+            DefaultCredentialStatus status = await _Authentication.ReadDefaultCredentialStatus().ConfigureAwait(false);
+            ctx.Response.StatusCode = 200;
+            ctx.Response.ContentType = "application/json";
+            await ctx.Response.Send(_Serializer.SerializeJson(status)).ConfigureAwait(false);
         }
 
         private async Task SettingsReadRoute(HttpContextBase ctx)

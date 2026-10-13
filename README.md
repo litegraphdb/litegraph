@@ -260,6 +260,17 @@ dotnet run --project src/LoadGenerator --framework net8.0 -- --sqlite litegraph.
 
 Everything the tool creates is marked (label `synthetic`, tag `generator=loadgen`, users under the `loadgen.synthetic` email domain, request-history correlation ID `loadgen-synthetic`), so `--wipe`/`--wipe-only` remove only generated data and leave real data untouched. Run with `--help` for the full argument list.
 
+### Before production or remote access
+
+If you're moving to production, change default credentials. Do this **before exposing LiteGraph to an untrusted network**, including during an evaluation. The shipped ports and listener addresses are unchanged; the localhost URLs above do not imply the services are accessible only locally.
+
+- Replace `LiteGraph.AdminBearerToken` (`litegraphadmin`) in `litegraph.json`, or set `LITEGRAPH_ADMIN_BEARER_TOKEN`, with a unique cryptographically random secret (for example, `openssl rand -hex 32`). An environment override takes precedence. Restart the server after changing this setting, and use the same token on every cluster node.
+- Change the seeded `default@user.com` administrator's password (`password`) using the dashboard user editor or the user update API, or disable/delete that account after creating your own administrator.
+- Disable or delete the seeded bearer credential (`default`) using the dashboard credential editor or the credential update/delete API. If clients need a replacement, create a new credential with a unique bearer token and update those clients. Changing the user password does not revoke bearer credentials.
+- Update clients, MCP configuration, scripts, and secret storage that use these credentials. Existing database records survive a server upgrade; changing the administrator token alone does not change the seeded user or credential.
+
+At startup, LiteGraph warns through the console and configured logging/syslog when known default credentials remain usable. System administrators also see a dashboard warning, even when signing in with custom credentials. Dismissing it lasts until the next login. These notices do not block startup, alter authentication, or restrict network access.
+
 ## Docker Images
 
 The Compose deployments use these images, selected by `LITEGRAPH_IMAGE_TAG` (default `v10.2.0`):

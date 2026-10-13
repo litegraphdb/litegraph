@@ -17,6 +17,7 @@ namespace LiteGraph.Server.Classes
     [JsonSourceGenerationOptions(UseStringEnumConverter = true)]
 
     // Server types.
+    [JsonSerializable(typeof(LiteGraph.Server.Services.DefaultCredentialStatus))]
     [JsonSerializable(typeof(ApiErrorResponse))]
     [JsonSerializable(typeof(AuthenticationToken))]
     [JsonSerializable(typeof(AuthorizationAuditSettings))]

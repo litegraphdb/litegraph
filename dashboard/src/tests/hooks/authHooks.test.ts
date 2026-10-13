@@ -47,6 +47,17 @@ describe('authHooks', () => {
     mockStoreAdminAccessKey.mockClear();
   });
 
+  it('clears warning dismissal on session and administrator login', () => {
+    sessionStorage.setItem('litegraph-default-credentials-dismissed', 'true');
+    const session = renderHook(() => useCredentialsToLogin());
+    act(() => session.result.current(mockCredentialData[0] as unknown as Token, mockTenantData[0]));
+    expect(sessionStorage.getItem('litegraph-default-credentials-dismissed')).toBeNull();
+    sessionStorage.setItem('litegraph-default-credentials-dismissed', 'true');
+    const admin = renderHook(() => useAdminCredentialsToLogin());
+    act(() => admin.result.current('custom-admin'));
+    expect(sessionStorage.getItem('litegraph-default-credentials-dismissed')).toBeNull();
+  });
+
   describe('useFetchUserDetails', () => {
     const mockFetchUser = jest.fn();
 

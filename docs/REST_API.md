@@ -1675,3 +1675,18 @@ LiteGraph v9.0.0 adds native graph algorithms and a portable projection export/i
 Supported `AlgorithmType` values: `DegreeCentrality`, `PageRank`, `ClosenessCentrality`, `EigenvectorCentrality`, `BetweennessCentrality`, `WeaklyConnectedComponents`, `StronglyConnectedComponents`, `LabelPropagation`, `Louvain`, `ClusteringCoefficient`, `KCore`.
 
 The algorithm request also accepts `UseCache` (serve/store a cached result, invalidated when the graph's node or edge count changes). Algorithms are additionally callable from the native query language via `CALL litegraph.algo.<name>() RETURN guid, score` on the `/query` route — see [DSL.md](DSL.md) and [ALGORITHMS.md](ALGORITHMS.md).
+
+## Default Credential Status
+
+`GET /v1.0/security/default-credentials` requires system administrator authentication and returns the current availability of known default credentials. It returns boolean flags only; no passwords or bearer tokens are included. The response is not cached.
+
+```json
+{
+  "AdministratorToken": true,
+  "SeededUserPassword": true,
+  "SeededBearerToken": true,
+  "HasDefaultCredentials": true
+}
+```
+
+`AdministratorToken` checks the effective administrator token, including an environment override. `SeededUserPassword` checks active default accounts with the known password in active tenants. `SeededBearerToken` checks the known seeded credential and requires an active credential, user, and tenant. `HasDefaultCredentials` is true if any flag is true. Checks are read-only and do not change authentication or listener behavior.

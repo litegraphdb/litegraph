@@ -1,4 +1,8 @@
 {
+  "defaultCredentials": {
+    "title": "Default credentials are active",
+    "description": "Change default credentials before exposing LiteGraph to an untrusted network. Replace the administrator token, change or disable the seeded administrator account, and rotate or revoke its bearer credential. See the README production guidance."
+  },
   "common": {
     "appName": "LiteGraph",
     "actions": {

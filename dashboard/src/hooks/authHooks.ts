@@ -32,6 +32,7 @@ export const useFetchUserDetails = () => {
 export const useCredentialsToLogin = () => {
   const dispatch = useAppDispatch();
   const loginWithCredentials = (token: Token, tenant: TenantMetaData) => {
+    sessionStorage.removeItem('litegraph-default-credentials-dismissed');
     dispatch(storeToken(token));
     dispatch(storeTenant(tenant));
   };
@@ -41,6 +42,7 @@ export const useCredentialsToLogin = () => {
 export const useAdminCredentialsToLogin = () => {
   const dispatch = useAppDispatch();
   const loginWithAdminCredentials = (accessKey: string) => {
+    sessionStorage.removeItem('litegraph-default-credentials-dismissed');
     dispatch(storeAdminAccessKey(accessKey));
   };
   return loginWithAdminCredentials;
