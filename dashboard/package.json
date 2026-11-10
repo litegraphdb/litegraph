@@ -103,6 +103,9 @@
     "preact": "10.26.10",
     "postcss": "$postcss",
     "qs": "6.16.1",
-    "image-size": "2.0.2"
+    "image-size": "2.0.2",
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "^11.0.1"
+    }
   }
 }
