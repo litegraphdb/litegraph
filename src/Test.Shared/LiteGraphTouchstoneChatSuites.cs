@@ -1798,6 +1798,7 @@ namespace Test.Shared
                     ["/openapi.json"] = "OpenAPI specification document.",
                     ["/swagger"] = "Swagger UI HTML page.",
                     ["/v1.0/settings"] = "Server settings object (single-object read).",
+                    ["/v1.0/security/default-credentials"] = "Default credential status object (single-object read).",
                     ["/v1.0/cluster/nodes"] = "Cluster status object: node list plus settings and restart counters.",
                     ["/v1.0/cluster/locks"] = "Cluster lock list object: availability of the lock service plus the held locks.",
                     ["/v1.0/cluster/jobs"] = "Cluster job list object: registry availability plus the latest run of each job.",

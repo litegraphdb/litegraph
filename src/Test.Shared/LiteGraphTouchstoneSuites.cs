@@ -657,7 +657,8 @@
             // GET .../export/projection, and POST .../algorithms/embeddings.
             // v10.0 added GET /v1.0/cluster/nodes, POST /v1.0/cluster/restart, GET/DELETE /v1.0/cluster/nodes/{nodeId},
             // POST /v1.0/cluster/nodes/{nodeId}/restart, GET /v1.0/cluster/locks, and GET /v1.0/cluster/jobs.
-            AssertEqual(219, postAuthenticationRoutes.Count, "Authenticated route count");
+            // v10.2 added GET /v1.0/security/default-credentials.
+            AssertEqual(220, postAuthenticationRoutes.Count, "Authenticated route count");
             AssertFalse(preAuthenticationRoutes.Overlaps(postAuthenticationRoutes), "Route auth buckets should not overlap");
 
             foreach (string route in criticalAuthenticatedRoutes)
