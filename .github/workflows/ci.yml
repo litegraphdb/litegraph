@@ -1,6 +1,6 @@
 name: CI
 
-# Every test runs on every commit to any branch and on every pull request, on Linux, macOS, and Windows:
+# Every test runs on every push to any branch, on Linux, macOS, and Windows:
 #   - the Touchstone suites (console, xUnit, and NUnit runners) on net10.0 and net8.0, with PostgreSQL and Redis on Linux;
 #   - Native AOT: src/Test.Aot, and the REST server, MCP server, and console tools published as native executables, with
 #     the Touchstone suites run again against the native servers;
@@ -9,12 +9,8 @@ name: CI
 
 on:
   push:
-  pull_request:
-  workflow_dispatch:
-  schedule:
-    - cron: '17 6 * * *'
 
-# A newer commit on a branch or pull request supersedes an older run; every commit to main runs to completion.
+# A newer commit on a branch supersedes an older run; every commit to main runs to completion.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
