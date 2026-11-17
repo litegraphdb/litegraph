@@ -17125,6 +17125,11 @@
             Defines the source generated JSON serialization contract metadata for a given type.
             </summary>
         </member>
+        <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.EnumerationResultRouteDetail">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
         <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.EnumerationResultTagMetadata">
             <summary>
             Defines the source generated JSON serialization contract metadata for a given type.
@@ -17495,6 +17500,16 @@
             Defines the source generated JSON serialization contract metadata for a given type.
             </summary>
         </member>
+        <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.DictionaryGuidGraphStatistics">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.DictionaryGuidTenantStatistics">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
         <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.DictionaryGuidDictionaryStringDouble">
             <summary>
             Defines the source generated JSON serialization contract metadata for a given type.
@@ -17661,6 +17676,11 @@
             </summary>
         </member>
         <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.ListRequestHistorySummaryBucket">
+            <summary>
+            Defines the source generated JSON serialization contract metadata for a given type.
+            </summary>
+        </member>
+        <member name="P:LiteGraph.Serialization.LiteGraphJsonContext.ListRouteDetail">
             <summary>
             Defines the source generated JSON serialization contract metadata for a given type.
             </summary>
