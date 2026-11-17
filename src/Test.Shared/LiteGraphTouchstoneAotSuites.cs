@@ -260,6 +260,7 @@ namespace Test.Shared
 
         private static SortedDictionary<string, Dictionary<string, string>> BuildAotSerializationSnapshot()
         {
+            using AotServerDirectoryGuard directories = new AotServerDirectoryGuard();
             Serializer serializer = new Serializer();
             SortedDictionary<string, Dictionary<string, string>> snapshot = new SortedDictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
 

@@ -5,7 +5,7 @@ namespace Test.Shared
     using System.IO;
 
     /// <summary>
-    /// Removes the directories that server settings samples create in the current directory. Some settings setters create
+    /// Removes the directories that library and server settings samples create in the current directory. Some settings setters create
     /// the directory they are given (StorageSettings.BackupsDirectory, for example), so serializing and deserializing sample
     /// settings would otherwise leave empty folders behind.
     /// </summary>
