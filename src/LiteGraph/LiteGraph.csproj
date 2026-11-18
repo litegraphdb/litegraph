@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFrameworks>net8.0;net10.0</TargetFrameworks>
 		<IsAotCompatible>true</IsAotCompatible>
-		<Version>10.2.0</Version>
+		<Version>10.2.1</Version>
 		<Description>LiteGraph is a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
 		<PackageReleaseNotes>v10.2.0: Native AOT and trimming support (IsAotCompatible). Source-generated JSON metadata (LiteGraphJsonContext), Serializer.AddTypeInfoResolver for application types stored in Data, DeserializeJson and ConvertData overloads that take JsonTypeInfo, and GEXF export without XmlSerializer. SyslogLogging 2.4.0. JSON output and storage are unchanged; no breaking changes.</PackageReleaseNotes>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -15,7 +15,7 @@
 		<PackageProjectUrl>https://github.com/jchristn/LiteGraph</PackageProjectUrl>
 		<PackageIcon>favicon.png</PackageIcon>
 		<RepositoryUrl>https://github.com/jchristn/LiteGraph</RepositoryUrl>
-		<RepositoryType>github</RepositoryType>
+		<RepositoryType>git</RepositoryType>
 		<PackageTags>graph database search traverse rest</PackageTags>
 		<ApplicationIcon>assets\favicon.ico</ApplicationIcon>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -26,6 +26,9 @@
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<DocumentationFile>LiteGraph.xml</DocumentationFile>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
 	</PropertyGroup>
 
 	<ItemGroup>

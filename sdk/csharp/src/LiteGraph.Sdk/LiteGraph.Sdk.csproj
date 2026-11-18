@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<TargetFrameworks>net8.0</TargetFrameworks>
 		<IsAotCompatible>true</IsAotCompatible>
-		<Version>10.2.0</Version>
+		<Version>10.2.1</Version>
 		<Description>SDK for LiteGraph, a property graph database with support for graph relationships, tags, labels, metadata, data, and vectors.</Description>
 		<PackageReleaseNotes>v10.2.0: Native AOT and trimming support (IsAotCompatible). Source-generated JSON metadata (LiteGraphSdkJsonContext), Serializer.AddTypeInfoResolver, and a DeserializeJson overload that takes JsonTypeInfo. JSON output is unchanged; no breaking changes.</PackageReleaseNotes>
 		<ApplicationIcon>Assets\favicon.ico</ApplicationIcon>
@@ -15,13 +15,16 @@
 		<PackageIcon>favicon.png</PackageIcon>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<RepositoryUrl>https://github.com/jchristn/litegraph</RepositoryUrl>
-		<RepositoryType>Github</RepositoryType>
+		<RepositoryType>git</RepositoryType>
 		<PackageTags>litegraph sdk rest graph node edge routing route traversal</PackageTags>
 		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
 		<IncludeSymbols>True</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<DocumentationFile>LiteGraph.Sdk.xml</DocumentationFile>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
 	</PropertyGroup>
 
 	<ItemGroup>
